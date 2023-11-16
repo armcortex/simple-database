@@ -3,9 +3,8 @@
 #include <errno.h>
 #include <sys/utsname.h>
 
-int main() {
-    printf("Hello, World!\n");
-
+void check_environment_info(void) {
+    printf("Current Environment Info: \n");
     struct utsname buffer;
 
     errno = 0;
@@ -19,10 +18,10 @@ int main() {
     printf("release     = %s\n", buffer.release);
     printf("version     = %s\n", buffer.version);
     printf("machine     = %s\n", buffer.machine);
+}
 
-#ifdef _GNU_SOURCE
-    printf("domain name = %s\n", buffer.domainname);
-#endif
+int main() {
+    check_environment_info();
 
-    return 0;
+    return EXIT_SUCCESS;
 }
