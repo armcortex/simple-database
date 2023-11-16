@@ -1,0 +1,9 @@
+# IDE
+.idea
+.vscode
+
+# CMake
+cmake-build-*/
+
+# MISC
+.DS_Store
