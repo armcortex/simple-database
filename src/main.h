@@ -5,4 +5,8 @@
 #ifndef SIMPLE_DATABASE_MAIN_H
 #define SIMPLE_DATABASE_MAIN_H
 
+#include <stdbool.h>
+
+#define VERBOSE false
+
 #endif //SIMPLE_DATABASE_MAIN_H

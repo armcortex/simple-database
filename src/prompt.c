@@ -4,6 +4,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+
 #include "prompt.h"
 
 void print_prompt() {
@@ -26,5 +28,18 @@ void free_prompt_buf(prompt_buf_t *prompt_buf) {
     if (prompt_buf != NULL) {
         free(prompt_buf);
         prompt_buf = NULL;
+    }
+}
+
+void check_command(prompt_buf_t *prompt_buf) {
+    // Exit
+    if (strncmp(prompt_buf->buf, "exit", 4) == 0) {
+        printf("Bye Bye \n");
+        free_prompt_buf(prompt_buf);
+        exit(EXIT_SUCCESS);
+    }
+    // Undefined command
+    else {
+        printf("Unrecognized command '%s' \n", prompt_buf->buf);
     }
 }

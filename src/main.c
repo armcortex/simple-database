@@ -34,6 +34,10 @@ void read_input(prompt_buf_t *prompt_buf) {
     // Delete '\n' newline
     prompt_buf->len = read_bytes - 1;
     prompt_buf->buf[read_bytes-1] = 0;
+
+    if (VERBOSE) {
+        printf("Read %zu bytes, Input: %s \n", prompt_buf->len, prompt_buf->buf);
+    }
 }
 
 int main() {
@@ -44,7 +48,7 @@ int main() {
         print_prompt();
         read_input(prompt_buf);
 
-        printf("Read %zu bytes, Input: %s \n", prompt_buf->len, prompt_buf->buf);
+        check_command(prompt_buf);
     }
 
     return EXIT_SUCCESS;
