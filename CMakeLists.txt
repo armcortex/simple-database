@@ -3,7 +3,17 @@ project(simple_database C)
 
 set(CMAKE_C_STANDARD 11)
 
-add_executable(simple_database src/main.c
-        src/main.h
+#enable_testing()
+add_subdirectory(tests)
+
+set(PROJ_SOURCES
         src/prompt.c
-        src/prompt.h)
+        src/prompt.h
+        src/helper_functions.c
+        src/helper_functions.h
+)
+add_library(simple_database_lib ${PROJ_SOURCES})
+target_include_directories(simple_database_lib PUBLIC src)
+
+add_executable(simple_database src/main.c)
+target_link_libraries(simple_database PRIVATE simple_database_lib)
