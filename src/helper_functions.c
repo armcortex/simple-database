@@ -5,25 +5,26 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stddef.h>
 
 #include "helper_functions.h"
 
 
-static void split_free(char** tokens, int count) {
-    for (int i=0; i<count; i++) {
+static void split_free(char** tokens, size_t count) {
+    for (size_t i=0; i<count; i++) {
         free(tokens[i]);
     }
     free(tokens);
 }
 
-static char** split_run(const char* str, const char* delim, int* num_tokens) {
+static char** split_run(const char* str, const char* delim, size_t *num_tokens) {
     char* str_copy = strdup(str);
     if (!str_copy) {
         fprintf(stderr, "Failed to allocate memory.\n");
         exit(EXIT_FAILURE);
     }
 
-    int capacity = 10;
+    size_t capacity = 10;
     char** tokens = malloc(capacity * sizeof(char*));
     if (!tokens) {
         fprintf(stderr, "Failed to allocate memory.\n");
@@ -31,7 +32,7 @@ static char** split_run(const char* str, const char* delim, int* num_tokens) {
         exit(EXIT_FAILURE);
     }
 
-    int count = 0;
+    size_t count = 0;
     char* token = strtok(str_copy, delim);
     while (token != NULL) {
         if (count >= capacity) {

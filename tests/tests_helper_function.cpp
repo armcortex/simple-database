@@ -4,6 +4,7 @@
 
 #include <catch2/catch_test_macros.hpp>
 #include <cstring>
+#include <cstddef>
 #include "../src/helper_functions.h"
 
 
@@ -12,7 +13,7 @@ TEST_CASE("Split and Free Functions", "[split]") {
 
     SECTION("Split a simple string") {
         const char* str = "Hello,World,C,Programming";
-        int num_tokens;
+        size_t num_tokens;
         char** tokens = splitter.run(str, ",", &num_tokens);
 
         REQUIRE(num_tokens == 4);
@@ -26,7 +27,7 @@ TEST_CASE("Split and Free Functions", "[split]") {
 
     SECTION("Split an empty string") {
         const char* str = "";
-        int num_tokens;
+        size_t num_tokens;
         char** tokens = splitter.run(str, ",", &num_tokens);
 
         REQUIRE(num_tokens == 0);
@@ -36,20 +37,20 @@ TEST_CASE("Split and Free Functions", "[split]") {
 
     SECTION("Split a large string") {
         // Prepare large string data
-        int max_cnt = 10000;
+        size_t max_cnt = 10000;
         std::string largeStr;
-        for (int i = 0; i < max_cnt; ++i) {
+        for (size_t i = 0; i < max_cnt; ++i) {
             largeStr += "1";
             if (i < max_cnt-1) {
                 largeStr += ",";
             }
         }
 
-        int num_tokens;
+        size_t num_tokens;
         char** tokens = splitter.run(largeStr.c_str(), ",", &num_tokens);
 
         REQUIRE(num_tokens == max_cnt);
-        for (int i = 0; i < num_tokens; ++i) {
+        for (size_t i = 0; i < num_tokens; ++i) {
             REQUIRE(std::string(tokens[i]) == "1");
         }
 
