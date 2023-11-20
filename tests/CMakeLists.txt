@@ -15,7 +15,10 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(Catch2)
 
 
-add_executable(tests_run tests_helper_function.cpp)
+add_executable(tests_run
+        tests_helper_function.cpp
+        tests_check_command.cpp
+)
 
 target_link_libraries(tests_run PRIVATE Catch2::Catch2WithMain simple_database_lib)
 

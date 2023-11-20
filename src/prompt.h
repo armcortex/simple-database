@@ -20,7 +20,7 @@ void print_prompt(void);
 prompt_buf_t* new_prompt_buf(void);
 void free_prompt_buf(prompt_buf_t *prompt_buf);
 
-void check_command(prompt_buf_t *prompt_buf);
+void check_commands(prompt_buf_t *prompt_buf);
 
 #ifdef __cplusplus
 }

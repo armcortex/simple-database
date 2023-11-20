@@ -7,6 +7,7 @@
 #include <string.h>
 
 #include "prompt.h"
+#include "helper_functions.h"
 
 void print_prompt() {
     fprintf(stdout, "> ");
@@ -31,9 +32,15 @@ void free_prompt_buf(prompt_buf_t *prompt_buf) {
     }
 }
 
-void check_command(prompt_buf_t *prompt_buf) {
+void check_commands(prompt_buf_t *prompt_buf) {
+    Splitter_t splitter = split_construct();
+    size_t num_tokens;
+    char** cmds = splitter.run(prompt_buf->buf, " ", &num_tokens);
+
+    // select * from db
+
     // Exit
-    if (strncmp(prompt_buf->buf, "exit", 4) == 0) {
+    if (strncmp(cmds[0], "exit", 4) == 0) {
         fprintf(stdout, "Bye Bye \n");
         free_prompt_buf(prompt_buf);
         exit(EXIT_SUCCESS);
