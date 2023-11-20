@@ -8,7 +8,7 @@
 #include "inputs.h"
 
 void check_environment_info(void) {
-    printf("Current Environment Info: \n");
+    fprintf(stdout, "Current Environment Info: \n");
     struct utsname buffer;
 
     errno = 0;
@@ -17,11 +17,11 @@ void check_environment_info(void) {
         exit(EXIT_FAILURE);
     }
 
-    printf("system name = %s\n", buffer.sysname);
-    printf("node name   = %s\n", buffer.nodename);
-    printf("release     = %s\n", buffer.release);
-    printf("version     = %s\n", buffer.version);
-    printf("machine     = %s\n", buffer.machine);
+    fprintf(stdout, "system name = %s\n", buffer.sysname);
+    fprintf(stdout, "node name   = %s\n", buffer.nodename);
+    fprintf(stdout, "release     = %s\n", buffer.release);
+    fprintf(stdout, "version     = %s\n", buffer.version);
+    fprintf(stdout, "machine     = %s\n", buffer.machine);
 }
 
 int main() {

@@ -7,7 +7,7 @@
 void read_input(prompt_buf_t *prompt_buf) {
     ssize_t read_bytes = getline(&(prompt_buf->buf), &(prompt_buf->len), stdin);
     if (read_bytes <= 0) {
-        printf("Reading Error \n");
+        fprintf(stderr, "Reading Error \n");
         free_prompt_buf(prompt_buf);
         exit(EXIT_FAILURE);
     }
@@ -17,6 +17,6 @@ void read_input(prompt_buf_t *prompt_buf) {
     prompt_buf->buf[read_bytes-1] = 0;
 
     if (VERBOSE) {
-        printf("Read %zu bytes, Input: %s \n", prompt_buf->len, prompt_buf->buf);
+        fprintf(stderr, "Read %zu bytes, Input: %s \n", prompt_buf->len, prompt_buf->buf);
     }
 }

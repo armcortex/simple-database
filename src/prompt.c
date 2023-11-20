@@ -9,7 +9,7 @@
 #include "prompt.h"
 
 void print_prompt() {
-    printf("> ");
+    fprintf(stdout, "> ");
 }
 
 prompt_buf_t* new_prompt_buf() {
@@ -34,12 +34,12 @@ void free_prompt_buf(prompt_buf_t *prompt_buf) {
 void check_command(prompt_buf_t *prompt_buf) {
     // Exit
     if (strncmp(prompt_buf->buf, "exit", 4) == 0) {
-        printf("Bye Bye \n");
+        fprintf(stdout, "Bye Bye \n");
         free_prompt_buf(prompt_buf);
         exit(EXIT_SUCCESS);
     }
     // Undefined command
     else {
-        printf("Unrecognized command '%s' \n", prompt_buf->buf);
+        fprintf(stderr, "Unrecognized command '%s' \n", prompt_buf->buf);
     }
 }
