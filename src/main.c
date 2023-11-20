@@ -5,6 +5,7 @@
 
 #include "main.h"
 #include "prompt.h"
+#include "inputs.h"
 
 void check_environment_info(void) {
     printf("Current Environment Info: \n");
@@ -21,23 +22,6 @@ void check_environment_info(void) {
     printf("release     = %s\n", buffer.release);
     printf("version     = %s\n", buffer.version);
     printf("machine     = %s\n", buffer.machine);
-}
-
-void read_input(prompt_buf_t *prompt_buf) {
-    ssize_t read_bytes = getline(&(prompt_buf->buf), &(prompt_buf->len), stdin);
-    if (read_bytes <= 0) {
-        printf("Reading Error \n");
-        free_prompt_buf(prompt_buf);
-        exit(EXIT_FAILURE);
-    }
-
-    // Delete '\n' newline
-    prompt_buf->len = read_bytes - 1;
-    prompt_buf->buf[read_bytes-1] = 0;
-
-    if (VERBOSE) {
-        printf("Read %zu bytes, Input: %s \n", prompt_buf->len, prompt_buf->buf);
-    }
 }
 
 int main() {
