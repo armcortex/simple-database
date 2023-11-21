@@ -9,7 +9,7 @@
 
 
 TEST_CASE("Split and Free Functions", "[split]") {
-    Splitter_t splitter = split_construct();
+    splitter_t splitter = split_construct();
 
     SECTION("Split a simple string") {
         const char* str = "Hello,World,C,Programming";

@@ -62,8 +62,8 @@ static char** split_run(const char* str, const char* delim, size_t *num_tokens) 
     return tokens;
 }
 
-Splitter_t split_construct() {
-    Splitter_t s;
+splitter_t split_construct() {
+    splitter_t s;
     s.run = split_run;
     s.free = split_free;
     return s;

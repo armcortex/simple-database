@@ -14,9 +14,9 @@ extern "C" {
 typedef struct {
     char** (*run)(const char* str, const char* delim, size_t *num_tokens);
     void (*free)(char** tokens, size_t count);
-} Splitter_t;
+} splitter_t;
 
-Splitter_t split_construct();
+splitter_t split_construct(void);
 
 
 #ifdef __cplusplus

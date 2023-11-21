@@ -33,7 +33,7 @@ void free_prompt_buf(prompt_buf_t *prompt_buf) {
 }
 
 void check_commands(prompt_buf_t *prompt_buf, query_state_t *query_state) {
-    Splitter_t splitter = split_construct();
+    splitter_t splitter = split_construct();
     size_t num_tokens;
     char** cmds = splitter.run(prompt_buf->buf, " ", &num_tokens);
 
