@@ -26,14 +26,22 @@ void check_environment_info(void) {
 
 int main() {
 //    check_environment_info();
+    query_state_t query_state = {.state=INIT};
 
     prompt_buf_t *prompt_buf = new_prompt_buf();
     while (1) {
         print_prompt();
         read_input(prompt_buf);
 
-        check_command(prompt_buf);
+        check_commands(prompt_buf, &query_state);
+
+        if (query_state.state == EXIT) {
+            fprintf(stdout, "Bye Bye \n");
+            break;
+        }
     }
 
+    free_prompt_buf(prompt_buf);
+    printf("Yooo \n");
     return EXIT_SUCCESS;
 }

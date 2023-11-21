@@ -16,11 +16,26 @@ typedef struct {
     size_t len;
 } prompt_buf_t;
 
+typedef enum {
+    INIT = 0,
+    EXIT,
+    CREATE,
+    USE,
+    DROP,
+    SELECT,
+    UNDEFINED,
+    COUNT,
+}State_t;
+
+typedef struct {
+    State_t state;
+} query_state_t;
+
 void print_prompt(void);
 prompt_buf_t* new_prompt_buf(void);
 void free_prompt_buf(prompt_buf_t *prompt_buf);
 
-void check_commands(prompt_buf_t *prompt_buf);
+void check_commands(prompt_buf_t *prompt_buf, query_state_t *query_state);
 
 #ifdef __cplusplus
 }

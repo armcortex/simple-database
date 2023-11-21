@@ -5,11 +5,15 @@
 #include "inputs.h"
 
 void read_input(prompt_buf_t *prompt_buf) {
+    if (!prompt_buf) {
+        fprintf(stderr, "prompt_buf is null");
+    }
+
     ssize_t read_bytes = getline(&(prompt_buf->buf), &(prompt_buf->len), stdin);
     if (read_bytes <= 0) {
         fprintf(stderr, "Reading Error \n");
         free_prompt_buf(prompt_buf);
-        exit(EXIT_FAILURE);
+//        exit(EXIT_FAILURE);
     }
 
     // Delete '\n' newline

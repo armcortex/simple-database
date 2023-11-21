@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include <cstring>
 #include <cstdio>
+#include <memory>
 
 #include "../src/inputs.h"
 #include "../src/prompt.h"
@@ -40,7 +41,7 @@ public:
         close(pipefd[1]);
     }
 
-    void write(const std::string& data) {
+    void write(const std::string &data) {
         if (fputs(data.c_str(), input_stream) == EOF) {
             throw std::runtime_error("Failed to write data to pipe");
         }
@@ -48,23 +49,63 @@ public:
     }
 };
 
+//std::string stdin_write_data(std::unique_ptr<StdinRedirector>& sr, prompt_buf_t *prompt_buf, std::string s) {
+std::string stdin_write_data(StdinRedirector& sr, prompt_buf_t *prompt_buf, std::string s) {
+    // stdin write data
+    std::string query = s;
+//    sr->write(s);
+    sr.write(s);
+
+    // process data
+    read_input(prompt_buf);
+    query.pop_back();       // Delete '\n'
+    return query;
+}
+
 TEST_CASE("Check Commands", "[command]") {
+//    std::unique_ptr<StdinRedirector> redirector = std::make_unique<StdinRedirector>();
     StdinRedirector redirector;
-    prompt_buf_t *prompt_buf = new_prompt_buf();
 
-    SECTION("Simple Command Test: `select * from db`") {
-        // Prepare testing data
-        std::string query = "select * from db\n";
-        redirector.write(query);
+//    std::unique_ptr<MyClass> obj = std::make_unique<MyClass>();
+    SECTION("Simple Command Test 1") {
+//        StdinRedirector redirector;
+//        std::unique_ptr<StdinRedirector> redirector = std::make_unique<StdinRedirector>();
+        prompt_buf_t *prompt_buf = new_prompt_buf();
 
-        // Make sure data source is correct
-        read_input(prompt_buf);
-        query.pop_back();       // Delete '\n'
+        std::string query = stdin_write_data(redirector, prompt_buf, "select * from db\n");
         REQUIRE(std::string(prompt_buf->buf) == query);
         REQUIRE(prompt_buf->len == query.length());
 
-        check_commands(prompt_buf);
+        free_prompt_buf(prompt_buf);
     }
 
-    free_prompt_buf(prompt_buf);
+    SECTION("Simple Command Test 2") {
+//        StdinRedirector redirector;
+//        std::unique_ptr<StdinRedirector> redirector = std::make_unique<StdinRedirector>();
+        query_state_t query_state = {.state=INIT};
+        prompt_buf_t *prompt_buf = new_prompt_buf();
+
+        stdin_write_data(redirector, prompt_buf, "exit\n");
+        check_commands(prompt_buf, &query_state);
+        REQUIRE(query_state.state == EXIT);
+
+        free_prompt_buf(prompt_buf);
+    }
 }
+
+
+//        stdin_write_data(redirector, prompt_buf, "create");
+//        check_commands(prompt_buf, &query_state);
+//        REQUIRE(query_state.state == CREATE);
+//
+//        stdin_write_data(redirector, prompt_buf, "drop");
+//        check_commands(prompt_buf, &query_state);
+//        REQUIRE(query_state.state == DROP);
+//
+//        stdin_write_data(redirector, prompt_buf, "use");
+//        check_commands(prompt_buf, &query_state);
+//        REQUIRE(query_state.state == USE);
+//
+//        stdin_write_data(redirector, prompt_buf, "SELECT");
+//        check_commands(prompt_buf, &query_state);
+//        REQUIRE(query_state.state == SELECT);
