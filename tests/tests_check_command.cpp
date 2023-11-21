@@ -49,11 +49,9 @@ public:
     }
 };
 
-//std::string stdin_write_data(std::unique_ptr<StdinRedirector>& sr, prompt_buf_t *prompt_buf, std::string s) {
 std::string stdin_write_data(StdinRedirector& sr, prompt_buf_t *prompt_buf, std::string s) {
     // stdin write data
     std::string query = s;
-//    sr->write(s);
     sr.write(s);
 
     // process data
@@ -63,13 +61,9 @@ std::string stdin_write_data(StdinRedirector& sr, prompt_buf_t *prompt_buf, std:
 }
 
 TEST_CASE("Check Commands", "[command]") {
-//    std::unique_ptr<StdinRedirector> redirector = std::make_unique<StdinRedirector>();
     StdinRedirector redirector;
 
-//    std::unique_ptr<MyClass> obj = std::make_unique<MyClass>();
     SECTION("Simple Command Test 1") {
-//        StdinRedirector redirector;
-//        std::unique_ptr<StdinRedirector> redirector = std::make_unique<StdinRedirector>();
         prompt_buf_t *prompt_buf = new_prompt_buf();
 
         std::string query = stdin_write_data(redirector, prompt_buf, "select * from db\n");
@@ -80,8 +74,6 @@ TEST_CASE("Check Commands", "[command]") {
     }
 
     SECTION("Simple Command Test 2") {
-//        StdinRedirector redirector;
-//        std::unique_ptr<StdinRedirector> redirector = std::make_unique<StdinRedirector>();
         query_state_t query_state = {.state=INIT};
         prompt_buf_t *prompt_buf = new_prompt_buf();
 
@@ -89,23 +81,22 @@ TEST_CASE("Check Commands", "[command]") {
         check_commands(prompt_buf, &query_state);
         REQUIRE(query_state.state == EXIT);
 
+        stdin_write_data(redirector, prompt_buf, "create\n");
+        check_commands(prompt_buf, &query_state);
+        REQUIRE(query_state.state == CREATE);
+
+        stdin_write_data(redirector, prompt_buf, "drop\n");
+        check_commands(prompt_buf, &query_state);
+        REQUIRE(query_state.state == DROP);
+
+        stdin_write_data(redirector, prompt_buf, "use\n");
+        check_commands(prompt_buf, &query_state);
+        REQUIRE(query_state.state == USE);
+
+        stdin_write_data(redirector, prompt_buf, "select\n");
+        check_commands(prompt_buf, &query_state);
+        REQUIRE(query_state.state == SELECT);
+
         free_prompt_buf(prompt_buf);
     }
 }
-
-
-//        stdin_write_data(redirector, prompt_buf, "create");
-//        check_commands(prompt_buf, &query_state);
-//        REQUIRE(query_state.state == CREATE);
-//
-//        stdin_write_data(redirector, prompt_buf, "drop");
-//        check_commands(prompt_buf, &query_state);
-//        REQUIRE(query_state.state == DROP);
-//
-//        stdin_write_data(redirector, prompt_buf, "use");
-//        check_commands(prompt_buf, &query_state);
-//        REQUIRE(query_state.state == USE);
-//
-//        stdin_write_data(redirector, prompt_buf, "SELECT");
-//        check_commands(prompt_buf, &query_state);
-//        REQUIRE(query_state.state == SELECT);
