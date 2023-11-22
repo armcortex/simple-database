@@ -14,7 +14,7 @@
 TEST_CASE("Check Commands", "[command]") {
     StdinRedirector redirector;
 
-    SECTION("Simple Command Test 1") {
+    SECTION("Basic input query") {
         prompt_buf_t *prompt_buf = new_prompt_buf();
 
         std::string query = stdin_write_data(redirector, prompt_buf, "select * from db\n");
@@ -24,7 +24,7 @@ TEST_CASE("Check Commands", "[command]") {
         free_prompt_buf(prompt_buf);
     }
 
-    SECTION("Simple Command Test 2") {
+    SECTION("Query state") {
         query_state_t *query_state = query_state_construct();
         query_state->init(query_state);
 
