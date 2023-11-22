@@ -7,7 +7,7 @@
 
 #include <stdbool.h>
 
-#define VERBOSE false
+#define VERBOSE true
 
 
 #endif //SIMPLE_DATABASE_MAIN_H

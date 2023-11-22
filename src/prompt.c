@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 
 #include "prompt.h"
 #include "helper_functions.h"
@@ -62,4 +63,44 @@ void check_commands(prompt_buf_t *prompt_buf, query_state_t *query_state) {
         query_state->state = UNDEFINED;
         fprintf(stderr, "Unrecognized command '%s' \n", prompt_buf->buf);
     }
+}
+
+const char* query_state_to_string(State_t state) {
+    switch (state) {
+        case INIT: return "INIT";
+        case EXIT: return "EXIT";
+        case CREATE: return "CREATE";
+        case USE: return "USE";
+        case DROP: return "DROP";
+        case SELECT: return "SELECT";
+        case UNDEFINED: return "UNDEFINED";
+        default: return "Unknown State";
+    }
+}
+
+static void query_state_init(query_state_t *q) {
+    q->state = INIT;
+    q->args = NULL;
+}
+
+static void query_state_close(query_state_t *q) {
+    if (q->args != NULL) {
+        free(q->args);
+    }
+
+    if (q != NULL) {
+        free(q);
+    }
+}
+
+query_state_t* query_state_construct() {
+    query_state_t *q = (query_state_t*)malloc(sizeof(query_state_t));
+    if (q == NULL) {
+        fprintf(stderr, "Failed to allocate memory.\n");
+        assert(q != NULL);
+    }
+
+    q->init = query_state_init;
+    q->close = query_state_close;
+    return q;
 }
