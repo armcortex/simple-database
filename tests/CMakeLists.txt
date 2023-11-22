@@ -16,6 +16,7 @@ FetchContent_MakeAvailable(Catch2)
 
 
 add_executable(tests_run
+        stdin_redirect.h
         tests_helper_function.cpp
         tests_check_command.cpp
 )
