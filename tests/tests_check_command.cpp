@@ -36,6 +36,10 @@ TEST_CASE("Check Commands", "[command]") {
         check_commands(prompt_buf, query_state);
         REQUIRE(query_state->state == EXIT);
 
+        stdin_write_data(redirector, prompt_buf, "help\n");
+        check_commands(prompt_buf, query_state);
+        REQUIRE(query_state->state == HELP);
+
         stdin_write_data(redirector, prompt_buf, "create\n");
         check_commands(prompt_buf, query_state);
         REQUIRE(query_state->state == CREATE);

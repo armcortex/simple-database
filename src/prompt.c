@@ -33,6 +33,16 @@ void free_prompt_buf(prompt_buf_t *prompt_buf) {
     }
 }
 
+void basic_command_info() {
+    fprintf(stdout, "All Support commands: \n");
+    fprintf(stdout, "\t help: \n");
+    fprintf(stdout, "\t exit: \n");
+    fprintf(stdout, "\t create: \n");
+    fprintf(stdout, "\t use: \n");
+    fprintf(stdout, "\t drop: \n");
+    fprintf(stdout, "\t select: \n");
+}
+
 void check_commands(prompt_buf_t *prompt_buf, query_state_t *query_state) {
     splitter_t splitter = split_construct();
     size_t num_tokens;
@@ -41,6 +51,10 @@ void check_commands(prompt_buf_t *prompt_buf, query_state_t *query_state) {
     // Exit
     if (strncmp(cmds[0], "exit", 4) == 0) {
         query_state->state = EXIT;
+    }
+    if (strncmp(cmds[0], "help", 4) == 0) {
+        query_state->state = HELP;
+        basic_command_info();
     }
     // Create
     else if (strncmp(cmds[0], "create", 6) == 0) {
@@ -61,13 +75,15 @@ void check_commands(prompt_buf_t *prompt_buf, query_state_t *query_state) {
     // Undefined command
     else {
         query_state->state = UNDEFINED;
-        fprintf(stderr, "Unrecognized command '%s' \n", prompt_buf->buf);
+        fprintf(stderr, "Unrecognized command '%s' \n\n", prompt_buf->buf);
+        basic_command_info();
     }
 }
 
 const char* query_state_to_string(State_t state) {
     switch (state) {
         case INIT: return "INIT";
+        case HELP: return "HELP";
         case EXIT: return "EXIT";
         case CREATE: return "CREATE";
         case USE: return "USE";

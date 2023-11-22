@@ -13,6 +13,7 @@ extern "C" {
 
 typedef enum {
     INIT = 0,
+    HELP,
     EXIT,
     CREATE,
     USE,
