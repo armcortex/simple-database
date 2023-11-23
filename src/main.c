@@ -6,6 +6,8 @@
 #include "main.h"
 #include "prompt.h"
 #include "inputs.h"
+#include "helper_functions.h"
+#include "db_config.h"
 
 void check_environment_info(void) {
     fprintf(stdout, "Current Environment Info: \n");
@@ -29,7 +31,10 @@ int main() {
     setvbuf(stdout, NULL, _IONBF, 0);
     if (VERBOSE) {
         check_environment_info();
+        check_current_path();
     }
+
+    create_folder(WORKSPACE_PATH_FULL);
 
     query_state_t *query_state = query_state_construct();
     query_state->init(query_state);

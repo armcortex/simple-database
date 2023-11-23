@@ -13,6 +13,9 @@ set(PROJ_SOURCES
         src/helper_functions.h
         src/inputs.c
         src/inputs.h
+        src/db_config.h
+        src/cmd_functions.c
+        src/cmd_functions.h
 )
 add_library(simple_database_lib ${PROJ_SOURCES})
 target_include_directories(simple_database_lib PUBLIC src)

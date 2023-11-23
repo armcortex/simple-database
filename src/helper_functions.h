@@ -18,6 +18,8 @@ typedef struct {
 
 splitter_t split_construct(void);
 
+void check_current_path(void);
+void create_folder(char *name);
 
 #ifdef __cplusplus
 }

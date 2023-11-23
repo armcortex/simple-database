@@ -6,6 +6,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stddef.h>
+#include <unistd.h>
+#include <limits.h>
+#include <sys/stat.h>
 
 #include "helper_functions.h"
 
@@ -67,4 +70,29 @@ splitter_t split_construct() {
     s.run = split_run;
     s.free = split_free;
     return s;
+}
+
+void check_current_path() {
+    char *cwd;
+    char buffer[PATH_MAX];  // PATH_MAX is a constant defined in <limits.h>
+
+    cwd = getcwd(buffer, sizeof(buffer));
+    if (cwd == NULL) {
+        fprintf(stderr, "getcwd() error");
+    }
+
+    fprintf(stdout, "Current working directory: %s\n", cwd);
+}
+
+void create_folder(char *folder_name) {
+    struct stat st = {0};
+
+    if (stat(folder_name, &st) == -1) {
+        if (mkdir(folder_name, 0700) == -1) { // 0700 permissions - owner can read, write, and execute
+            fprintf(stderr, "Failed to create folder: %s \n", folder_name);
+        }
+    }
+    else {
+        printf("Folder `%s` already exists\n", folder_name);
+    }
 }
