@@ -47,7 +47,7 @@ void delete_database(const char *name) {
     }
 }
 
-const char* create_filename(char *name, char *ext) {
+const char* create_filename(const char *name, const char *ext) {
     memset(db_name, 0, DB_NAME_MAX * sizeof(char));
     strncpy(db_name, name, strlen(name));
     strncat(db_name, ext, strlen(ext));
@@ -55,7 +55,7 @@ const char* create_filename(char *name, char *ext) {
     return db_name;
 }
 
-const char* create_filename_full_path(char *base, char *name, char *ext) {
+const char* create_filename_full_path(const char *base, const char *name, const char *ext) {
     memset(db_file_path, 0, PATH_MAX * sizeof(char));
 
     strncpy(db_file_path, base, strlen(base));
