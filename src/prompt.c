@@ -62,10 +62,14 @@ void check_commands(prompt_buf_t *prompt_buf, query_state_t *query_state) {
                 create_command_info();
             }
             else if (strncmp(cmds[1], "database", 8) == 0) {
-                check_current_path();
-                const char *db_filename = create_filename_full_path(WORKSPACE_PATH_FULL, cmds[2], ".txt");
-                fprintf(stdout, "filename: %s \n", db_filename);
+                // Create database folder
+                const char *db_folder_name = str_concat("%s/%s", WORKSPACE_PATH_FULL, cmds[2]);
+                create_folder(db_folder_name);
+
+                // Create database file
+                const char *db_filename = str_concat("%s/%s/%s.txt", WORKSPACE_PATH_FULL, cmds[2], cmds[2]);
                 create_database(db_filename);
+                fprintf(stdout, "Create database at: %s \n", db_filename);
             }
             else {
                 fprintf(stderr, "Unrecognized command '%s' \n\n", prompt_buf->buf);

@@ -67,10 +67,9 @@ TEST_CASE("Check Commands", "[command]") {
 
     SECTION("Create/delete database") {
         std::string db_name = "my_db";
-        std::string db_file_path = WORKSPACE_PATH_FULL "/" + db_name + ".txt";
+        std::string db_file_path = WORKSPACE_PATH_FULL "/" + db_name + "/" + db_name + ".txt";
         bool fileExists;
 
-        check_current_path();
         create_folder((const char*)WORKSPACE_PATH_FULL);
 
         query_state_t *query_state = query_state_construct();

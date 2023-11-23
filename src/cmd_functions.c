@@ -7,6 +7,7 @@
 #include <unistd.h>
 #include <limits.h>
 #include <assert.h>
+#include <stdarg.h>
 
 #include "cmd_functions.h"
 #include "db_config.h"
@@ -66,3 +67,15 @@ const char* create_filename_full_path(const char *base, const char *name, const 
     db_file_path[sizeof(db_file_path) - 1] = '\0';
     return db_file_path;
 }
+
+const char* str_concat(const char *format, ...) {
+    memset(db_file_path, 0, PATH_MAX * sizeof(char));
+
+    va_list args;
+    va_start(args, format);
+    vsnprintf(db_file_path, PATH_MAX, format, args);
+    va_end(args);
+
+    return db_file_path;
+}
+
