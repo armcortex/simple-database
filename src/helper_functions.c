@@ -84,15 +84,27 @@ void check_current_path() {
     fprintf(stdout, "Current working directory: %s\n", cwd);
 }
 
-void create_folder(char *folder_name) {
+void create_folder(const char *name) {
     struct stat st = {0};
 
-    if (stat(folder_name, &st) == -1) {
-        if (mkdir(folder_name, 0700) == -1) { // 0700 permissions - owner can read, write, and execute
-            fprintf(stderr, "Failed to create folder: %s \n", folder_name);
+    if (stat(name, &st) == -1) {
+        if (mkdir(name, 0700) == -1) { // 0700 permissions - owner can read, write, and execute
+            fprintf(stderr, "Failed to create folder: %s \n", name);
         }
     }
     else {
-        printf("Folder `%s` already exists\n", folder_name);
+        fprintf(stdout, "Folder `%s` already exists\n", name);
+    }
+}
+
+void remove_folder(const char *name) {
+    struct stat st = {0};
+
+    if (stat(name, &st) == 0 && S_ISDIR(st.st_mode)) {
+        if (rmdir(name) == -1) {
+            fprintf(stderr, "Failed to remove folder: %s \n", name);
+        }
+    } else {
+        fprintf(stdout, "Folder %s not exist\n", name);
     }
 }

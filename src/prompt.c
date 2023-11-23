@@ -7,9 +7,6 @@
 #include <string.h>
 #include <assert.h>
 
-#include <unistd.h>
-#include <limits.h>
-
 #include "prompt.h"
 #include "helper_functions.h"
 #include "cmd_functions.h"

@@ -13,6 +13,7 @@
 #include "../src/prompt.h"
 #include "stdin_redirect.h"
 #include "../src/helper_functions.h"
+#include "../src/cmd_functions.h"
 
 TEST_CASE("Check Commands", "[command]") {
     setvbuf(stdout, NULL, _IONBF, 0);
@@ -70,7 +71,7 @@ TEST_CASE("Check Commands", "[command]") {
         bool fileExists;
 
         check_current_path();
-        create_folder((char*)WORKSPACE_PATH_FULL);
+        create_folder((const char*)WORKSPACE_PATH_FULL);
 
         query_state_t *query_state = query_state_construct();
         query_state->init(query_state);
@@ -84,12 +85,10 @@ TEST_CASE("Check Commands", "[command]") {
         fileExists = std::filesystem::exists(db_file_path);
         REQUIRE(fileExists);
 
-//        // Check delete database file ok
-//        stdin_write_data(redirector, prompt_buf, "drop database " + db_name + "\n");
-//        check_commands(prompt_buf, query_state);
-//
-//        fileExists = std::filesystem::exists(db_file_path);
-//        REQUIRE(fileExists);
+        // Check delete database file ok
+        delete_database((const char*)db_file_path.c_str());
+        fileExists = std::filesystem::exists(db_file_path);
+        REQUIRE_FALSE(fileExists);
 
         free_prompt_buf(prompt_buf);
         query_state->close(query_state);

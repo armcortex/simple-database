@@ -6,6 +6,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <limits.h>
+#include <assert.h>
 
 #include "cmd_functions.h"
 #include "db_config.h"
@@ -33,9 +34,17 @@ void create_database(const char *name) {
     FILE *file = fopen(name, "w");
     if (file == NULL) {
         fprintf(stderr, "Failed to create database: %s \n", name);
+        assert(0);
     }
     fprintf(file, "This is a test.\n");
     fclose(file);
+}
+
+void delete_database(const char *name) {
+    if (remove(name) != 0) {
+        fprintf(stderr, "Failed to delete filename: %s \n", name);
+        assert(0);
+    }
 }
 
 const char* create_filename(char *name, char *ext) {

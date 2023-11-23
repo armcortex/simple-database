@@ -16,6 +16,7 @@ extern "C" {
 void basic_command_info(void);
 void create_command_info(void);
 void create_database(const char *name);
+void delete_database(const char *name);
 const char* create_filename(char *name, char *ext);
 const char* create_filename_full_path(char *base, char *name, char *ext);
 
