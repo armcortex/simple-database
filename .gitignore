@@ -1,9 +1,11 @@
 # IDE
 .idea
 .vscode
+.VSCodeCounter
 
 # CMake
 cmake-build-*/
 
 # MISC
 .DS_Store
+/DB_DATA/
