@@ -9,6 +9,7 @@
 
 
 TEST_CASE("Split and Free Functions", "[split]") {
+    setvbuf(stdout, NULL, _IONBF, 0);
     splitter_t splitter = split_construct();
 
     SECTION("Split a simple string") {

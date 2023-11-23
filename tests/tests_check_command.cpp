@@ -12,6 +12,7 @@
 #include "stdin_redirect.h"
 
 TEST_CASE("Check Commands", "[command]") {
+    setvbuf(stdout, NULL, _IONBF, 0);
     StdinRedirector redirector;
 
     SECTION("Basic input query") {

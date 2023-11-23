@@ -26,6 +26,7 @@ void check_environment_info(void) {
 }
 
 int main() {
+    setvbuf(stdout, NULL, _IONBF, 0);
     if (VERBOSE) {
         check_environment_info();
     }
