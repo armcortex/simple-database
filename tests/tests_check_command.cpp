@@ -4,37 +4,55 @@
 #include "../src/db_config.h"
 
 #include <catch2/catch_test_macros.hpp>
+#include <iostream>
 #include <unistd.h>
 #include <cstring>
 #include <cstdio>
 #include <filesystem>
+#include <regex>
 
 #include "../src/inputs.h"
 #include "../src/prompt.h"
-#include "stdin_redirect.h"
+#include "io_redirect.h"
 #include "../src/helper_functions.h"
 #include "../src/cmd_functions.h"
 
+std::string filter_out_catch2_string(const std::string& s) {
+    // Main catch2 frame
+    std::regex pattern1("\\n\\s*<Section name.*?>\\n");
+    std::string s1 = std::regex_replace(s, pattern1, "");
+
+    // Leading and trailing `"`
+    std::regex pattern2("^\"|\"$");
+    std::string s2 = std::regex_replace(s1, pattern1, "");
+    return s2;
+}
+
 TEST_CASE("Check Commands", "[command]") {
     setvbuf(stdout, NULL, _IONBF, 0);
-    StdinRedirector redirector;
 
     SECTION("Basic input query") {
+        // Init
+        IORedirector redirector;
         prompt_buf_t *prompt_buf = new_prompt_buf();
 
+        // Testing
         std::string query = stdin_write_data(redirector, prompt_buf, "select * from db\n");
         REQUIRE(std::string(prompt_buf->buf) == query);
         REQUIRE(prompt_buf->len == query.length());
 
+        // Close
         free_prompt_buf(prompt_buf);
     }
 
     SECTION("Query state") {
+        // Init
+        IORedirector redirector;
         query_state_t *query_state = query_state_construct();
         query_state->init(query_state);
-
         prompt_buf_t *prompt_buf = new_prompt_buf();
 
+        // Testing
         REQUIRE(query_state->state == INIT);
 
         stdin_write_data(redirector, prompt_buf, "exit\n");
@@ -51,7 +69,7 @@ TEST_CASE("Check Commands", "[command]") {
 
         stdin_write_data(redirector, prompt_buf, "drop\n");
         check_commands(prompt_buf, query_state);
-        REQUIRE(query_state->state == DROP);
+        REQUIRE(query_state->state == DELETE);
 
         stdin_write_data(redirector, prompt_buf, "use\n");
         check_commands(prompt_buf, query_state);
@@ -61,11 +79,14 @@ TEST_CASE("Check Commands", "[command]") {
         check_commands(prompt_buf, query_state);
         REQUIRE(query_state->state == SELECT);
 
+        // Close
         free_prompt_buf(prompt_buf);
         query_state->close(query_state);
     }
 
     SECTION("Create/delete database") {
+        // Init
+        IORedirector redirector;
         std::string db_name = "my_db";
         std::string db_file_path = WORKSPACE_PATH_FULL "/" + db_name + "/" + db_name + ".txt";
         bool fileExists;
@@ -74,9 +95,9 @@ TEST_CASE("Check Commands", "[command]") {
 
         query_state_t *query_state = query_state_construct();
         query_state->init(query_state);
-
         prompt_buf_t *prompt_buf = new_prompt_buf();
 
+        //Testing
         // Check create database file ok
         stdin_write_data(redirector, prompt_buf, "create database " + db_name + "\n");
         check_commands(prompt_buf, query_state);
@@ -89,6 +110,49 @@ TEST_CASE("Check Commands", "[command]") {
         fileExists = std::filesystem::exists(db_file_path);
         REQUIRE_FALSE(fileExists);
 
+        // Close
+        free_prompt_buf(prompt_buf);
+        query_state->close(query_state);
+    }
+
+    SECTION("Basic help command") {
+        // Init
+        IORedirector redirector;
+        query_state_t *query_state = query_state_construct();
+        query_state->init(query_state);
+        prompt_buf_t *prompt_buf = new_prompt_buf();
+
+        // Testing
+        stdin_write_data(redirector, prompt_buf, "help\n");
+        check_commands(prompt_buf, query_state);
+
+        std::string s = redirector.read_stdout();
+        s = filter_out_catch2_string(s);
+        const std::string ref_str = "All Support commands: \n\t help: \n\t exit: \n\t create: \n\t use: \n\t drop: \n\t select: \n";
+        REQUIRE(ref_str == s);
+
+        // Close
+        free_prompt_buf(prompt_buf);
+        query_state->close(query_state);
+    }
+
+    SECTION("Create help command") {
+        // Init
+        IORedirector redirector;
+        query_state_t *query_state = query_state_construct();
+        query_state->init(query_state);
+        prompt_buf_t *prompt_buf = new_prompt_buf();
+
+        // Testing
+        stdin_write_data(redirector, prompt_buf, "create help\n");
+        check_commands(prompt_buf, query_state);
+
+        std::string s = redirector.read_stdout();
+        s = filter_out_catch2_string(s);
+        const std::string ref_str = "Create sub-commands: \n\t database: \n\t table: \n";
+        REQUIRE(ref_str == s);
+
+        // Close
         free_prompt_buf(prompt_buf);
         query_state->close(query_state);
     }

@@ -17,7 +17,7 @@ typedef enum {
     EXIT,
     CREATE,
     USE,
-    DROP,
+    DELETE,
     SELECT,
     UNDEFINED,
     COUNT,

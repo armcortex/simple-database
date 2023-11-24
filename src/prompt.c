@@ -56,9 +56,11 @@ void check_commands(prompt_buf_t *prompt_buf, query_state_t *query_state) {
     else if (strncmp(cmds[0], "create", 6) == 0) {
         query_state->state = CREATE;
 
-        // Help: list all support sub commands
+        // Sub-commands
         if (cmds[1] != NULL) {
-            if (strncmp(cmds[1], "-h", 2) == 0) {
+            // Help: list all support sub commands
+            if (strncmp(cmds[1], "-h", 2) == 0 ||
+                strncmp(cmds[1], "help", 4) == 0) {
                 create_command_info();
             }
             else if (strncmp(cmds[1], "database", 8) == 0) {
@@ -75,10 +77,26 @@ void check_commands(prompt_buf_t *prompt_buf, query_state_t *query_state) {
                 fprintf(stderr, "Unrecognized command '%s' \n\n", prompt_buf->buf);
             }
         }
+        else {
+            create_command_info();
+        }
     }
     // Delete
     else if (strncmp(cmds[0], "drop", 4) == 0) {
-        query_state->state = DROP;
+        query_state->state = DELETE;
+
+        // Sub-commands
+        if (cmds[1] != NULL) {
+            // Help: list all support sub commands
+            if (strncmp(cmds[1], "-h", 2) == 0 ||
+                strncmp(cmds[1], "help", 4) == 0) {
+                delete_command_info();
+            }
+            else {
+                fprintf(stderr, "Unrecognized command '%s' \n\n", prompt_buf->buf);
+            }
+        }
+
     }
     // Use database
     else if (strncmp(cmds[0], "use", 3) == 0) {
@@ -103,7 +121,7 @@ const char* query_state_to_string(State_t state) {
         case EXIT: return "EXIT";
         case CREATE: return "CREATE";
         case USE: return "USE";
-        case DROP: return "DROP";
+        case DELETE: return "DELETE";
         case SELECT: return "SELECT";
         case UNDEFINED: return "UNDEFINED";
         default: return "Unknown State";

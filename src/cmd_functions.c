@@ -26,7 +26,13 @@ void basic_command_info() {
 }
 
 void create_command_info() {
-    fprintf(stdout, "Create commands: \n");
+    fprintf(stdout, "Create sub-commands: \n");
+    fprintf(stdout, "\t database: \n");
+    fprintf(stdout, "\t table: \n");
+}
+
+void delete_command_info() {
+    fprintf(stdout, "Delete sub-commands: \n");
     fprintf(stdout, "\t database: \n");
     fprintf(stdout, "\t table: \n");
 }
