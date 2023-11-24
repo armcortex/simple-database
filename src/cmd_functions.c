@@ -28,14 +28,14 @@ void basic_command_info() {
 
 void create_command_info() {
     fprintf(stdout, "Create sub-commands: \n");
-    fprintf(stdout, "\t database: \n");
-    fprintf(stdout, "\t table: \n");
+    fprintf(stdout, "\t database <database name> \n");
+    fprintf(stdout, "\t table <table name> \n");
 }
 
 void delete_command_info() {
     fprintf(stdout, "Delete sub-commands: \n");
-    fprintf(stdout, "\t database: \n");
-    fprintf(stdout, "\t table: \n");
+    fprintf(stdout, "\t database <database name> \n");
+    fprintf(stdout, "\t table <table name> \n");
 }
 
 void create_database(const char *name) {
