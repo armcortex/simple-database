@@ -100,11 +100,16 @@ void create_folder(const char *name) {
 void remove_folder(const char *name) {
     struct stat st = {0};
 
-    if (stat(name, &st) == 0 && S_ISDIR(st.st_mode)) {
+    if (exist_folder(name)) {
         if (rmdir(name) == -1) {
             fprintf(stderr, "Failed to remove folder: %s \n", name);
         }
     } else {
         fprintf(stdout, "Folder %s not exist\n", name);
     }
+}
+
+bool exist_folder(const char *name) {
+    struct stat st = {0};
+    return (stat(name, &st) == 0 && S_ISDIR(st.st_mode));
 }

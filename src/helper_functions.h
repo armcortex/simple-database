@@ -10,6 +10,7 @@ extern "C" {
 #endif
 
 #include <stddef.h>
+#include <stdbool.h>
 
 typedef struct {
     char** (*run)(const char* str, const char* delim, size_t *num_tokens);
@@ -21,6 +22,7 @@ splitter_t split_construct(void);
 void check_current_path(void);
 void create_folder(const char *name);
 void remove_folder(const char *name);
+bool exist_folder(const char *name);
 
 #ifdef __cplusplus
 }
