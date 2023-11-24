@@ -106,7 +106,9 @@ TEST_CASE("Check Commands", "[command]") {
         REQUIRE(fileExists);
 
         // Check delete database file ok
-        delete_database((const char*)db_file_path.c_str());
+        stdin_write_data(redirector, prompt_buf, "delete database " + db_name + "\n");
+        check_commands(prompt_buf, query_state);
+
         fileExists = std::filesystem::exists(db_file_path);
         REQUIRE_FALSE(fileExists);
 

@@ -92,6 +92,15 @@ void check_commands(prompt_buf_t *prompt_buf, query_state_t *query_state) {
                 strncmp(cmds[1], "help", 4) == 0) {
                 delete_command_info();
             }
+            else if (strncmp(cmds[1], "database", 8) == 0) {
+                // Delete database file
+                const char *db_filename = str_concat("%s/%s/%s.txt", WORKSPACE_PATH_FULL, cmds[2], cmds[2]);
+                delete_database(db_filename);
+
+                // Delete folder
+                const char *db_folder_name = str_concat("%s/%s", WORKSPACE_PATH_FULL, cmds[2]);
+                remove_folder(db_folder_name);
+            }
             else {
                 fprintf(stderr, "Unrecognized command '%s' \n\n", prompt_buf->buf);
             }
