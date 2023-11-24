@@ -11,6 +11,7 @@
 
 #include "cmd_functions.h"
 #include "db_config.h"
+#include "helper_functions.h"
 
 static char db_file_path[PATH_MAX] = {0};
 static char db_name[DB_NAME_MAX] = {0};
@@ -43,7 +44,14 @@ void create_database(const char *name) {
         fprintf(stderr, "Failed to create database: %s \n", name);
         assert(0);
     }
-    fprintf(file, "This is a test.\n");
+
+    // Get filename, and write in the beginning of the file
+    splitter_t splitter = split_construct();
+    size_t num_tokens;
+    char** filenames = splitter.run(name, "/", &num_tokens);
+    fprintf(file, "// %s Database\n", filenames[num_tokens-1]);
+    splitter.free(filenames, num_tokens);
+
     fclose(file);
 }
 
