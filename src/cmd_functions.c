@@ -38,6 +38,11 @@ void delete_command_info() {
     fprintf(stdout, "\t table <table name> \n");
 }
 
+void use_command_info() {
+    fprintf(stdout, "Use sub-commands: \n");
+    fprintf(stdout, "\t <database name> \n");
+}
+
 void create_database(const char *name) {
     FILE *file = fopen(name, "w");
     if (file == NULL) {

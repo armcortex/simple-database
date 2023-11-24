@@ -105,11 +105,23 @@ void check_commands(prompt_buf_t *prompt_buf, query_state_t *query_state) {
                 fprintf(stderr, "Unrecognized command '%s' \n\n", prompt_buf->buf);
             }
         }
-
     }
     // Use database
     else if (strncmp(cmds[0], "use", 3) == 0) {
         query_state->state = USE;
+
+        // Sub-commands
+        if (cmds[1] != NULL) {
+            // Help: list all support sub commands
+            if (strncmp(cmds[1], "-h", 2) == 0 ||
+                strncmp(cmds[1], "help", 4) == 0) {
+                use_command_info();
+            }
+            else {
+                fprintf(stderr, "Unrecognized command '%s' \n\n", prompt_buf->buf);
+            }
+        }
+
     }
     // Select
     else if (strncmp(cmds[0], "select", 6) == 0) {
