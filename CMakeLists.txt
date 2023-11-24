@@ -30,27 +30,14 @@ set(PROJ_SOURCES
 )
 
 add_library(simple_database_lib ${PROJ_SOURCES})
-#target_include_directories(simple_database_lib PUBLIC
-#        src
-#        ${cJSON_SOURCE_DIR}
-#)
-#link_directories(${CMAKE_BINARY_DIR}/_deps/cjson-build)
 
-
-
-#link_directories(${cJSON_BINARY_DIR})
 target_include_directories(simple_database_lib PUBLIC
         src
         ${cJSON_SOURCE_DIR}
         ${cJSON_BINARY_DIR}
 )
 
-#link_directories(${CMAKE_BINARY_DIR}/_deps/cjson-build)
 link_directories(${cJSON_BINARY_DIR})
-
-#target_include_directories(simple_database_lib PUBLIC src)
-
-#add_executable(simple_database src/main.c)
 
 add_executable(simple_database src/main.c)
 
@@ -58,12 +45,3 @@ target_link_libraries(simple_database PRIVATE
         simple_database_lib
         cJSON
 )
-
-
-
-#target_link_libraries(simple_database PRIVATE simple_database_lib)
-#target_link_libraries(simple_database_lib PRIVATE cJSON)
-
-# Messages for debugging
-message(STATUS "cJSON Source Directory: ${cJSON_SOURCE_DIR}")
-message(STATUS "cJSON Binary Directory: ${cJSON_BINARY_DIR}")
