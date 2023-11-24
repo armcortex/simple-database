@@ -11,8 +11,6 @@ extern "C" {
 
 #include <stdio.h>
 
-#define DB_NAME_MAX         (256)
-
 void basic_command_info(void);
 void create_command_info(void);
 void delete_command_info(void);

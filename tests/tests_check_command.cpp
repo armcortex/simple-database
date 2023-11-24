@@ -200,4 +200,35 @@ TEST_CASE("Check Commands", "[command]") {
         free_prompt_buf(prompt_buf);
         query_state->close(query_state);
     }
+
+    SECTION("Use database command") {
+        // Init
+        IORedirector redirector;
+        query_state_t *query_state = query_state_construct();
+        query_state->init(query_state);
+        prompt_buf_t *prompt_buf = new_prompt_buf();
+        std::string db_name = "my_db";
+
+        // Testing
+        // Create database
+        stdin_write_data(redirector, prompt_buf, "create database " + db_name + "\n");
+        check_commands(prompt_buf, query_state);
+
+        // Use database
+        stdin_write_data(redirector, prompt_buf, "use " + db_name + "\n");
+        check_commands(prompt_buf, query_state);
+
+        current_db_t *current_db =  get_current_db();
+        std::string current_db_name = current_db->name;
+
+        REQUIRE(current_db_name == db_name);
+
+        // Delete database
+        stdin_write_data(redirector, prompt_buf, "delete database " + db_name + "\n");
+        check_commands(prompt_buf, query_state);
+
+        // Close
+        free_prompt_buf(prompt_buf);
+        query_state->close(query_state);
+    }
 }

@@ -10,10 +10,23 @@
 #include "prompt.h"
 #include "helper_functions.h"
 #include "cmd_functions.h"
-#include "db_config.h"
+
+
+static current_db_t current_db;
+
+static void update_current_db(const char *name) {
+    memset(&current_db, 0, sizeof(current_db_t));
+    current_db.len = strlen(name);
+    strncpy(current_db.name, name, current_db.len);
+}
+
+current_db_t* get_current_db() {
+    return &current_db;
+}
 
 void print_prompt() {
-    fprintf(stdout, "> ");
+    current_db_t *db = get_current_db();
+    fprintf(stdout, "%s > ", db->name);
 }
 
 prompt_buf_t* new_prompt_buf() {
@@ -118,10 +131,11 @@ void check_commands(prompt_buf_t *prompt_buf, query_state_t *query_state) {
                 use_command_info();
             }
             else {
-                fprintf(stderr, "Unrecognized command '%s' \n\n", prompt_buf->buf);
+                update_current_db(cmds[1]);
+                current_db_t *db = get_current_db();
+                fprintf("Using database: %s \n", db->name);
             }
         }
-
     }
     // Select
     else if (strncmp(cmds[0], "select", 6) == 0) {

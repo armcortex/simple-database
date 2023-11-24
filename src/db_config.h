@@ -14,11 +14,10 @@ extern "C" {
 #define TABLE_MAX_PAGES     100
 
 #define WORKSPACE_PATH_BASE             "../"
-//#define WORKSPACE_PATH_BASE_DEBUG       "../../"
 #define DB_WORKING_FOLDER               "DB_DATA"
 #define WORKSPACE_PATH_FULL             WORKSPACE_PATH_BASE DB_WORKING_FOLDER
-//#define WORKSPACE_PATH_FULL_DEBUG       (WORKSPACE_PATH_BASE_DEBUG DB_WORKING_FOLDER)
 
+#define DB_NAME_MAX                     (256)
 
 #ifdef __cplusplus
 }

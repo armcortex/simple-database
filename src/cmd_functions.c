@@ -54,7 +54,7 @@ void create_database(const char *name) {
     splitter_t splitter = split_construct();
     size_t num_tokens;
     char** filenames = splitter.run(name, "/", &num_tokens);
-    fprintf(file, "// %s Database\n", filenames[num_tokens-1]);
+    fprintf(file, "// Database: %s \n", filenames[num_tokens-1]);
     splitter.free(filenames, num_tokens);
 
     fclose(file);
