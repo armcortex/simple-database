@@ -8,6 +8,7 @@
 #include <limits.h>
 #include <assert.h>
 #include <stdarg.h>
+#include <time.h>
 #include <cJSON.h>
 
 #include "cmd_functions.h"
@@ -68,9 +69,16 @@ void create_database_meta(const char *name) {
         assert(0);
     }
 
-    cJSON_AddStringToObject(json, "name", "John Doe");
-    cJSON_AddNumberToObject(json, "age", 30);
-    cJSON_AddStringToObject(json, "email", "john.doe@example.com");
+    // Calc time
+    char formatted_time[50] = {0};
+    time_t current_time = time(NULL);
+    strftime(formatted_time, sizeof(formatted_time), "%Y-%m-%d %H:%M:%S",
+            localtime(&current_time));
+
+    cJSON_AddStringToObject(json, "time", formatted_time);
+    cJSON_AddNumberToObject(json, "timestamp", (int)current_time);
+    cJSON_AddNumberToObject(json, "table_cnt", 0);
+
 
     char *json_str = cJSON_Print(json);
     if (json_str == NULL) {
