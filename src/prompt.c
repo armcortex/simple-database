@@ -133,7 +133,7 @@ void check_commands(prompt_buf_t *prompt_buf, query_state_t *query_state) {
             else {
                 update_current_db(cmds[1]);
                 current_db_t *db = get_current_db();
-                fprintf("Using database: %s \n", db->name);
+                fprintf(stdout, "Using database: %s \n", db->name);
             }
         }
     }
