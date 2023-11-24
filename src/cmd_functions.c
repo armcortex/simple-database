@@ -55,7 +55,7 @@ void create_database(const char *name) {
     splitter_t splitter = split_construct();
     size_t num_tokens;
     char** filenames = splitter.run(name, "/", &num_tokens);
-    fprintf(file, "// Database: %s \n", filenames[num_tokens-1]);
+    fprintf(file, "// Database: %s \n\n", filenames[num_tokens-1]);
     splitter.free(filenames, num_tokens);
 
     fclose(file);
@@ -63,8 +63,30 @@ void create_database(const char *name) {
 
 void create_database_meta(const char *name) {
     cJSON *json = cJSON_CreateObject();
+    if (json == NULL) {
+        fprintf(stderr, "Failed to create JSON object \n");
+        assert(0);
+    }
+
     cJSON_AddStringToObject(json, "name", "John Doe");
     cJSON_AddNumberToObject(json, "age", 30);
+    cJSON_AddStringToObject(json, "email", "john.doe@example.com");
+
+    char *json_str = cJSON_Print(json);
+    if (json_str == NULL) {
+        fprintf(stderr, "Failed to init cJSON_Print() \n");
+        assert(0);
+    }
+
+    FILE *file = fopen(name, "a");
+    if (file == NULL) {
+        fprintf(stderr, "Failed to write database: %s \n", name);
+        assert(0);
+    }
+    fprintf(file, "%s", json_str);
+    fclose(file);
+    cJSON_free(json_str);
+    cJSON_Delete(json);
 }
 
 void delete_database(const char *name) {

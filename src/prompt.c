@@ -25,7 +25,6 @@ current_db_t* get_current_db() {
 }
 
 void print_prompt() {
-    create_database_meta("test_name");
     current_db_t *db = get_current_db();
     fprintf(stdout, "%s > ", db->name);
 }
@@ -86,6 +85,9 @@ void check_commands(prompt_buf_t *prompt_buf, query_state_t *query_state) {
                 const char *db_filename = str_concat("%s/%s/%s.txt", WORKSPACE_PATH_FULL, cmds[2], cmds[2]);
                 create_database(db_filename);
                 fprintf(stdout, "Create database at: %s \n", db_filename);
+
+//              // Create meta data
+                create_database_meta(db_filename);
             }
             else {
                 fprintf(stderr, "Unrecognized command '%s' \n\n", prompt_buf->buf);
