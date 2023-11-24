@@ -121,6 +121,8 @@ void check_commands(prompt_buf_t *prompt_buf, query_state_t *query_state) {
         fprintf(stderr, "Unrecognized command '%s' \n\n", prompt_buf->buf);
         basic_command_info();
     }
+
+    splitter.free(cmds, num_tokens);
 }
 
 const char* query_state_to_string(State_t state) {
