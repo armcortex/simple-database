@@ -79,7 +79,7 @@ const char* create_filename_full_path(const char *base, const char *name, const 
     memset(db_file_path, 0, PATH_MAX * sizeof(char));
 
     strncpy(db_file_path, base, strlen(base));
-    strncat(db_file_path, "/", strlen("/"));
+    strncat(db_file_path, "/", strlen("/")+1);
 
     const char *filename = create_filename(name, ext);
     strncat(db_file_path, filename, strlen(filename));
