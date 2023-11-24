@@ -25,6 +25,7 @@ current_db_t* get_current_db() {
 }
 
 void print_prompt() {
+    create_database_meta("test_name");
     current_db_t *db = get_current_db();
     fprintf(stdout, "%s > ", db->name);
 }

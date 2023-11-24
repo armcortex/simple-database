@@ -8,6 +8,7 @@
 #include <limits.h>
 #include <assert.h>
 #include <stdarg.h>
+#include <cJSON.h>
 
 #include "cmd_functions.h"
 #include "db_config.h"
@@ -58,6 +59,12 @@ void create_database(const char *name) {
     splitter.free(filenames, num_tokens);
 
     fclose(file);
+}
+
+void create_database_meta(const char *name) {
+    cJSON *json = cJSON_CreateObject();
+    cJSON_AddStringToObject(json, "name", "John Doe");
+    cJSON_AddNumberToObject(json, "age", 30);
 }
 
 void delete_database(const char *name) {

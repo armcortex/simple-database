@@ -14,6 +14,7 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(Catch2)
 
+link_directories(${cJSON_BINARY_DIR})
 
 add_executable(tests_run
         io_redirect.h
@@ -21,7 +22,11 @@ add_executable(tests_run
         tests_check_command.cpp
 )
 
-target_link_libraries(tests_run PRIVATE Catch2::Catch2WithMain simple_database_lib)
+target_link_libraries(tests_run PRIVATE
+    Catch2::Catch2WithMain
+    simple_database_lib
+    cJSON
+)
 
 include(Catch)
 catch_discover_tests(tests_run)
