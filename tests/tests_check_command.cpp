@@ -67,7 +67,7 @@ TEST_CASE("Check Commands", "[command]") {
         check_commands(prompt_buf, query_state);
         REQUIRE(query_state->state == CREATE);
 
-        stdin_write_data(redirector, prompt_buf, "drop\n");
+        stdin_write_data(redirector, prompt_buf, "delete\n");
         check_commands(prompt_buf, query_state);
         REQUIRE(query_state->state == DELETE);
 

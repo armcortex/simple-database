@@ -82,7 +82,7 @@ void check_commands(prompt_buf_t *prompt_buf, query_state_t *query_state) {
         }
     }
     // Delete
-    else if (strncmp(cmds[0], "drop", 4) == 0) {
+    else if (strncmp(cmds[0], "delete", 4) == 0) {
         query_state->state = DELETE;
 
         // Sub-commands
