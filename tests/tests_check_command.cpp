@@ -157,9 +157,21 @@ TEST_CASE("Check Commands", "[command]") {
         res = compare_io_response_str(read_str, "argument not enough: (<column name> <column type> ...)");
         REQUIRE(res);
 
+        // Create table , arguments is not pair
+        redirector.flush();
+        stdin_write_data(redirector, prompt_buf, "create table " + table_name + " name STRING age \n");
+        check_commands(prompt_buf, query_state);
+        fileExists = std::filesystem::exists(table_file_path);
+        REQUIRE_FALSE(fileExists);
+
+        // Check `create table` command output string
+        read_str = redirector.read_stderr();
+        res = compare_io_response_str(read_str, "argument not enough: (<column name> <column type> ...)");
+        REQUIRE(res);
+
         // Create table, enough arguments
         redirector.flush();
-        stdin_write_data(redirector, prompt_buf, "create table " + table_name + " name STRING \n");
+        stdin_write_data(redirector, prompt_buf, "create table " + table_name + " name STRING age INT height FLOAT \n");
         check_commands(prompt_buf, query_state);
         fileExists = std::filesystem::exists(table_file_path);
         REQUIRE(fileExists);

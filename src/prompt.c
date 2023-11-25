@@ -88,7 +88,7 @@ void check_commands(prompt_buf_t *prompt_buf, query_state_t *query_state) {
                 }
                 else {
                     const char *table_filename = str_concat("%s/%s/%s.txt", WORKSPACE_PATH_FULL, curr_db->name, cmds[2]);
-                    create_table(table_filename);
+                    create_table(table_filename, &cmds[3], num_tokens-3);
                     fprintf(stdout, "Create table at: %s \n", table_filename);
                 }
             }

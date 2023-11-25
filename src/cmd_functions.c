@@ -108,14 +108,18 @@ void delete_database(const char *name) {
     }
 }
 
-void create_table(const char *name) {
+void create_table(const char *name, char **args, size_t len) {
     FILE *file = fopen(name, "w");
     if (file == NULL) {
         fprintf(stderr, "Failed to create table: %s \n", name);
         assert(0);
     }
 
-    fprintf(file, "This is a table\n");
+    for (size_t i=0; i<(len-2); i+=2) {
+        fprintf(file, "%s, ", args[i]);
+    }
+    fprintf(file, "%s", args[len-2]);
+
 
     fclose(file);
 
