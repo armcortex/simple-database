@@ -3,6 +3,7 @@
 //
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 #include <limits.h>
@@ -131,12 +132,41 @@ void create_table(const char *name, char **args, size_t len) {
     for (size_t i=0; i<(len-2); i+=2) {
         fprintf(file, "%s, ", args[i]);
     }
-    fprintf(file, "%s", args[len-2]);
-    fclose(file);
+    fprintf(file, "%s\n\n", args[len-2]);
+
+
+    // Create json table
 
     // Update database meta file
-    add_database_new_table(args, len);
+//    add_database_new_table(args, len);
+
+    cJSON *root = create_table_json(name, args, len);
+    char *json_string = cJSON_Print(root);
+    fprintf(file, "%s\n", json_string);
+    cJSON_Delete(root);
+    free(json_string);
+
+
+
+    fclose(file);
 }
+
+cJSON *create_table_json(const char *name, char **args, size_t len) {
+    cJSON *root = cJSON_CreateObject();
+    cJSON_AddStringToObject(root, "table_name", name);
+
+    cJSON *columns = cJSON_CreateArray();
+    for (size_t i=0; i<len; i+=2) {
+        cJSON *column = cJSON_CreateObject();
+        cJSON_AddStringToObject(column, "column_name", args[i]);
+        cJSON_AddStringToObject(column, "type", args[i+1]);
+        cJSON_AddItemToArray(columns, column);
+    }
+    cJSON_AddItemToObject(root, "columns", columns);
+
+    return root;
+}
+
 
 void delete_table(const char *name) {
     if (remove(name) != 0) {
