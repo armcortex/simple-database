@@ -77,6 +77,17 @@ void check_commands(prompt_buf_t *prompt_buf, query_state_t *query_state) {
                 // Create meta data
                 create_database_meta(db_filename);
             }
+            else if (strncmp(cmds[1], "table", 5) == 0) {
+                current_db_t *curr_db =  get_current_db();
+                if (curr_db->len == 0) {
+                    fprintf(stderr, "Don't know what database to use, please use `USE` command to select database first \n");
+                }
+                else {
+                    const char *table_filename = str_concat("%s/%s/%s.txt", WORKSPACE_PATH_FULL, curr_db->name, cmds[2]);
+                    create_table(table_filename);
+                    fprintf(stdout, "Create table at: %s \n", table_filename);
+                }
+            }
             else {
                 fprintf(stderr, "Unrecognized command '%s' \n\n", prompt_buf->buf);
             }

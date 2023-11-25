@@ -107,6 +107,74 @@ TEST_CASE("Check Commands", "[command]") {
         query_state->close(query_state);
     }
 
+    SECTION("Create/delete table") {
+        // Init
+        IORedirector redirector;
+        std::string db_name = "my_db";
+        std::string table_name = "my_table";
+        std::string db_folder = WORKSPACE_PATH_FULL "/" + db_name + "/";
+        std::string db_file_path = db_folder + db_name + ".txt";
+        std::string table_file_path = db_folder + table_name + ".txt";
+        bool fileExists;
+        bool res;
+        std::string read_str;
+
+        query_state_t *query_state = query_state_construct();
+        query_state->init(query_state);
+        prompt_buf_t *prompt_buf = new_prompt_buf();
+
+        // Create database
+        stdin_write_data(redirector, prompt_buf, "create database " + db_name + "\n");
+        check_commands(prompt_buf, query_state);
+
+        // Testing
+        // Not using `USE` command
+        // Create table
+        stdin_write_data(redirector, prompt_buf, "create table " + table_name + "\n");
+        check_commands(prompt_buf, query_state);
+        fileExists = std::filesystem::exists(table_file_path);
+        REQUIRE_FALSE(fileExists);
+
+        // Check not using 'USE` response
+        read_str = redirector.read_stderr();
+        res = compare_io_response_str(read_str, "Don't know what database to use, please use `USE` command to select database first \n");
+        REQUIRE(res);
+
+        // Use database
+        stdin_write_data(redirector, prompt_buf, "use " + db_name + "\n");
+        check_commands(prompt_buf, query_state);
+
+        // Testing
+        // Create table
+        redirector.flush();
+        stdin_write_data(redirector, prompt_buf, "create table " + table_name + "\n");
+        check_commands(prompt_buf, query_state);
+        fileExists = std::filesystem::exists(table_file_path);
+        REQUIRE(fileExists);
+
+//        "Create table at: %s \n"
+        // Check `create table` command output string
+        read_str = redirector.read_stdout();
+        res = compare_io_response_str(read_str, "Create table at: ../DB_DATA/my_db/my_table.txt \n");
+        REQUIRE(res);
+
+        // Delete table
+        std::filesystem::remove_all( db_folder);
+
+//        stdin_write_data(redirector, prompt_buf, "delete table " + table_name + "\n");
+//        check_commands(prompt_buf, query_state);
+//        fileExists = std::filesystem::exists(table_file_path);
+//        REQUIRE_FALSE(fileExists);
+
+
+        // Close
+//        stdin_write_data(redirector, prompt_buf, "delete database " + db_name + "\n");
+//        check_commands(prompt_buf, query_state);
+
+        free_prompt_buf(prompt_buf);
+        query_state->close(query_state);
+    }
+
     SECTION("Basic help command") {
         // Init
         IORedirector redirector;

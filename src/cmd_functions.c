@@ -98,9 +98,34 @@ void create_database_meta(const char *name) {
     cJSON_Delete(json);
 }
 
+void update_database_meta_table_cnt() {
+}
+
 void delete_database(const char *name) {
     if (remove(name) != 0) {
-        fprintf(stderr, "Failed to delete filename: %s \n", name);
+        fprintf(stderr, "Failed to delete database: %s \n", name);
+        assert(0);
+    }
+}
+
+void create_table(const char *name) {
+    FILE *file = fopen(name, "w");
+    if (file == NULL) {
+        fprintf(stderr, "Failed to create table: %s \n", name);
+        assert(0);
+    }
+
+    fprintf(file, "This is a table\n");
+
+    fclose(file);
+
+
+    update_database_meta_table_cnt();
+}
+
+void delete_table(const char *name) {
+    if (remove(name) != 0) {
+        fprintf(stderr, "Failed to delete table: %s \n", name);
         assert(0);
     }
 }
