@@ -82,6 +82,10 @@ void check_commands(prompt_buf_t *prompt_buf, query_state_t *query_state) {
                 if (curr_db->len == 0) {
                     fprintf(stderr, "Don't know what database to use, please use `USE` command to select database first \n");
                 }
+                // Make sure command contain `create table table_name` and `column_name + type` pair
+                else if ((num_tokens < 5) || ((num_tokens-3) % 2 != 0)) {
+                    fprintf(stderr, "argument not enough: (<column name> <column type> ...)");
+                }
                 else {
                     const char *table_filename = str_concat("%s/%s/%s.txt", WORKSPACE_PATH_FULL, curr_db->name, cmds[2]);
                     create_table(table_filename);
