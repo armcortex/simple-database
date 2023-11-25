@@ -9,7 +9,6 @@
 #include <cstring>
 #include <cstdio>
 #include <filesystem>
-#include <regex>
 
 #include "../src/inputs.h"
 #include "../src/prompt.h"
@@ -18,16 +17,6 @@
 #include "../src/cmd_functions.h"
 #include "../src/database.h"
 
-std::string filter_out_catch2_string(const std::string& s) {
-    // Main catch2 frame
-    std::regex pattern1("\\n\\s*<Section name.*?>\\n");
-    std::string s1 = std::regex_replace(s, pattern1, "");
-
-    // Leading and trailing `"`
-    std::regex pattern2("^\"|\"$");
-    std::string s2 = std::regex_replace(s1, pattern1, "");
-    return s2;
-}
 
 TEST_CASE("Check Commands", "[command]") {
     setvbuf(stdout, NULL, _IONBF, 0);
@@ -210,6 +199,8 @@ TEST_CASE("Check Commands", "[command]") {
         prompt_buf_t *prompt_buf = new_prompt_buf();
         std::string db_name = "my_db";
         std::string not_exist_db_name = "not_exist_db";
+        bool res;
+        std::string read_str;
 
         // Testing
         // Create database
@@ -217,10 +208,14 @@ TEST_CASE("Check Commands", "[command]") {
         check_commands(prompt_buf, query_state);
 
         // Check `CREATE` command output string
-        std::string s1 = redirector.read_stdout();
-        s1 = filter_out_catch2_string(s1);
-        const std::string ref_str1 = "Create database at: ../DB_DATA/my_db/my_db.txt \n";
-        REQUIRE(ref_str1 == s1);
+        read_str = redirector.read_stdout();
+        res = compare_io_response_str(read_str, "Create database at: ../DB_DATA/my_db/my_db.txt \n");
+        REQUIRE(res);
+
+//        std::string s1 = redirector.read_stdout();
+//        s1 = filter_out_catch2_string(s1);
+//        const std::string ref_str1 = "Create database at: ../DB_DATA/my_db/my_db.txt \n";
+//        REQUIRE(ref_str1 == s1);
 
         // Use database
         stdin_write_data(redirector, prompt_buf, "use " + db_name + "\n");
@@ -247,15 +242,19 @@ TEST_CASE("Check Commands", "[command]") {
         REQUIRE(ref_str3 == s3);
 
         // Use none exist database
-        redirector.read_stderr();
+        redirector.flush();
         stdin_write_data(redirector, prompt_buf, "use " + not_exist_db_name + "\n");
         check_commands(prompt_buf, query_state);
 
         // Check `USE` command output string
-        std::string s4 = redirector.read_stderr();
-        s4 = filter_out_catch2_string(s4);
-        const std::string ref_str4 = "Database not_exist_db not exist \n";
-        REQUIRE(ref_str4 == s4);
+        read_str = redirector.read_stderr();
+        res = compare_io_response_str(read_str, "Database not_exist_db not exist \n");
+        REQUIRE(res);
+
+//        std::string s4 = redirector.read_stderr();
+//        s4 = filter_out_catch2_string(s4);
+//        const std::string ref_str4 = "Database not_exist_db not exist \n";
+//        REQUIRE(ref_str4 == s4);
 
 
         // Close

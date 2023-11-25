@@ -9,6 +9,7 @@
 #include <cstdio>
 #include <unistd.h>
 #include <fcntl.h>
+#include <regex>
 
 
 class IORedirector {
@@ -130,6 +131,11 @@ public:
 
         return output;
     }
+
+    void flush() {
+        read_stdout();
+        read_stderr();
+    }
 };
 
 std::string stdin_write_data(IORedirector& sr, prompt_buf_t *prompt_buf, std::string s) {
@@ -141,6 +147,22 @@ std::string stdin_write_data(IORedirector& sr, prompt_buf_t *prompt_buf, std::st
     read_input(prompt_buf);
     query.pop_back();       // Delete '\n'
     return query;
+}
+
+std::string filter_out_catch2_string(const std::string& s) {
+    // Main catch2 frame
+    std::regex pattern1("\\n\\s*<Section name.*?>\\n");
+    std::string s1 = std::regex_replace(s, pattern1, "");
+
+    // Leading and trailing `"`
+    std::regex pattern2("^\"|\"$");
+    std::string s2 = std::regex_replace(s1, pattern1, "");
+    return s2;
+}
+
+bool compare_io_response_str(std::string src_str, const std::string& ref_str) {
+    src_str = filter_out_catch2_string(src_str);
+    return (src_str == ref_str);
 }
 
 #endif //SIMPLE_DATABASE_IO_REDIRECT_H
