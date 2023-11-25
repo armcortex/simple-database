@@ -23,6 +23,7 @@ void check_current_path(void);
 void create_folder(const char *name);
 void remove_folder(const char *name);
 bool exist_folder(const char *name);
+bool exist_file(const char *name);
 
 #ifdef __cplusplus
 }

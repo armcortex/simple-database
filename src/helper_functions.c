@@ -113,3 +113,8 @@ bool exist_folder(const char *name) {
     struct stat st = {0};
     return (stat(name, &st) == 0 && S_ISDIR(st.st_mode));
 }
+
+bool exist_file(const char *name) {
+    struct stat st = {0};
+    return (stat(name, &st) == 0);
+}

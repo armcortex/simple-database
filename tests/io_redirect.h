@@ -15,10 +15,13 @@ class IORedirector {
 private:
     int pipefd_stdin[2];
     int pipefd_stdout[2];
+    int pipefd_stderr[2];
     int orig_stdin;
     int orig_stdout;
+    int orig_stderr;
     FILE* input_stream;
     FILE* output_stream;
+    FILE* error_stream;
 
 public:
     IORedirector() {
@@ -48,6 +51,20 @@ public:
         if (!output_stream) {
             throw std::runtime_error("Failed to open pipe for reading from stdout");
         }
+
+        // Redirect stderr
+        if (pipe(pipefd_stderr) == -1) {
+            throw std::runtime_error("Failed to create pipe for stderr");
+        }
+        orig_stderr = dup(STDERR_FILENO);
+        if (orig_stderr == -1 || dup2(pipefd_stderr[1], STDERR_FILENO) == -1) {
+            throw std::runtime_error("Failed to duplicate stderr");
+        }
+        fcntl(pipefd_stderr[0], F_SETFL, O_NONBLOCK);
+        error_stream = fdopen(pipefd_stderr[0], "r");
+        if (!error_stream) {
+            throw std::runtime_error("Failed to open pipe for reading from stderr");
+        }
     }
 
     ~IORedirector() {
@@ -64,6 +81,13 @@ public:
         close(orig_stdout);
         close(pipefd_stdout[0]);
         close(pipefd_stdout[1]);
+
+        // Close and restore stderr
+        fclose(error_stream);
+        dup2(orig_stderr, STDERR_FILENO);
+        close(orig_stderr);
+        close(pipefd_stderr[0]);
+        close(pipefd_stderr[1]);
     }
 
     void write_stdin(const std::string &data) {
@@ -75,12 +99,29 @@ public:
 
     std::string read_stdout() {
         std::string output;
-        const int bufferSize = 10;
+        const int bufferSize = 256;
         char buffer[bufferSize];
 
         ssize_t bytesRead = 0;
         do {
             bytesRead = read(pipefd_stdout[0], buffer, bufferSize - 1);
+            if (bytesRead > 0) {
+                buffer[bytesRead] = '\0'; // Null-terminate the string
+                output += buffer;
+            }
+        } while (bytesRead > 0);
+
+        return output;
+    }
+
+    std::string read_stderr() {
+        std::string output;
+        const int bufferSize = 256;
+        char buffer[bufferSize];
+
+        ssize_t bytesRead = 0;
+        do {
+            bytesRead = read(pipefd_stderr[0], buffer, bufferSize - 1);
             if (bytesRead > 0) {
                 buffer[bytesRead] = '\0'; // Null-terminate the string
                 output += buffer;
