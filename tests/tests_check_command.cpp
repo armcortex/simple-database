@@ -212,11 +212,6 @@ TEST_CASE("Check Commands", "[command]") {
         res = compare_io_response_str(read_str, "Create database at: ../DB_DATA/my_db/my_db.txt \n");
         REQUIRE(res);
 
-//        std::string s1 = redirector.read_stdout();
-//        s1 = filter_out_catch2_string(s1);
-//        const std::string ref_str1 = "Create database at: ../DB_DATA/my_db/my_db.txt \n";
-//        REQUIRE(ref_str1 == s1);
-
         // Use database
         stdin_write_data(redirector, prompt_buf, "use " + db_name + "\n");
         check_commands(prompt_buf, query_state);
@@ -226,20 +221,18 @@ TEST_CASE("Check Commands", "[command]") {
         REQUIRE(current_db_name == db_name);
 
         // Check `USE` command output string
-        std::string s2 = redirector.read_stdout();
-        s2 = filter_out_catch2_string(s2);
-        const std::string ref_str2 = "Using database: my_db \n";
-        REQUIRE(ref_str2 == s2);
+        read_str = redirector.read_stdout();
+        res = compare_io_response_str(read_str, "Using database: my_db \n");
+        REQUIRE(res);
 
         // Delete database
         stdin_write_data(redirector, prompt_buf, "delete database " + db_name + "\n");
         check_commands(prompt_buf, query_state);
 
         // Check `DELETE` command output string
-        std::string s3 = redirector.read_stdout();
-        s3 = filter_out_catch2_string(s3);
-        const std::string ref_str3 = "Delete database at: ../DB_DATA/my_db \n";
-        REQUIRE(ref_str3 == s3);
+        read_str = redirector.read_stdout();
+        res = compare_io_response_str(read_str, "Delete database at: ../DB_DATA/my_db \n");
+        REQUIRE(res);
 
         // Use none exist database
         redirector.flush();
@@ -250,12 +243,6 @@ TEST_CASE("Check Commands", "[command]") {
         read_str = redirector.read_stderr();
         res = compare_io_response_str(read_str, "Database not_exist_db not exist \n");
         REQUIRE(res);
-
-//        std::string s4 = redirector.read_stderr();
-//        s4 = filter_out_catch2_string(s4);
-//        const std::string ref_str4 = "Database not_exist_db not exist \n";
-//        REQUIRE(ref_str4 == s4);
-
 
         // Close
         free_prompt_buf(prompt_buf);
