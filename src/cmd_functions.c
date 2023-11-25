@@ -80,16 +80,28 @@ void create_database_meta(const char *name) {
     cJSON_AddNumberToObject(json, "timestamp", (int)current_time);
     cJSON_AddNumberToObject(json, "table_cnt", 0);
 
+    // Create an empty array
+    cJSON *tables_array = cJSON_CreateArray();
+    if (tables_array == NULL) {
+        fprintf(stderr, "Failed to create tables array \n");
+        cJSON_Delete(json);
+        assert(0);
+    }
+    cJSON_AddItemToObject(json, "tables", tables_array);
+
     // Write to file
     char *json_str = cJSON_Print(json);
     if (json_str == NULL) {
         fprintf(stderr, "Failed to init cJSON_Print() \n");
+        cJSON_Delete(json);
         assert(0);
     }
 
     FILE *file = fopen(name, "a");
     if (file == NULL) {
         fprintf(stderr, "Failed to write database: %s \n", name);
+        cJSON_free(json_str);
+        cJSON_Delete(json);
         assert(0);
     }
     fprintf(file, "%s", json_str);
@@ -115,16 +127,15 @@ void create_table(const char *name, char **args, size_t len) {
         assert(0);
     }
 
+    // Show column on the first line
     for (size_t i=0; i<(len-2); i+=2) {
         fprintf(file, "%s, ", args[i]);
     }
     fprintf(file, "%s", args[len-2]);
-
-
     fclose(file);
 
-
-    update_database_meta_table_cnt();
+    // Update database meta file
+    add_database_new_table(args, len);
 }
 
 void delete_table(const char *name) {

@@ -17,7 +17,7 @@ void delete_command_info(void);
 void use_command_info(void);
 void create_database(const char *name);
 void create_database_meta(const char *name);
-void update_database_meta_table_cnt(void);
+void add_database_new_table(char **column, size_t len);
 void delete_database(const char *name);
 void create_table(const char *name, char **args, size_t len);
 void delete_table(const char *name);
