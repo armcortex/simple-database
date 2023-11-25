@@ -27,6 +27,8 @@ set(PROJ_SOURCES
         src/db_config.h
         src/cmd_functions.c
         src/cmd_functions.h
+        src/database.c
+        src/database.h
 )
 
 add_library(simple_database_lib ${PROJ_SOURCES})

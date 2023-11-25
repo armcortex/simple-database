@@ -10,19 +10,7 @@
 #include "prompt.h"
 #include "helper_functions.h"
 #include "cmd_functions.h"
-
-
-static current_db_t current_db;
-
-static void update_current_db(const char *name) {
-    memset(&current_db, 0, sizeof(current_db_t));
-    current_db.len = strlen(name);
-    strncpy(current_db.name, name, current_db.len);
-}
-
-current_db_t* get_current_db() {
-    return &current_db;
-}
+#include "database.h"
 
 void print_prompt() {
     current_db_t *db = get_current_db();

@@ -37,13 +37,7 @@ typedef struct query_state_t {
     void (*close)(struct query_state_t *query_state);
 } query_state_t;
 
-typedef struct current_db_t {
-    char name[DB_NAME_MAX];
-    size_t len;
-} current_db_t;
 
-
-current_db_t* get_current_db();
 void print_prompt(void);
 prompt_buf_t* new_prompt_buf(void);
 void free_prompt_buf(prompt_buf_t *prompt_buf);

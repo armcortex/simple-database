@@ -16,6 +16,7 @@
 #include "io_redirect.h"
 #include "../src/helper_functions.h"
 #include "../src/cmd_functions.h"
+#include "../src/database.h"
 
 std::string filter_out_catch2_string(const std::string& s) {
     // Main catch2 frame
