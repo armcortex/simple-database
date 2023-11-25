@@ -151,7 +151,7 @@ TEST_CASE("Check Commands", "[command]") {
 
         std::string s = redirector.read_stdout();
         s = filter_out_catch2_string(s);
-        const std::string ref_str = "Create sub-commands: \n\t database <database name> \n\t table <table name> \n";
+        const std::string ref_str = "Create sub-commands: \n\t database <database name> \n\t table <table name> (<column name> <column type> ...) \n";
         REQUIRE(ref_str == s);
 
         // Close

@@ -31,7 +31,7 @@ void basic_command_info() {
 void create_command_info() {
     fprintf(stdout, "Create sub-commands: \n");
     fprintf(stdout, "\t database <database name> \n");
-    fprintf(stdout, "\t table <table name> \n");
+    fprintf(stdout, "\t table <table name> (<column name> <column type> ...) \n");
 }
 
 void delete_command_info() {
@@ -75,11 +75,12 @@ void create_database_meta(const char *name) {
     strftime(formatted_time, sizeof(formatted_time), "%Y-%m-%d %H:%M:%S",
             localtime(&current_time));
 
+    // Create json element
     cJSON_AddStringToObject(json, "time", formatted_time);
     cJSON_AddNumberToObject(json, "timestamp", (int)current_time);
     cJSON_AddNumberToObject(json, "table_cnt", 0);
 
-
+    // Write to file
     char *json_str = cJSON_Print(json);
     if (json_str == NULL) {
         fprintf(stderr, "Failed to init cJSON_Print() \n");
