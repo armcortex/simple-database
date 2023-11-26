@@ -198,23 +198,6 @@ void create_table(const char *filename_path, const char *filename, char **args, 
     current_db_t *curr_db = get_current_db();
     cJSON *new_table = create_table_json(filename, args, len);
     add_database_new_table(curr_db->name_path, new_table);
-//    cJSON_Delete(new_table);
-
-
-    // Update database meta file
-//    add_database_new_table(args, len);
-//    current_db_t *curr_db = get_current_db();
-
-//    // Create table info in json
-//    cJSON *root = create_table_json(filename, args, len);
-//    char *json_string = cJSON_Print(root);
-//    fprintf(file, "%s\n", json_string);
-//    cJSON_Delete(root);
-//    free(json_string);
-
-
-//    cJSON_Delete(new_table);
-//    fclose(file);
 }
 
 cJSON *create_table_json(const char *table_name, char **args, size_t len) {
