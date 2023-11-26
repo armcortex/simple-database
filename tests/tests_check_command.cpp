@@ -193,7 +193,10 @@ TEST_CASE("Check Commands", "[command]") {
         // Close
         stdin_write_data(redirector, prompt_buf, "delete database " + db_name + "\n");
         check_commands(prompt_buf, query_state);
+        fileExists = std::filesystem::exists(db_folder);
+        REQUIRE_FALSE(fileExists);
 
+        // Close
         free_prompt_buf(prompt_buf);
         query_state->close(query_state);
 
