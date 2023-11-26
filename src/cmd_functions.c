@@ -54,14 +54,16 @@ void create_database(const char *filename) {
         assert(0);
     }
 
-    // Get filename, and write in the beginning of the file
-    splitter_t splitter = split_construct();
-    size_t num_tokens;
-    char** filename_array = splitter.run(filename, "/", &num_tokens);
-    fprintf(file, "// Database: %s \n\n", filename_array[num_tokens-1]);
-    splitter.free(filename_array, num_tokens);
+//    // Get filename, and write in the beginning of the file
+//    splitter_t splitter = split_construct();
+//    size_t num_tokens;
+//    char** filename_array = splitter.run(filename, "/", &num_tokens);
+//    fprintf(file, "// Database: %s \n\n", filename_array[num_tokens-1]);
+//    splitter.free(filename_array, num_tokens);
 
     fclose(file);
+
+    create_database_meta(filename);
 }
 
 void create_database_meta(const char *filename) {
@@ -113,7 +115,7 @@ void create_database_meta(const char *filename) {
 }
 
 void add_database_new_table(const char *db_filename, cJSON *new_table) {
-    char *content = read_file(db_filename, 2);
+    char *content = read_file(db_filename, 0);
 
 //    // Open database file
 //    FILE *file = fopen(db_filename, "r");

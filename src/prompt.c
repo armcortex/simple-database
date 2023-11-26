@@ -74,8 +74,8 @@ void check_commands(prompt_buf_t *prompt_buf, query_state_t *query_state) {
                 create_database(db_filename);
                 fprintf(stdout, "Create database at: %s \n", db_filename);
 
-                // Create meta data
-                create_database_meta(db_filename);
+//                // Create meta data
+//                create_database_meta(db_filename);
             }
             else if (strncmp(cmds[1], "table", 5) == 0) {
                 current_db_t *curr_db =  get_current_db();
