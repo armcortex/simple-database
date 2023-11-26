@@ -47,24 +47,24 @@ void use_command_info() {
     fprintf(stdout, "\t <database name> \n");
 }
 
-void create_database(const char *name) {
-    FILE *file = fopen(name, "w");
+void create_database(const char *filename) {
+    FILE *file = fopen(filename, "w");
     if (file == NULL) {
-        fprintf(stderr, "Failed to create database: %s \n", name);
+        fprintf(stderr, "Failed to create database: %s \n", filename);
         assert(0);
     }
 
     // Get filename, and write in the beginning of the file
     splitter_t splitter = split_construct();
     size_t num_tokens;
-    char** filenames = splitter.run(name, "/", &num_tokens);
-    fprintf(file, "// Database: %s \n\n", filenames[num_tokens-1]);
-    splitter.free(filenames, num_tokens);
+    char** filename_array = splitter.run(filename, "/", &num_tokens);
+    fprintf(file, "// Database: %s \n\n", filename_array[num_tokens-1]);
+    splitter.free(filename_array, num_tokens);
 
     fclose(file);
 }
 
-void create_database_meta(const char *name) {
+void create_database_meta(const char *filename) {
     cJSON *json = cJSON_CreateObject();
     if (json == NULL) {
         fprintf(stderr, "Failed to create JSON object \n");
@@ -99,9 +99,9 @@ void create_database_meta(const char *name) {
         assert(0);
     }
 
-    FILE *file = fopen(name, "a");
+    FILE *file = fopen(filename, "a");
     if (file == NULL) {
-        fprintf(stderr, "Failed to write database: %s \n", name);
+        fprintf(stderr, "Failed to write database: %s \n", filename);
         cJSON_free(json_str);
         cJSON_Delete(json);
         assert(0);
@@ -112,20 +112,24 @@ void create_database_meta(const char *name) {
     cJSON_Delete(json);
 }
 
-void update_database_meta_table_cnt() {
-}
+//void add_database_new_table(const char *filename, cJSON *table_json) {
+////    current_db_t *curr_db =  get_current_db();
+////    const char *db_filename = str_concat("%s/%s/%s.txt", WORKSPACE_PATH_FULL, curr_db->name, curr_db->name);
+//
+//
+//}
 
-void delete_database(const char *name) {
-    if (remove(name) != 0) {
-        fprintf(stderr, "Failed to delete database: %s \n", name);
+void delete_database(const char *filename) {
+    if (remove(filename) != 0) {
+        fprintf(stderr, "Failed to delete database: %s \n", filename);
         assert(0);
     }
 }
 
-void create_table(const char *name, char **args, size_t len) {
-    FILE *file = fopen(name, "w");
+void create_table(const char *filename, char **args, size_t len) {
+    FILE *file = fopen(filename, "w");
     if (file == NULL) {
-        fprintf(stderr, "Failed to create table: %s \n", name);
+        fprintf(stderr, "Failed to create table: %s \n", filename);
         assert(0);
     }
 
@@ -152,9 +156,9 @@ void create_table(const char *name, char **args, size_t len) {
     fclose(file);
 }
 
-cJSON *create_table_json(const char *name, char **args, size_t len) {
+cJSON *create_table_json(const char *table_name, char **args, size_t len) {
     cJSON *root = cJSON_CreateObject();
-    cJSON_AddStringToObject(root, "table_name", name);
+    cJSON_AddStringToObject(root, "table_name", table_name);
 
     cJSON *columns = cJSON_CreateArray();
     for (size_t i=0; i<len; i+=2) {
@@ -169,16 +173,16 @@ cJSON *create_table_json(const char *name, char **args, size_t len) {
 }
 
 
-void delete_table(const char *name) {
-    if (remove(name) != 0) {
-        fprintf(stderr, "Failed to delete table: %s \n", name);
+void delete_table(const char *filename) {
+    if (remove(filename) != 0) {
+        fprintf(stderr, "Failed to delete table: %s \n", filename);
         assert(0);
     }
 }
 
-const char* create_filename(const char *name, const char *ext) {
+const char* create_filename(const char *filename, const char *ext) {
     memset(g_db_name, 0, DB_NAME_MAX * sizeof(char));
-    strncpy(g_db_name, name, strlen(name));
+    strncpy(g_db_name, filename, strlen(filename));
     strncat(g_db_name, ext, strlen(ext));
     g_db_name[sizeof(g_db_name) - 1] = '\0';
     return g_db_name;
