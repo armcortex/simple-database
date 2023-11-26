@@ -181,16 +181,7 @@ TEST_CASE("Check Commands", "[command]") {
         res = compare_io_response_str(read_str, "Create table at: ../DB_DATA/my_db/my_table.csv \n");
         REQUIRE(res);
 
-        // Delete table
-//        std::filesystem::remove_all( db_folder);
-
-//        stdin_write_data(redirector, prompt_buf, "delete table " + table_name + "\n");
-//        check_commands(prompt_buf, query_state);
-//        fileExists = std::filesystem::exists(table_file_path);
-//        REQUIRE_FALSE(fileExists);
-
-
-        // Close
+        // Delete database, all tables will be deleted as well
         stdin_write_data(redirector, prompt_buf, "delete database " + db_name + "\n");
         check_commands(prompt_buf, query_state);
         fileExists = std::filesystem::exists(db_folder);
@@ -199,8 +190,6 @@ TEST_CASE("Check Commands", "[command]") {
         // Close
         free_prompt_buf(prompt_buf);
         query_state->close(query_state);
-
-//        std::filesystem::remove_all( db_folder);
     }
 
     SECTION("Basic help command") {
