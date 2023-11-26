@@ -182,7 +182,7 @@ TEST_CASE("Check Commands", "[command]") {
         REQUIRE(res);
 
         // Delete table
-        std::filesystem::remove_all( db_folder);
+//        std::filesystem::remove_all( db_folder);
 
 //        stdin_write_data(redirector, prompt_buf, "delete table " + table_name + "\n");
 //        check_commands(prompt_buf, query_state);
@@ -191,11 +191,13 @@ TEST_CASE("Check Commands", "[command]") {
 
 
         // Close
-//        stdin_write_data(redirector, prompt_buf, "delete database " + db_name + "\n");
-//        check_commands(prompt_buf, query_state);
+        stdin_write_data(redirector, prompt_buf, "delete database " + db_name + "\n");
+        check_commands(prompt_buf, query_state);
 
         free_prompt_buf(prompt_buf);
         query_state->close(query_state);
+
+//        std::filesystem::remove_all( db_folder);
     }
 
     SECTION("Basic help command") {
@@ -322,7 +324,7 @@ TEST_CASE("Check Commands", "[command]") {
 
         // Check `DELETE` command output string
         read_str = redirector.read_stdout();
-        res = compare_io_response_str(read_str, "Delete database at: ../DB_DATA/my_db \n");
+        res = compare_io_response_str(read_str, "Delete database: ../DB_DATA/my_db/my_db.json \n");
         REQUIRE(res);
 
         // Use none exist database

@@ -115,9 +115,10 @@ void check_commands(prompt_buf_t *prompt_buf, query_state_t *query_state) {
 
                 // Delete folder
                 const char *db_folder_name = str_concat("%s/%s", WORKSPACE_PATH_FULL, cmds[2]);
+                delete_table_all(db_folder_name);
                 remove_folder(db_folder_name);
 
-                fprintf(stdout, "Delete database at: %s \n", db_filename);
+//                fprintf(stdout, "Delete database at: %s \n", db_filename);
             }
             else {
                 fprintf(stderr, "Unrecognized command '%s' \n\n", prompt_buf->buf);

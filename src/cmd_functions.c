@@ -10,6 +10,7 @@
 #include <assert.h>
 #include <stdarg.h>
 #include <time.h>
+#include <dirent.h>
 #include <cJSON.h>
 
 #include "cmd_functions.h"
@@ -153,6 +154,9 @@ void delete_database(const char *filename) {
         fprintf(stderr, "Failed to delete database: %s \n", filename);
         assert(0);
     }
+    else {
+        fprintf(stdout, "Delete database: %s \n", filename);
+    }
 }
 
 void create_table(const char *filename_path, const char *filename, char **args, size_t len) {
@@ -191,11 +195,31 @@ cJSON *create_table_json(const char *table_name, char **args, size_t len) {
     return root;
 }
 
-
 void delete_table(const char *filename) {
     if (remove(filename) != 0) {
         fprintf(stderr, "Failed to delete table: %s \n", filename);
         assert(0);
+    }
+    else {
+        fprintf(stdout, "Delete table: %s \n", filename);
+    }
+}
+
+void delete_table_all(const char *db_base_path) {
+    DIR *d = opendir(db_base_path);
+    struct dirent *dir;
+    char del_path[PATH_MAX] = {0};
+
+    if (d) {
+        dir = readdir(d);
+        while (dir != NULL) {
+            if (strstr(dir->d_name, ".csv") != NULL) {
+                snprintf(del_path, sizeof(del_path), "%s/%s", db_base_path, dir->d_name);
+                delete_table(del_path);
+            }
+            dir = readdir(d);
+        }
+        closedir(d);
     }
 }
 
