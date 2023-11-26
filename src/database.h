@@ -10,16 +10,18 @@ extern "C" {
 #endif
 
 #include <stdio.h>
+#include <limits.h>
 
 #include "db_config.h"
 
 typedef struct current_db_t {
     char name[DB_NAME_MAX];
+    char name_path[PATH_MAX];
     size_t len;
 } current_db_t;
 
 current_db_t* get_current_db();
-void update_current_db(const char *name);
+void update_current_db(const char *name, const char *filename_path);
 
 #ifdef __cplusplus
 }

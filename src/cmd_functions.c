@@ -58,7 +58,7 @@ void create_database(const char *filename) {
     splitter_t splitter = split_construct();
     size_t num_tokens;
     char** filename_array = splitter.run(filename, "/", &num_tokens);
-    fprintf(file, "// Database: %s \n\n", filename_array[num_tokens-1]);
+//    fprintf(file, "// Database: %s \n\n", filename_array[num_tokens-1]);
     splitter.free(filename_array, num_tokens);
 
     fclose(file);
@@ -112,12 +112,66 @@ void create_database_meta(const char *filename) {
     cJSON_Delete(json);
 }
 
-//void add_database_new_table(const char *filename, cJSON *table_json) {
-////    current_db_t *curr_db =  get_current_db();
-////    const char *db_filename = str_concat("%s/%s/%s.txt", WORKSPACE_PATH_FULL, curr_db->name, curr_db->name);
-//
-//
-//}
+void add_database_new_table(const char *db_filename, cJSON *new_table) {
+    // Open database file
+    FILE *file = fopen(db_filename, "r");
+    if (file == NULL) {
+        fprintf(stderr, "Failed to open database file: %s\n", db_filename);
+        assert(0);
+    }
+
+    // Read the file content
+    fseek(file, 0, SEEK_END);
+    long length = ftell(file);
+    fseek(file, 0, SEEK_SET);
+    char *content = (char*)malloc(length + 1);
+    if (content == NULL) {
+        fprintf(stderr, "Failed to allocate memory\n");
+        fclose(file);
+        assert(0);
+    }
+    fread(content, 1, length, file);
+    fclose(file);
+    content[length] = '\0';
+
+    // Parse the JSON content
+    cJSON *json = cJSON_Parse(content);
+    free(content);
+    if (json == NULL) {
+        fprintf(stderr, "Failed to parse JSON\n");
+        assert(0);
+    }
+
+    // Get the tables array
+    cJSON *tables = cJSON_GetObjectItem(json, "tables");
+    if (!cJSON_IsArray(tables)) {
+        fprintf(stderr, "\"table\" is not an array\n");
+        cJSON_Delete(json);
+        assert(0);
+    }
+
+    // Add the new table to the tables array
+    cJSON_AddItemToArray(tables, new_table);
+
+    // Update table_cnt
+    cJSON *table_cnt = cJSON_GetObjectItem(json, "table_cnt");
+    if (cJSON_IsNumber(table_cnt)) {
+        table_cnt->valuedouble = cJSON_GetArraySize(tables); // Update count
+    }
+
+    // Write json back to the file
+    file = fopen(db_filename, "w");
+    if (file == NULL) {
+        fprintf(stderr, "Failed to open database file:: %s\n", db_filename);
+        cJSON_Delete(json);
+        assert(0);
+    }
+    char *modified_content = cJSON_Print(json);
+    fprintf(file, "%s", modified_content);
+    fclose(file);
+    cJSON_free(modified_content);
+    cJSON_Delete(json);
+}
 
 void delete_database(const char *filename) {
     if (remove(filename) != 0) {
@@ -138,26 +192,29 @@ void create_table(const char *filename_path, const char *filename, char **args, 
         fprintf(file, "%s, ", args[i]);
     }
     fprintf(file, "%s\n\n", args[len-2]);
+    fclose(file);
 
-
-    // Create json table
-
+    // Update new table to database meta data
+    current_db_t *curr_db = get_current_db();
+    cJSON *new_table = create_table_json(filename, args, len);
+    add_database_new_table(curr_db->name_path, new_table);
+//    cJSON_Delete(new_table);
 
 
     // Update database meta file
 //    add_database_new_table(args, len);
 //    current_db_t *curr_db = get_current_db();
 
-    // Create table info in json
-    cJSON *root = create_table_json(filename, args, len);
-    char *json_string = cJSON_Print(root);
-    fprintf(file, "%s\n", json_string);
-    cJSON_Delete(root);
-    free(json_string);
+//    // Create table info in json
+//    cJSON *root = create_table_json(filename, args, len);
+//    char *json_string = cJSON_Print(root);
+//    fprintf(file, "%s\n", json_string);
+//    cJSON_Delete(root);
+//    free(json_string);
 
 
-
-    fclose(file);
+//    cJSON_Delete(new_table);
+//    fclose(file);
 }
 
 cJSON *create_table_json(const char *table_name, char **args, size_t len) {

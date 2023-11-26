@@ -18,7 +18,7 @@ void delete_command_info(void);
 void use_command_info(void);
 void create_database(const char *name);
 void create_database_meta(const char *name);
-//void add_database_new_table(char **column, size_t len, cJSON *table_json);
+void add_database_new_table(const char *db_filename, cJSON *new_table);
 void delete_database(const char *name);
 void create_table(const char *filename_path, const char *filename, char **args, size_t len);
 cJSON *create_table_json(const char *name, char **args, size_t len);

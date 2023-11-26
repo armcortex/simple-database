@@ -144,7 +144,7 @@ void check_commands(prompt_buf_t *prompt_buf, query_state_t *query_state) {
                     fprintf(stderr, "Database %s not exist \n", cmds[1]);
                 }
                 else {
-                    update_current_db(cmds[1]);
+                    update_current_db(cmds[1], db_filename);
                     current_db_t *db = get_current_db();
                     fprintf(stdout, "Using database: %s \n", db->name);
                 }

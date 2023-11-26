@@ -13,8 +13,9 @@ current_db_t* get_current_db() {
     return &g_current_db;
 }
 
-void update_current_db(const char *name) {
+void update_current_db(const char *name, const char *filename_path) {
     memset(&g_current_db, 0, sizeof(current_db_t));
     g_current_db.len = strlen(name);
     strncpy(g_current_db.name, name, g_current_db.len);
+    strncpy(g_current_db.name_path, filename_path, strlen(filename_path));
 }
