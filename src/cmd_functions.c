@@ -16,8 +16,8 @@
 #include "db_config.h"
 #include "helper_functions.h"
 
-static char db_file_path[PATH_MAX] = {0};
-static char db_name[DB_NAME_MAX] = {0};
+static char g_db_file_path[PATH_MAX] = {0};
+static char g_db_name[DB_NAME_MAX] = {0};
 
 void basic_command_info() {
     fprintf(stdout, "All Support commands: \n");
@@ -176,33 +176,33 @@ void delete_table(const char *name) {
 }
 
 const char* create_filename(const char *name, const char *ext) {
-    memset(db_name, 0, DB_NAME_MAX * sizeof(char));
-    strncpy(db_name, name, strlen(name));
-    strncat(db_name, ext, strlen(ext));
-    db_name[sizeof(db_name) - 1] = '\0';
-    return db_name;
+    memset(g_db_name, 0, DB_NAME_MAX * sizeof(char));
+    strncpy(g_db_name, name, strlen(name));
+    strncat(g_db_name, ext, strlen(ext));
+    g_db_name[sizeof(g_db_name) - 1] = '\0';
+    return g_db_name;
 }
 
 const char* create_filename_full_path(const char *base, const char *name, const char *ext) {
-    memset(db_file_path, 0, PATH_MAX * sizeof(char));
+    memset(g_db_file_path, 0, PATH_MAX * sizeof(char));
 
-    strncpy(db_file_path, base, strlen(base));
-    strncat(db_file_path, "/", strlen("/")+1);
+    strncpy(g_db_file_path, base, strlen(base));
+    strncat(g_db_file_path, "/", strlen("/")+1);
 
     const char *filename = create_filename(name, ext);
-    strncat(db_file_path, filename, strlen(filename));
-    db_file_path[sizeof(db_file_path) - 1] = '\0';
-    return db_file_path;
+    strncat(g_db_file_path, filename, strlen(filename));
+    g_db_file_path[sizeof(g_db_file_path) - 1] = '\0';
+    return g_db_file_path;
 }
 
 const char* str_concat(const char *format, ...) {
-    memset(db_file_path, 0, PATH_MAX * sizeof(char));
+    memset(g_db_file_path, 0, PATH_MAX * sizeof(char));
 
     va_list args;
     va_start(args, format);
-    vsnprintf(db_file_path, PATH_MAX, format, args);
+    vsnprintf(g_db_file_path, PATH_MAX, format, args);
     va_end(args);
 
-    return db_file_path;
+    return g_db_file_path;
 }
 
