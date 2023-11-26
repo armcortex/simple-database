@@ -70,7 +70,7 @@ void check_commands(prompt_buf_t *prompt_buf, query_state_t *query_state) {
                 create_folder(db_folder_name);
 
                 // Create database file
-                const char *db_filename = str_concat("%s/%s/%s.txt", WORKSPACE_PATH_FULL, cmds[2], cmds[2]);
+                const char *db_filename = str_concat("%s/%s/%s.json", WORKSPACE_PATH_FULL, cmds[2], cmds[2]);
                 create_database(db_filename);
                 fprintf(stdout, "Create database at: %s \n", db_filename);
             }
@@ -84,7 +84,7 @@ void check_commands(prompt_buf_t *prompt_buf, query_state_t *query_state) {
                     fprintf(stderr, "argument not enough: (<column name> <column type> ...)");
                 }
                 else {
-                    const char *table_filename = str_concat("%s/%s/%s.txt", WORKSPACE_PATH_FULL, curr_db->name, cmds[2]);
+                    const char *table_filename = str_concat("%s/%s/%s.csv", WORKSPACE_PATH_FULL, curr_db->name, cmds[2]);
                     create_table(table_filename, cmds[2], &cmds[3], num_tokens-3);
                     fprintf(stdout, "Create table at: %s \n", table_filename);
                 }
@@ -110,7 +110,7 @@ void check_commands(prompt_buf_t *prompt_buf, query_state_t *query_state) {
             }
             else if (strncmp(cmds[1], "database", 8) == 0) {
                 // Delete database file
-                const char *db_filename = str_concat("%s/%s/%s.txt", WORKSPACE_PATH_FULL, cmds[2], cmds[2]);
+                const char *db_filename = str_concat("%s/%s/%s.json", WORKSPACE_PATH_FULL, cmds[2], cmds[2]);
                 delete_database(db_filename);
 
                 // Delete folder
@@ -136,7 +136,7 @@ void check_commands(prompt_buf_t *prompt_buf, query_state_t *query_state) {
                 use_command_info();
             }
             else {
-                const char *db_filename = str_concat("%s/%s/%s.txt", WORKSPACE_PATH_FULL, cmds[1], cmds[1]);
+                const char *db_filename = str_concat("%s/%s/%s.json", WORKSPACE_PATH_FULL, cmds[1], cmds[1]);
                 if (!exist_file(db_filename)) {
                     fprintf(stderr, "Database %s not exist \n", cmds[1]);
                 }

@@ -78,7 +78,7 @@ TEST_CASE("Check Commands", "[command]") {
         // Init
         IORedirector redirector;
         std::string db_name = "my_db";
-        std::string db_file_path = WORKSPACE_PATH_FULL "/" + db_name + "/" + db_name + ".txt";
+        std::string db_file_path = WORKSPACE_PATH_FULL "/" + db_name + "/" + db_name + ".json";
         bool fileExists;
 
         create_folder((const char*)WORKSPACE_PATH_FULL);
@@ -113,8 +113,8 @@ TEST_CASE("Check Commands", "[command]") {
         std::string db_name = "my_db";
         std::string table_name = "my_table";
         std::string db_folder = WORKSPACE_PATH_FULL "/" + db_name + "/";
-        std::string db_file_path = db_folder + db_name + ".txt";
-        std::string table_file_path = db_folder + table_name + ".txt";
+        std::string db_file_path = db_folder + db_name + ".json";
+        std::string table_file_path = db_folder + table_name + ".csv";
         bool fileExists;
         bool res;
         std::string read_str;
@@ -178,7 +178,7 @@ TEST_CASE("Check Commands", "[command]") {
 
         // Check `create table` command output string
         read_str = redirector.read_stdout();
-        res = compare_io_response_str(read_str, "Create table at: ../DB_DATA/my_db/my_table.txt \n");
+        res = compare_io_response_str(read_str, "Create table at: ../DB_DATA/my_db/my_table.csv \n");
         REQUIRE(res);
 
         // Delete table
@@ -300,7 +300,7 @@ TEST_CASE("Check Commands", "[command]") {
 
         // Check `CREATE` command output string
         read_str = redirector.read_stdout();
-        res = compare_io_response_str(read_str, "Create database at: ../DB_DATA/my_db/my_db.txt \n");
+        res = compare_io_response_str(read_str, "Create database at: ../DB_DATA/my_db/my_db.json \n");
         REQUIRE(res);
 
         // Use database
