@@ -126,10 +126,10 @@ void delete_database(const char *filename) {
     }
 }
 
-void create_table(const char *filename, char **args, size_t len) {
-    FILE *file = fopen(filename, "w");
+void create_table(const char *filename_path, const char *filename, char **args, size_t len) {
+    FILE *file = fopen(filename_path, "w");
     if (file == NULL) {
-        fprintf(stderr, "Failed to create table: %s \n", filename);
+        fprintf(stderr, "Failed to create table: %s \n", filename_path);
         assert(0);
     }
 
@@ -142,10 +142,14 @@ void create_table(const char *filename, char **args, size_t len) {
 
     // Create json table
 
+
+
     // Update database meta file
 //    add_database_new_table(args, len);
-    current_db_t *curr_db = get_current_db();
-    cJSON *root = create_table_json(curr_db->name, args, len);
+//    current_db_t *curr_db = get_current_db();
+
+    // Create table info in json
+    cJSON *root = create_table_json(filename, args, len);
     char *json_string = cJSON_Print(root);
     fprintf(file, "%s\n", json_string);
     cJSON_Delete(root);
