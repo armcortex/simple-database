@@ -15,6 +15,7 @@
 #include "cmd_functions.h"
 #include "db_config.h"
 #include "helper_functions.h"
+#include "database.h"
 
 static char g_db_file_path[PATH_MAX] = {0};
 static char g_db_name[DB_NAME_MAX] = {0};
@@ -139,8 +140,8 @@ void create_table(const char *name, char **args, size_t len) {
 
     // Update database meta file
 //    add_database_new_table(args, len);
-
-    cJSON *root = create_table_json(name, args, len);
+    current_db_t *curr_db = get_current_db();
+    cJSON *root = create_table_json(curr_db->name, args, len);
     char *json_string = cJSON_Print(root);
     fprintf(file, "%s\n", json_string);
     cJSON_Delete(root);
