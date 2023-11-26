@@ -9,6 +9,8 @@
 #include <cstring>
 #include <cstdio>
 #include <filesystem>
+#include <fstream>
+#include <nlohmann/json.hpp>
 
 #include "../src/inputs.h"
 #include "../src/prompt.h"
@@ -19,7 +21,7 @@
 
 
 TEST_CASE("Check Commands", "[command]") {
-    setvbuf(stdout, NULL, _IONBF, 0);
+    setvbuf(stdout, nullptr, _IONBF, 0);
 
     SECTION("Basic input query") {
         // Init
@@ -333,4 +335,75 @@ TEST_CASE("Check Commands", "[command]") {
         free_prompt_buf(prompt_buf);
         query_state->close(query_state);
     }
+}
+
+TEST_CASE("Create Table JSON Test", "[create_table]") {
+    const std::string db_name = "my_db";
+    const std::string table_name = "my_table";
+    const std::string db_folder = WORKSPACE_PATH_FULL "/" + db_name + "/";
+    const std::string db_file_path = db_folder + db_name + ".json";
+    const std::string table_file_path = db_folder + table_name + ".csv";
+    std::string read_str;
+    bool fileExists;
+
+    // Init
+    IORedirector redirector;
+    query_state_t *query_state = query_state_construct();
+    query_state->init(query_state);
+    prompt_buf_t *prompt_buf = new_prompt_buf();
+
+    SECTION("Creating table and checking JSON structure") {
+        // Create database
+        stdin_write_data(redirector, prompt_buf, "create database " + db_name + "\n");
+        check_commands(prompt_buf, query_state);
+        fileExists = std::filesystem::exists(db_file_path);
+        REQUIRE(fileExists);
+
+        // Use database
+        stdin_write_data(redirector, prompt_buf, "use " + db_name + "\n");
+        check_commands(prompt_buf, query_state);
+
+        // Create table
+        stdin_write_data(redirector, prompt_buf, "create table " + table_name + " name STRING age INT height FLOAT \n");
+        check_commands(prompt_buf, query_state);
+        fileExists = std::filesystem::exists(table_file_path);
+        REQUIRE(fileExists);
+
+        // Check database meta data json file
+        std::ifstream f(db_file_path);
+        nlohmann::json db_json = nlohmann::json::parse(f);
+        db_json.erase("time");
+        db_json.erase("timestamp");
+        std::string db_json_str = db_json.dump(2);
+
+        nlohmann::json ref_db_json = {
+            {"table_cnt", 1},
+            {"tables", {{
+                {"table_name", "my_table"},
+                {"columns", {
+                    {{"column_name", "name"}, {"type", "STRING"}},
+                    {{"column_name", "age"}, {"type", "INT"}},
+                    {{"column_name", "height"}, {"type", "FLOAT"}}
+                }}
+            }}}
+        };
+        std::string ref_db_json_str = ref_db_json.dump(2);
+        REQUIRE(db_json == ref_db_json);
+
+        // check table csv file
+        std::ifstream file(table_file_path);
+        std::string table_content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+        std::string ref_table_content = "name, age, height\n\n";
+        REQUIRE(table_content == ref_table_content);
+
+        // Delete database
+        stdin_write_data(redirector, prompt_buf, "delete database " + db_name + "\n");
+        check_commands(prompt_buf, query_state);
+        fileExists = std::filesystem::exists(db_folder);
+        REQUIRE_FALSE(fileExists);
+    }
+
+    // Close
+    free_prompt_buf(prompt_buf);
+    query_state->close(query_state);
 }

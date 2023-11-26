@@ -14,6 +14,15 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(Catch2)
 
+# Download json tool
+FetchContent_Declare(
+    json
+    GIT_REPOSITORY https://github.com/nlohmann/json.git
+    GIT_TAG        v3.11.2
+)
+FetchContent_MakeAvailable(json)
+
+
 link_directories(${cJSON_BINARY_DIR})
 
 add_executable(tests_run
@@ -26,6 +35,7 @@ target_link_libraries(tests_run PRIVATE
     Catch2::Catch2WithMain
     simple_database_lib
     cJSON
+    nlohmann_json::nlohmann_json
 )
 
 include(Catch)
