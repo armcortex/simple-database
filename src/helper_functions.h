@@ -24,6 +24,7 @@ void create_folder(const char *name);
 void remove_folder(const char *name);
 bool exist_folder(const char *name);
 bool exist_file(const char *name);
+char* read_file(const char* filename, u_int32_t skip_lines);
 
 #ifdef __cplusplus
 }

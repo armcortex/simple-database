@@ -9,6 +9,7 @@
 #include <unistd.h>
 #include <limits.h>
 #include <sys/stat.h>
+#include <assert.h>
 
 #include "helper_functions.h"
 
@@ -117,4 +118,44 @@ bool exist_folder(const char *name) {
 bool exist_file(const char *name) {
     struct stat st = {0};
     return (stat(name, &st) == 0);
+}
+
+char* read_file(const char* filename, u_int32_t skip_lines) {
+    const int MAX_LINE_LENGTH = 1024;
+
+    FILE *file = fopen(filename, "r");
+    if (file == NULL) {
+        fprintf(stderr, "Failed to open file: %s\n", filename);
+        assert(0);
+    }
+
+    // Skip lines
+    char line[MAX_LINE_LENGTH];
+    while (skip_lines > 0 && fgets(line, MAX_LINE_LENGTH, file) != NULL) {
+        skip_lines--;
+    }
+
+    // Read content
+    char *content = NULL;
+    size_t content_length = 0;
+    while (fgets(line, MAX_LINE_LENGTH, file) != NULL) {
+        size_t line_length = strlen(line);
+        char *new_content = realloc(content, content_length + line_length + 1);
+        if (new_content == NULL) {
+            fprintf(stderr, "Failed to allocate memory\n");
+            free(content);
+            fclose(file);
+            assert(0);
+        }
+        content = new_content;
+        strncpy(content + content_length, line, line_length + 1);
+        content_length += line_length;
+    }
+
+    if (content != NULL) {
+        content[content_length] = '\0';
+    }
+    fclose(file);
+
+    return content;
 }

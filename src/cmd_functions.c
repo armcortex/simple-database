@@ -58,7 +58,7 @@ void create_database(const char *filename) {
     splitter_t splitter = split_construct();
     size_t num_tokens;
     char** filename_array = splitter.run(filename, "/", &num_tokens);
-//    fprintf(file, "// Database: %s \n\n", filename_array[num_tokens-1]);
+    fprintf(file, "// Database: %s \n\n", filename_array[num_tokens-1]);
     splitter.free(filename_array, num_tokens);
 
     fclose(file);
@@ -113,26 +113,28 @@ void create_database_meta(const char *filename) {
 }
 
 void add_database_new_table(const char *db_filename, cJSON *new_table) {
-    // Open database file
-    FILE *file = fopen(db_filename, "r");
-    if (file == NULL) {
-        fprintf(stderr, "Failed to open database file: %s\n", db_filename);
-        assert(0);
-    }
+    char *content = read_file(db_filename, 2);
 
-    // Read the file content
-    fseek(file, 0, SEEK_END);
-    long length = ftell(file);
-    fseek(file, 0, SEEK_SET);
-    char *content = (char*)malloc(length + 1);
-    if (content == NULL) {
-        fprintf(stderr, "Failed to allocate memory\n");
-        fclose(file);
-        assert(0);
-    }
-    fread(content, 1, length, file);
-    fclose(file);
-    content[length] = '\0';
+//    // Open database file
+//    FILE *file = fopen(db_filename, "r");
+//    if (file == NULL) {
+//        fprintf(stderr, "Failed to open database file: %s\n", db_filename);
+//        assert(0);
+//    }
+//
+//    // Read the file content
+//    fseek(file, 0, SEEK_END);
+//    long length = ftell(file);
+//    fseek(file, 0, SEEK_SET);
+//    char *content = (char*)malloc(length + 1);
+//    if (content == NULL) {
+//        fprintf(stderr, "Failed to allocate memory\n");
+//        fclose(file);
+//        assert(0);
+//    }
+//    fread(content, 1, length, file);
+//    fclose(file);
+//    content[length] = '\0';
 
     // Parse the JSON content
     cJSON *json = cJSON_Parse(content);
@@ -160,7 +162,7 @@ void add_database_new_table(const char *db_filename, cJSON *new_table) {
     }
 
     // Write json back to the file
-    file = fopen(db_filename, "w");
+    FILE *file = fopen(db_filename, "w");
     if (file == NULL) {
         fprintf(stderr, "Failed to open database file:: %s\n", db_filename);
         cJSON_Delete(json);
