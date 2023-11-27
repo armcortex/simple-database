@@ -135,12 +135,16 @@ void check_commands(prompt_buf_t *prompt_buf, query_state_t *query_state) {
                 use_command_info();
             }
             else {
-                const char *db_filename = str_concat("%s/%s/%s.json", WORKSPACE_PATH_FULL, cmds[1], cmds[1]);
+                char db_folder[PATH_MAX] = {0};
+                char db_filename[PATH_MAX] = {0};
+                snprintf(db_folder, PATH_MAX, "%s/%s", WORKSPACE_PATH_FULL, cmds[1]);
+                snprintf(db_filename, PATH_MAX, "%s/%s.json", db_folder, cmds[1]);
+
                 if (!exist_file(db_filename)) {
                     fprintf(stderr, "Database %s not exist \n", cmds[1]);
                 }
                 else {
-                    update_current_db(cmds[1], db_filename);
+                    update_current_db(cmds[1], db_filename, db_folder);
                     current_db_t *db = get_current_db();
                     fprintf(stdout, "Using database: %s \n", db->name);
                 }
