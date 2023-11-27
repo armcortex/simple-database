@@ -3,6 +3,7 @@
 //
 
 #include <string.h>
+#include <stdbool.h>
 
 #include "database.h"
 
@@ -11,6 +12,14 @@ static current_db_t g_current_db;
 
 current_db_t* get_current_db() {
     return &g_current_db;
+}
+
+void clean_current_db() {
+    memset(&g_current_db, 0, sizeof(current_db_t));
+}
+
+bool check_current_db_exist() {
+    return (g_current_db.len != 0);
 }
 
 void update_current_db(const char *name, const char *filename_path, const char *folder_path) {
