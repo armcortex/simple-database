@@ -186,6 +186,7 @@ void create_table(const char *filename_path, const char *filename, char **args, 
 cJSON *create_table_json(const char *table_name, char **args, size_t len) {
     cJSON *root = cJSON_CreateObject();
     cJSON_AddStringToObject(root, "table_name", table_name);
+    cJSON_AddNumberToObject(root, "data_cnt", 0);
 
     cJSON *columns = cJSON_CreateArray();
     for (size_t i=0; i<len; i+=2) {
@@ -199,10 +200,10 @@ cJSON *create_table_json(const char *table_name, char **args, size_t len) {
     return root;
 }
 
-void insert_table_data(const char *filename, char **datas, size_t len) {
-    FILE *file = fopen(filename, "a");
+void insert_table_data(const char *filename_path, const char *table_name, char **datas, size_t len) {
+    FILE *file = fopen(filename_path, "a");
     if (file == NULL) {
-        fprintf(stderr, "Failed to insert data: %s \n", filename);
+        fprintf(stderr, "Failed to insert data: %s \n", filename_path);
         assert(0);
     }
 
@@ -210,8 +211,57 @@ void insert_table_data(const char *filename, char **datas, size_t len) {
         fprintf(file, "%s, ", datas[i]);
     }
     fprintf(file, "%s \n", datas[len-1]);
-
     fclose(file);
+
+    current_db_t *curr_db = get_current_db();
+    insert_table_update_database_meta(curr_db->name_path, table_name, 1);
+}
+
+void insert_table_update_database_meta(const char *db_filename, const char *table_name, size_t data_update_cnt) {
+    char *content = read_file(db_filename, 0);
+
+    // Parse the JSON content
+    cJSON *root = cJSON_Parse(content);
+    free(content);
+    if (root == NULL) {
+        fprintf(stderr, "Failed to parse JSON\n");
+        assert(0);
+    }
+
+    // find "tables" array
+    cJSON *tables = cJSON_GetObjectItemCaseSensitive(root, "tables");
+    if (!cJSON_IsArray(tables)) {
+        fprintf(stderr, "\"tables\" is not an array\n");
+        cJSON_Delete(root);
+        return;
+    }
+
+    // traverse all array
+    cJSON *table;
+    cJSON_ArrayForEach(table, tables) {
+        cJSON *name = cJSON_GetObjectItemCaseSensitive(table, "table_name");
+        if (cJSON_IsString(name) && (strcmp(name->valuestring, table_name) == 0)) {
+            // update "data_cnt"
+            cJSON *dataCntItem = cJSON_GetObjectItem(table, "data_cnt");
+            if (dataCntItem != NULL) {
+                cJSON_SetIntValue(dataCntItem, dataCntItem->valueint + data_update_cnt);
+            }
+            break;
+        }
+    }
+
+    // Write json back to the file
+    FILE *file = fopen(db_filename, "w");
+    if (file == NULL) {
+        fprintf(stderr, "Failed to open database file:: %s\n", db_filename);
+        cJSON_Delete(root);
+        assert(0);
+    }
+    char *modified_content = cJSON_Print(root);
+    fprintf(file, "%s", modified_content);
+    fclose(file);
+    cJSON_free(modified_content);
+    cJSON_Delete(root);
 }
 
 void delete_table(const char *filename) {

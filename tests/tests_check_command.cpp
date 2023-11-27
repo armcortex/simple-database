@@ -411,6 +411,7 @@ TEST_CASE("Create Table JSON Test", "[create_table]") {
             {"table_cnt", 1},
             {"tables", {{
                 {"table_name", "my_table"},
+                {"data_cnt", 0},
                 {"columns", {
                     {{"column_name", "name"}, {"type", "STRING"}},
                     {{"column_name", "age"}, {"type", "INT"}},
@@ -492,10 +493,18 @@ TEST_CASE("Insert Data Test", "[insert]") {
             execute_cmd(redirector, prompt_buf, query_state, cmd_str);
         }
 
+        // check table data
         std::ifstream file(table_file_path);
         std::string table_content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
         std::string ref_table_content = "name, age, height\nJohn, 30, 170 \nJane, 25, 165 \nAlice, 28, 180 \nBob, 31, 173 \nCharlie, 29, 160 \n";
         REQUIRE(table_content == ref_table_content);
+
+        // check database meta
+        std::ifstream f(db_file_path);
+        nlohmann::json db_json = nlohmann::json::parse(f);
+        std::string db_json_str = db_json.dump(2);
+        REQUIRE(db_json["tables"][0]["table_name"] == table_name);
+        REQUIRE(db_json["tables"][0]["data_cnt"] == insert_datas.size());
     }
 
     // Close

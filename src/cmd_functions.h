@@ -29,7 +29,8 @@ void create_table(const char *filename_path, const char *filename, char **args, 
 cJSON *create_table_json(const char *name, char **args, size_t len);
 
 // Insert command
-void insert_table_data(const char *filename, char **datas, size_t len);
+void insert_table_data(const char *filename_path, const char *table_name, char **datas, size_t len);
+void insert_table_update_database_meta(const char *db_filename, const char *table_name, size_t data_update_cnt);
 
 // Delete command
 void delete_database(const char *name);
