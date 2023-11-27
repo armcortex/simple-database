@@ -20,6 +20,12 @@
 #include "../src/database.h"
 
 
+void execute_cmd(IORedirector &rd, prompt_buf_t *prompt_buf, query_state_t *query_state, std::string cmd_str) {
+    stdin_write_data(rd, prompt_buf, cmd_str);
+    check_commands(prompt_buf, query_state);
+}
+
+
 TEST_CASE("Check Commands", "[command]") {
     setvbuf(stdout, nullptr, _IONBF, 0);
 
@@ -404,6 +410,57 @@ TEST_CASE("Create Table JSON Test", "[create_table]") {
     }
 
     // Close
+    free_prompt_buf(prompt_buf);
+    query_state->close(query_state);
+}
+
+
+TEST_CASE("Insert Data Test", "[insert]") {
+    const std::string db_name = "my_db";
+    const std::string table_name = "my_table";
+    const std::string db_folder = WORKSPACE_PATH_FULL "/" + db_name + "/";
+    const std::string db_file_path = db_folder + db_name + ".json";
+    const std::string table_file_path = db_folder + table_name + ".csv";
+    std::string read_str;
+    bool fileExists;
+    std::string cmd_str;
+
+    // Init
+    IORedirector redirector;
+    query_state_t *query_state = query_state_construct();
+    query_state->init(query_state);
+    prompt_buf_t *prompt_buf = new_prompt_buf();
+
+    cmd_str = "create database " + db_name + "\n";
+    execute_cmd(redirector, prompt_buf, query_state, cmd_str);
+
+    cmd_str = "use " + db_name + "\n";
+    execute_cmd(redirector, prompt_buf, query_state, cmd_str);
+
+    cmd_str = "create table " + table_name + " name STRING age INT height FLOAT \n";
+    execute_cmd(redirector, prompt_buf, query_state, cmd_str);
+
+    SECTION("Inserting data into table") {
+        std::vector<std::string> insert_datas = {
+                "John, 30, 170",
+                "Jane, 25, 165",
+                "Alice, 28, 180",
+                "Bob, 31, 173",
+                "Charlie, 29, 160"
+        };
+
+        std::string cmd_str_base = "insert " + table_name + "values ";
+        for (const auto& data : insert_datas) {
+            cmd_str = cmd_str_base + data + "\n";
+            execute_cmd(redirector, prompt_buf, query_state, cmd_str);
+        }
+
+    }
+
+    // Close
+    cmd_str = "delete database " + db_name + "\n";
+    execute_cmd(redirector, prompt_buf, query_state, cmd_str);
+
     free_prompt_buf(prompt_buf);
     query_state->close(query_state);
 }
