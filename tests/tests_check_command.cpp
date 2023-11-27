@@ -536,6 +536,61 @@ TEST_CASE("Insert Data Test", "[insert]") {
         execute_cmd(redirector, prompt_buf, query_state, cmd_str);
     }
 
+    SECTION("Inserting data into table multiple times") {
+        // Init
+        IORedirector redirector;
+        cmd_str = "create database " + db_name + "\n";
+        execute_cmd(redirector, prompt_buf, query_state, cmd_str);
+
+        cmd_str = "use " + db_name + "\n";
+        execute_cmd(redirector, prompt_buf, query_state, cmd_str);
+
+        cmd_str = "create table " + table_name + " name STRING age INT height FLOAT \n";
+        execute_cmd(redirector, prompt_buf, query_state, cmd_str);
+
+        // Testing
+        const int repeat_times = 3;
+        std::vector<std::string> insert_datas;
+        for (int i=0; i<repeat_times; i++) {
+            insert_datas = {
+                    "John 30 170",
+                    "Jane 25 165",
+                    "Alice 28 180",
+                    "Bob 31 173",
+                    "Charlie 29 160"
+            };
+
+            std::string cmd_str_base = "insert " + table_name + " values ";
+            for (const auto &data: insert_datas) {
+                cmd_str = cmd_str_base + data + "\n";
+                execute_cmd(redirector, prompt_buf, query_state, cmd_str);
+            }
+        }
+
+        // check table data
+        std::ifstream file(table_file_path);
+        std::string table_content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+        std::string ref_base = "name, age, height\n";
+        std::string ref_data_base = "John, 30, 170 \nJane, 25, 165 \nAlice, 28, 180 \nBob, 31, 173 \nCharlie, 29, 160 \n";
+        std::string ref_data;
+        for (int i=0; i<repeat_times; i++) {
+            ref_data += ref_data_base;
+        }
+        std::string ref_table_content = ref_base + ref_data;
+        REQUIRE(table_content == ref_table_content);
+
+        // check database meta
+        std::ifstream f(db_file_path);
+        nlohmann::json db_json = nlohmann::json::parse(f);
+        std::string db_json_str = db_json.dump(2);
+        REQUIRE(db_json["tables"][0]["table_name"] == table_name);
+        REQUIRE(db_json["tables"][0]["data_cnt"] == (insert_datas.size() * repeat_times));
+
+        // Close
+        cmd_str = "delete database " + db_name + "\n";
+        execute_cmd(redirector, prompt_buf, query_state, cmd_str);
+    }
+
     // Close
     free_prompt_buf(prompt_buf);
     query_state->close(query_state);
