@@ -424,7 +424,7 @@ TEST_CASE("Create Table JSON Test", "[create_table]") {
         // check table csv file
         std::ifstream file(table_file_path);
         std::string table_content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-        std::string ref_table_content = "name, age, height\n\n";
+        std::string ref_table_content = "name, age, height\n";
         REQUIRE(table_content == ref_table_content);
 
         // Delete database
@@ -479,11 +479,11 @@ TEST_CASE("Insert Data Test", "[insert]") {
 
     SECTION("Inserting data into table") {
         std::vector<std::string> insert_datas = {
-                "John, 30, 170",
-                "Jane, 25, 165",
-                "Alice, 28, 180",
-                "Bob, 31, 173",
-                "Charlie, 29, 160"
+                "John 30 170",
+                "Jane 25 165",
+                "Alice 28 180",
+                "Bob 31 173",
+                "Charlie 29 160"
         };
 
         std::string cmd_str_base = "insert " + table_name + " values ";
@@ -492,6 +492,10 @@ TEST_CASE("Insert Data Test", "[insert]") {
             execute_cmd(redirector, prompt_buf, query_state, cmd_str);
         }
 
+        std::ifstream file(table_file_path);
+        std::string table_content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+        std::string ref_table_content = "name, age, height\nJohn, 30, 170 \nJane, 25, 165 \nAlice, 28, 180 \nBob, 31, 173 \nCharlie, 29, 160 \n";
+        REQUIRE(table_content == ref_table_content);
     }
 
     // Close

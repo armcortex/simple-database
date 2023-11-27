@@ -174,7 +174,7 @@ void create_table(const char *filename_path, const char *filename, char **args, 
     for (size_t i=0; i<(len-2); i+=2) {
         fprintf(file, "%s, ", args[i]);
     }
-    fprintf(file, "%s\n\n", args[len-2]);
+    fprintf(file, "%s\n", args[len-2]);
     fclose(file);
 
     // Update new table to database meta data
@@ -197,6 +197,21 @@ cJSON *create_table_json(const char *table_name, char **args, size_t len) {
     cJSON_AddItemToObject(root, "columns", columns);
 
     return root;
+}
+
+void insert_table_data(const char *filename, char **datas, size_t len) {
+    FILE *file = fopen(filename, "a");
+    if (file == NULL) {
+        fprintf(stderr, "Failed to insert data: %s \n", filename);
+        assert(0);
+    }
+
+    for (size_t i=0; i<len-1; i++) {
+        fprintf(file, "%s, ", datas[i]);
+    }
+    fprintf(file, "%s \n", datas[len-1]);
+
+    fclose(file);
 }
 
 void delete_table(const char *filename) {
