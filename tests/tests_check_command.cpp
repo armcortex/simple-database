@@ -447,8 +447,10 @@ TEST_CASE("Insert Data Test", "[insert]") {
     const std::string db_file_path = db_folder + db_name + ".json";
     const std::string table_file_path = db_folder + table_name + ".csv";
     std::string read_str;
-    bool fileExists;
     std::string cmd_str;
+    bool fileExists;
+    bool res;
+
 
     // Init
     IORedirector redirector;
@@ -465,6 +467,16 @@ TEST_CASE("Insert Data Test", "[insert]") {
     cmd_str = "create table " + table_name + " name STRING age INT height FLOAT \n";
     execute_cmd(redirector, prompt_buf, query_state, cmd_str);
 
+    SECTION("Insert table not found") {
+        redirector.flush();
+        std::string not_exist_table_name = "none_my_table";
+        std::string cmd_str = "insert " + not_exist_table_name + " values 1,2,3\n";
+        execute_cmd(redirector, prompt_buf, query_state, cmd_str);
+        read_str = redirector.read_stderr();
+        res = compare_io_response_str(read_str, "Table " + not_exist_table_name + " not found\n");
+        REQUIRE(res);
+    }
+
     SECTION("Inserting data into table") {
         std::vector<std::string> insert_datas = {
                 "John, 30, 170",
@@ -474,7 +486,7 @@ TEST_CASE("Insert Data Test", "[insert]") {
                 "Charlie, 29, 160"
         };
 
-        std::string cmd_str_base = "insert " + table_name + "values ";
+        std::string cmd_str_base = "insert " + table_name + " values ";
         for (const auto& data : insert_datas) {
             cmd_str = cmd_str_base + data + "\n";
             execute_cmd(redirector, prompt_buf, query_state, cmd_str);
