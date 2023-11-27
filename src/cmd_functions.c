@@ -48,6 +48,10 @@ void use_command_info() {
     fprintf(stdout, "\t <database name> \n");
 }
 
+void insert_command_info() {
+    fprintf(stdout, "insert <table_name> values <value1,value2,value3,...>\n");
+}
+
 void create_database(const char *filename) {
     FILE *file = fopen(filename, "w");
     if (file == NULL) {

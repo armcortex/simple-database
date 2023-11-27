@@ -155,6 +155,22 @@ void check_commands(prompt_buf_t *prompt_buf, query_state_t *query_state) {
     else if (strncmp(cmds[0], "select", 6) == 0) {
         query_state->state = SELECT;
     }
+    // Insert
+    else if (strncmp(cmds[0], "insert", 6) == 0) {
+        query_state->state = INSERT;
+
+        // Sub-commands
+        if (cmds[1] != NULL) {
+            // Help: list all support sub commands
+            if (strncmp(cmds[1], "-h", 2) == 0 ||
+                strncmp(cmds[1], "help", 4) == 0) {
+                insert_command_info();
+            }
+            else {
+
+            }
+        }
+    }
     // Undefined command
     else {
         query_state->state = UNDEFINED;
@@ -174,6 +190,7 @@ const char* query_state_to_string(State_t state) {
         case USE: return "USE";
         case DELETE: return "DELETE";
         case SELECT: return "SELECT";
+        case INSERT: return "INSERT";
         case UNDEFINED: return "UNDEFINED";
         default: return "Unknown State";
     }

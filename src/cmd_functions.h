@@ -16,6 +16,7 @@ void basic_command_info(void);
 void create_command_info(void);
 void delete_command_info(void);
 void use_command_info(void);
+void insert_command_info(void);
 void create_database(const char *name);
 void create_database_meta(const char *name);
 void add_database_new_table(const char *db_filename, cJSON *new_table);

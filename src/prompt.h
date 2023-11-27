@@ -21,6 +21,7 @@ typedef enum {
     USE,
     DELETE,
     SELECT,
+    INSERT,
     UNDEFINED,
     COUNT,
 }State_t;
