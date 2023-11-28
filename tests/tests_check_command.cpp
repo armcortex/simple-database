@@ -309,6 +309,27 @@ TEST_CASE("Check Commands", "[command]") {
         query_state->close(query_state);
     }
 
+    SECTION("Select help command") {
+        // Init
+        IORedirector redirector;
+        query_state_t *query_state = query_state_construct();
+        query_state->init(query_state);
+        prompt_buf_t *prompt_buf = new_prompt_buf();
+
+        // Testing
+        stdin_write_data(redirector, prompt_buf, "select help\n");
+        check_commands(prompt_buf, query_state);
+
+        std::string s = redirector.read_stdout();
+        s = filter_out_catch2_string(s);
+        const std::string ref_str = "select <column_names> from <table_name> (where <condition> ...) \n";
+        REQUIRE(ref_str == s);
+
+        // Close
+        free_prompt_buf(prompt_buf);
+        query_state->close(query_state);
+    }
+
     SECTION("Use database command") {
         // Init
         IORedirector redirector;

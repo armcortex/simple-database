@@ -154,6 +154,14 @@ void check_commands(prompt_buf_t *prompt_buf, query_state_t *query_state) {
     // Select
     else if (strncmp(cmds[0], "select", 6) == 0) {
         query_state->state = SELECT;
+        // Sub-commands
+        if (cmds[1] != NULL) {
+            // Help: list all support sub commands
+            if (strncmp(cmds[1], "-h", 2) == 0 ||
+                strncmp(cmds[1], "help", 4) == 0) {
+                select_command_info();
+            }
+        }
     }
     // Insert
     else if (strncmp(cmds[0], "insert", 6) == 0) {

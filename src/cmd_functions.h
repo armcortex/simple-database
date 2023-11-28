@@ -18,6 +18,7 @@ void create_command_info(void);
 void delete_command_info(void);
 void use_command_info(void);
 void insert_command_info(void);
+void select_command_info(void);
 
 // Create database command
 void create_database(const char *name);

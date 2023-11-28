@@ -52,6 +52,10 @@ void insert_command_info() {
     fprintf(stdout, "insert <table_name> values <value1,value2,value3,...>\n");
 }
 
+void select_command_info() {
+    fprintf(stdout, "select <column_names> from <table_name> (where <condition> ...) \n");
+}
+
 void create_database(const char *filename) {
     FILE *file = fopen(filename, "w");
     if (file == NULL) {
