@@ -327,3 +327,8 @@ const char* str_concat(const char *format, ...) {
     return g_db_file_path;
 }
 
+bool check_table_exist(const char *table_name, char *table_name_path) {
+    current_db_t *db = get_current_db();
+    snprintf(table_name_path, PATH_MAX, "%s/%s.csv", db->folder_path, table_name);
+    return exist_file(table_name_path);
+}

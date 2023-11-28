@@ -175,11 +175,8 @@ void check_commands(prompt_buf_t *prompt_buf, query_state_t *query_state) {
                 insert_command_info();
             }
             else {
-                // check table exist
-                current_db_t *db = get_current_db();
                 char table_name_path[PATH_MAX] = {0};
-                snprintf(table_name_path, PATH_MAX, "%s/%s.csv", db->folder_path, cmds[1]);
-                if (exist_file(table_name_path)) {
+                if (check_table_exist((const char*)cmds[1], table_name_path)) {
                     insert_table_data(table_name_path, (const char*)cmds[1], &cmds[3], num_tokens-3);
                 }
                 else {

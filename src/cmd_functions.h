@@ -10,6 +10,7 @@ extern "C" {
 #endif
 
 #include <stdio.h>
+#include <stdbool.h>
 #include <cJSON.h>
 
 // Help info
@@ -42,6 +43,8 @@ void delete_table_all(const char *db_base_path);
 const char* create_filename(const char *name, const char *ext);
 const char* create_filename_full_path(const char *base, const char *name, const char *ext);
 const char* str_concat(const char *format, ...);
+
+bool check_table_exist(const char *table_name, char *table_name_path);
 
 // TODO: add serialization() and deserialization() for table data
 
