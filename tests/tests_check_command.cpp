@@ -20,373 +20,352 @@
 #include "../src/database.h"
 
 
-void execute_cmd(IORedirector &rd, prompt_buf_t *prompt_buf, query_state_t *query_state, std::string cmd_str) {
-    stdin_write_data(rd, prompt_buf, cmd_str);
+std::string execute_cmd(IORedirector &rd, prompt_buf_t *prompt_buf, query_state_t *query_state, std::string cmd_str) {
+    std::string query_res = stdin_write_data(rd, prompt_buf, cmd_str);
     check_commands(prompt_buf, query_state);
+    return query_res;
 }
 
-
-TEST_CASE("Check Commands", "[command]") {
+TEST_CASE("Basic query Commands", "[command]") {
     setvbuf(stdout, nullptr, _IONBF, 0);
+
+    std::string cmd_str;
+    std::string query_res;
+
+    // Init
+    query_state_t *query_state = query_state_construct();
+    query_state->init(query_state);
+    prompt_buf_t *prompt_buf = new_prompt_buf();
 
     SECTION("Basic input query") {
         // Init
         IORedirector redirector;
-        prompt_buf_t *prompt_buf = new_prompt_buf();
 
         // Testing
-        std::string query = stdin_write_data(redirector, prompt_buf, "select * from db\n");
-        REQUIRE(std::string(prompt_buf->buf) == query);
-        REQUIRE(prompt_buf->len == query.length());
-
-        // Close
-        free_prompt_buf(prompt_buf);
+        cmd_str = "select * from db\n";
+        query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
+        REQUIRE(std::string(prompt_buf->buf) == query_res);
+        REQUIRE(prompt_buf->len == query_res.length());
     }
 
     SECTION("Query state") {
         // Init
         IORedirector redirector;
-        query_state_t *query_state = query_state_construct();
-        query_state->init(query_state);
-        prompt_buf_t *prompt_buf = new_prompt_buf();
 
         // Testing
         REQUIRE(query_state->state == INIT);
 
-        stdin_write_data(redirector, prompt_buf, "exit\n");
-        check_commands(prompt_buf, query_state);
+        cmd_str = "exit\n";
+        query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
         REQUIRE(query_state->state == EXIT);
 
-        stdin_write_data(redirector, prompt_buf, "help\n");
-        check_commands(prompt_buf, query_state);
+        cmd_str = "help\n";
+        query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
         REQUIRE(query_state->state == HELP);
 
-        stdin_write_data(redirector, prompt_buf, "create\n");
-        check_commands(prompt_buf, query_state);
+        cmd_str = "create\n";
+        query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
         REQUIRE(query_state->state == CREATE);
 
-        stdin_write_data(redirector, prompt_buf, "delete\n");
-        check_commands(prompt_buf, query_state);
+        cmd_str = "delete\n";
+        query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
         REQUIRE(query_state->state == DELETE);
 
-        stdin_write_data(redirector, prompt_buf, "use\n");
-        check_commands(prompt_buf, query_state);
+        cmd_str = "use\n";
+        query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
         REQUIRE(query_state->state == USE);
 
-        stdin_write_data(redirector, prompt_buf, "select\n");
-        check_commands(prompt_buf, query_state);
+        cmd_str = "select\n";
+        query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
         REQUIRE(query_state->state == SELECT);
 
-        stdin_write_data(redirector, prompt_buf, "insert\n");
-        check_commands(prompt_buf, query_state);
+        cmd_str = "insert\n";
+        query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
         REQUIRE(query_state->state == INSERT);
-
-        // Close
-        free_prompt_buf(prompt_buf);
-        query_state->close(query_state);
     }
 
-    SECTION("Create/delete database") {
-        // Init
-        IORedirector redirector;
-        std::string db_name = "my_db";
-        std::string db_file_path = WORKSPACE_PATH_FULL "/" + db_name + "/" + db_name + ".json";
-        bool fileExists;
+    // Close
+    free_prompt_buf(prompt_buf);
+    query_state->close(query_state);
+}
 
-        create_folder((const char*)WORKSPACE_PATH_FULL);
 
-        query_state_t *query_state = query_state_construct();
-        query_state->init(query_state);
-        prompt_buf_t *prompt_buf = new_prompt_buf();
+TEST_CASE("Help command info", "[command]") {
+    setvbuf(stdout, nullptr, _IONBF, 0);
 
-        //Testing
-        // Check create database file ok
-        stdin_write_data(redirector, prompt_buf, "create database " + db_name + "\n");
-        check_commands(prompt_buf, query_state);
+    std::string cmd_str;
+    std::string query_res;
+    std::string read_str;
+    std::string ref_str;
+    bool res;
 
-        fileExists = std::filesystem::exists(db_file_path);
-        REQUIRE(fileExists);
-
-        // Check delete database file ok
-        stdin_write_data(redirector, prompt_buf, "delete database " + db_name + "\n");
-        check_commands(prompt_buf, query_state);
-
-        fileExists = std::filesystem::exists(db_file_path);
-        REQUIRE_FALSE(fileExists);
-
-        // Close
-        free_prompt_buf(prompt_buf);
-        query_state->close(query_state);
-    }
-
-    SECTION("Create/delete table") {
-        // Init
-        IORedirector redirector;
-        std::string db_name = "my_db";
-        std::string table_name = "my_table";
-        std::string db_folder = WORKSPACE_PATH_FULL "/" + db_name + "/";
-        std::string db_file_path = db_folder + db_name + ".json";
-        std::string table_file_path = db_folder + table_name + ".csv";
-        bool fileExists;
-        bool res;
-        std::string read_str;
-
-        query_state_t *query_state = query_state_construct();
-        query_state->init(query_state);
-        prompt_buf_t *prompt_buf = new_prompt_buf();
-
-        // Create database
-        stdin_write_data(redirector, prompt_buf, "create database " + db_name + "\n");
-        check_commands(prompt_buf, query_state);
-
-        // Testing
-        // Not using `USE` command
-        // Create table
-        stdin_write_data(redirector, prompt_buf, "create table " + table_name + "\n");
-        check_commands(prompt_buf, query_state);
-        fileExists = std::filesystem::exists(table_file_path);
-        REQUIRE_FALSE(fileExists);
-
-        // Check not using 'USE` response
-        read_str = redirector.read_stderr();
-        res = compare_io_response_str(read_str, "Don't know what database to use, please use `USE` command to select database first \n");
-        REQUIRE(res);
-
-        // Use database
-        stdin_write_data(redirector, prompt_buf, "use " + db_name + "\n");
-        check_commands(prompt_buf, query_state);
-
-        // Testing
-        // Create table , not enough arguments
-        redirector.flush();
-        stdin_write_data(redirector, prompt_buf, "create table " + table_name + "\n");
-        check_commands(prompt_buf, query_state);
-        fileExists = std::filesystem::exists(table_file_path);
-        REQUIRE_FALSE(fileExists);
-
-        // Check `create table` command output string
-        read_str = redirector.read_stderr();
-        res = compare_io_response_str(read_str, "argument not enough: (<column name> <column type> ...)");
-        REQUIRE(res);
-
-        // Create table , arguments is not pair
-        redirector.flush();
-        stdin_write_data(redirector, prompt_buf, "create table " + table_name + " name STRING age \n");
-        check_commands(prompt_buf, query_state);
-        fileExists = std::filesystem::exists(table_file_path);
-        REQUIRE_FALSE(fileExists);
-
-        // Check `create table` command output string
-        read_str = redirector.read_stderr();
-        res = compare_io_response_str(read_str, "argument not enough: (<column name> <column type> ...)");
-        REQUIRE(res);
-
-        // Create table, enough arguments
-        redirector.flush();
-        stdin_write_data(redirector, prompt_buf, "create table " + table_name + " name STRING age INT height FLOAT \n");
-        check_commands(prompt_buf, query_state);
-        fileExists = std::filesystem::exists(table_file_path);
-        REQUIRE(fileExists);
-
-        // Check `create table` command output string
-        read_str = redirector.read_stdout();
-        res = compare_io_response_str(read_str, "Create table at: ../DB_DATA/my_db/my_table.csv \n");
-        REQUIRE(res);
-
-        // Delete database, all tables will be deleted as well
-        stdin_write_data(redirector, prompt_buf, "delete database " + db_name + "\n");
-        check_commands(prompt_buf, query_state);
-        fileExists = std::filesystem::exists(db_folder);
-        REQUIRE_FALSE(fileExists);
-
-        // Close
-        free_prompt_buf(prompt_buf);
-        query_state->close(query_state);
-    }
+    // Init
+    query_state_t *query_state = query_state_construct();
+    query_state->init(query_state);
+    prompt_buf_t *prompt_buf = new_prompt_buf();
 
     SECTION("Basic help command") {
         // Init
         IORedirector redirector;
-        query_state_t *query_state = query_state_construct();
-        query_state->init(query_state);
-        prompt_buf_t *prompt_buf = new_prompt_buf();
 
         // Testing
-        stdin_write_data(redirector, prompt_buf, "help\n");
-        check_commands(prompt_buf, query_state);
-
-        std::string s = redirector.read_stdout();
-        s = filter_out_catch2_string(s);
-        const std::string ref_str = "All Support commands: \n\t help: \n\t exit: \n\t create: \n\t use: \n\t drop: \n\t select: \n";
-        REQUIRE(ref_str == s);
-
-        // Close
-        free_prompt_buf(prompt_buf);
-        query_state->close(query_state);
+        cmd_str = "help\n";
+        query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
+        read_str = redirector.read_stdout();
+        ref_str = "All Support commands: \n\t help: \n\t exit: \n\t create: \n\t use: \n\t drop: \n\t select: \n";
+        res = compare_io_response_str(read_str, ref_str);
+        REQUIRE(res);
     }
 
     SECTION("Create help command") {
         // Init
         IORedirector redirector;
-        query_state_t *query_state = query_state_construct();
-        query_state->init(query_state);
-        prompt_buf_t *prompt_buf = new_prompt_buf();
 
         // Testing
-        stdin_write_data(redirector, prompt_buf, "create help\n");
-        check_commands(prompt_buf, query_state);
-
-        std::string s = redirector.read_stdout();
-        s = filter_out_catch2_string(s);
-        const std::string ref_str = "Create sub-commands: \n\t database <database name> \n\t table <table name> (<column name> <column type> ...) \n";
-        REQUIRE(ref_str == s);
-
-        // Close
-        free_prompt_buf(prompt_buf);
-        query_state->close(query_state);
+        cmd_str = "create help\n";
+        query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
+        read_str = redirector.read_stdout();
+        ref_str = "Create sub-commands: \n\t database <database name> \n\t table <table name> (<column name> <column type> ...) \n";
+        res = compare_io_response_str(read_str, ref_str);
+        REQUIRE(res);
     }
 
     SECTION("Delete help command") {
         // Init
         IORedirector redirector;
-        query_state_t *query_state = query_state_construct();
-        query_state->init(query_state);
-        prompt_buf_t *prompt_buf = new_prompt_buf();
 
         // Testing
-        stdin_write_data(redirector, prompt_buf, "delete help\n");
-        check_commands(prompt_buf, query_state);
-
-        std::string s = redirector.read_stdout();
-        s = filter_out_catch2_string(s);
-        const std::string ref_str = "Delete sub-commands: \n\t database <database name> \n\t table <table name> \n";
-        REQUIRE(ref_str == s);
-
-        // Close
-        free_prompt_buf(prompt_buf);
-        query_state->close(query_state);
+        cmd_str = "delete help\n";
+        query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
+        read_str = redirector.read_stdout();
+        ref_str = "Delete sub-commands: \n\t database <database name> \n\t table <table name> \n";
+        res = compare_io_response_str(read_str, ref_str);
+        REQUIRE(res);
     }
 
     SECTION("Use help command") {
         // Init
         IORedirector redirector;
-        query_state_t *query_state = query_state_construct();
-        query_state->init(query_state);
-        prompt_buf_t *prompt_buf = new_prompt_buf();
 
         // Testing
-        stdin_write_data(redirector, prompt_buf, "use help\n");
-        check_commands(prompt_buf, query_state);
-
-        std::string s = redirector.read_stdout();
-        s = filter_out_catch2_string(s);
-        const std::string ref_str = "Use sub-commands: \n\t <database name> \n";
-        REQUIRE(ref_str == s);
-
-        // Close
-        free_prompt_buf(prompt_buf);
-        query_state->close(query_state);
+        cmd_str = "use help\n";
+        query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
+        read_str = redirector.read_stdout();
+        ref_str = "Use sub-commands: \n\t <database name> \n";
+        res = compare_io_response_str(read_str, ref_str);
+        REQUIRE(res);
     }
 
     SECTION("Insert help command") {
         // Init
         IORedirector redirector;
-        query_state_t *query_state = query_state_construct();
-        query_state->init(query_state);
-        prompt_buf_t *prompt_buf = new_prompt_buf();
 
         // Testing
-        stdin_write_data(redirector, prompt_buf, "insert help\n");
-        check_commands(prompt_buf, query_state);
-
-        std::string s = redirector.read_stdout();
-        s = filter_out_catch2_string(s);
-        const std::string ref_str = "insert <table_name> values <value1,value2,value3,...>\n";
-        REQUIRE(ref_str == s);
-
-        // Close
-        free_prompt_buf(prompt_buf);
-        query_state->close(query_state);
+        cmd_str = "insert help\n";
+        query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
+        read_str = redirector.read_stdout();
+        ref_str = "insert <table_name> values <value1,value2,value3,...>\n";
+        res = compare_io_response_str(read_str, ref_str);
+        REQUIRE(res);
     }
 
     SECTION("Select help command") {
         // Init
         IORedirector redirector;
-        query_state_t *query_state = query_state_construct();
-        query_state->init(query_state);
-        prompt_buf_t *prompt_buf = new_prompt_buf();
 
         // Testing
-        stdin_write_data(redirector, prompt_buf, "select help\n");
-        check_commands(prompt_buf, query_state);
+        cmd_str = "select help\n";
+        query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
+        read_str = redirector.read_stdout();
+        ref_str = "select <column_names> from <table_name> (where <condition> ...) \n";
+        res = compare_io_response_str(read_str, ref_str);
+        REQUIRE(res);
+    }
 
-        std::string s = redirector.read_stdout();
-        s = filter_out_catch2_string(s);
-        const std::string ref_str = "select <column_names> from <table_name> (where <condition> ...) \n";
-        REQUIRE(ref_str == s);
+    // Close
+    free_prompt_buf(prompt_buf);
+    query_state->close(query_state);
+}
 
-        // Close
-        free_prompt_buf(prompt_buf);
-        query_state->close(query_state);
+
+TEST_CASE("Commands behavior", "[command]") {
+    setvbuf(stdout, nullptr, _IONBF, 0);
+
+    std::string cmd_str;
+    std::string query_res;
+    std::string read_str;
+    std::string ref_str;
+    bool fileExists;
+    bool res;
+
+    std::string db_name = "my_db";
+    std::string db_folder = WORKSPACE_PATH_FULL "/" + db_name + "/";
+    std::string db_file_path = WORKSPACE_PATH_FULL "/" + db_name + "/" + db_name + ".json";
+
+    std::string table_name = "my_table";
+    std::string table_file_path = db_folder + table_name + ".csv";
+
+    std::string not_exist_db_name = "not_exist_db";
+
+
+    // Init
+    query_state_t *query_state = query_state_construct();
+    query_state->init(query_state);
+    prompt_buf_t *prompt_buf = new_prompt_buf();
+
+    SECTION("Create/delete database") {
+        // Init
+        IORedirector redirector;
+
+        create_folder((const char*)WORKSPACE_PATH_FULL);
+
+        //Testing
+        // Check create database file ok
+        cmd_str = "create database " + db_name + "\n";
+        query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
+        fileExists = std::filesystem::exists(db_file_path);
+        REQUIRE(fileExists);
+
+        // Check delete database file ok
+        cmd_str = "delete database " + db_name + "\n";
+        query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
+        fileExists = std::filesystem::exists(db_file_path);
+        REQUIRE_FALSE(fileExists);
+    }
+
+    SECTION("Create/delete table") {
+        // Init
+        IORedirector redirector;
+
+        // Create database
+        redirector.flush();
+        cmd_str = "create database " + db_name + "\n";
+        query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
+
+
+        // Testing
+        // Not using `USE` command
+        // Create table
+        redirector.flush();
+        cmd_str = "create table " + table_name + "\n";
+        query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
+        fileExists = std::filesystem::exists(table_file_path);
+        REQUIRE_FALSE(fileExists);
+
+        // Check not using 'USE` response
+        read_str = redirector.read_stderr();
+        ref_str = "Don't know what database to use, please use `USE` command to select database first \n";
+        res = compare_io_response_str(read_str, ref_str);
+        REQUIRE(res);
+
+        // Use database
+        cmd_str = "use " + db_name + "\n";
+        query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
+
+
+        // Testing
+        // Create table , not enough arguments
+        redirector.flush();
+        cmd_str = "create table " + table_name + "\n";
+        query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
+        fileExists = std::filesystem::exists(table_file_path);
+        REQUIRE_FALSE(fileExists);
+
+        // Check `create table` command output string
+        read_str = redirector.read_stderr();
+        ref_str = "argument not enough: (<column name> <column type> ...)";
+        res = compare_io_response_str(read_str, ref_str);
+        REQUIRE(res);
+
+        // Create table , arguments is not pair
+        redirector.flush();
+        cmd_str = "create table " + table_name + " name STRING age \n";
+        query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
+        fileExists = std::filesystem::exists(table_file_path);
+        REQUIRE_FALSE(fileExists);
+
+        // Check `create table` command output string
+        read_str = redirector.read_stderr();
+        ref_str = "argument not enough: (<column name> <column type> ...)";
+        res = compare_io_response_str(read_str, ref_str);
+        REQUIRE(res);
+
+        // Create table, enough arguments
+        redirector.flush();
+        cmd_str = "create table " + table_name + " name STRING age INT height FLOAT \n";
+        query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
+        fileExists = std::filesystem::exists(table_file_path);
+        REQUIRE(fileExists);
+
+        // Check `create table` command output string
+        read_str = redirector.read_stdout();
+        ref_str = "Create table at: ../DB_DATA/my_db/my_table.csv \n";
+        res = compare_io_response_str(read_str, ref_str);
+        REQUIRE(res);
+
+        // Delete database, all tables will be deleted as well
+        redirector.flush();
+        cmd_str = "delete database " + db_name + "\n";
+        query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
+        fileExists = std::filesystem::exists(db_folder);
+        REQUIRE_FALSE(fileExists);
     }
 
     SECTION("Use database command") {
         // Init
         IORedirector redirector;
-        query_state_t *query_state = query_state_construct();
-        query_state->init(query_state);
-        prompt_buf_t *prompt_buf = new_prompt_buf();
-        std::string db_name = "my_db";
-        std::string not_exist_db_name = "not_exist_db";
-        bool res;
-        std::string read_str;
 
         // Testing
         // Create database
-        stdin_write_data(redirector, prompt_buf, "create database " + db_name + "\n");
-        check_commands(prompt_buf, query_state);
-
         // Check `CREATE` command output string
+        redirector.flush();
+        cmd_str = "create database " + db_name + "\n";
+        query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
         read_str = redirector.read_stdout();
-        res = compare_io_response_str(read_str, "Create database at: ../DB_DATA/my_db/my_db.json \n");
+        ref_str = "Create database at: ../DB_DATA/my_db/my_db.json \n";
+        res = compare_io_response_str(read_str, ref_str);
         REQUIRE(res);
 
         // Use database
-        stdin_write_data(redirector, prompt_buf, "use " + db_name + "\n");
-        check_commands(prompt_buf, query_state);
-
+        // Check `USE` command output string
+        redirector.flush();
+        cmd_str = "use " + db_name + "\n";
+        query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
         current_db_t *current_db =  get_current_db();
         std::string current_db_name = current_db->name;
         REQUIRE(current_db_name == db_name);
 
-        // Check `USE` command output string
         read_str = redirector.read_stdout();
-        res = compare_io_response_str(read_str, "Using database: my_db \n");
+        ref_str = "Using database: my_db \n";
+        res = compare_io_response_str(read_str, ref_str);
         REQUIRE(res);
+
 
         // Delete database
-        stdin_write_data(redirector, prompt_buf, "delete database " + db_name + "\n");
-        check_commands(prompt_buf, query_state);
-
         // Check `DELETE` command output string
+        redirector.flush();
+        cmd_str = "delete database " + db_name + "\n";
+        query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
         read_str = redirector.read_stdout();
-        res = compare_io_response_str(read_str, "Delete database: ../DB_DATA/my_db/my_db.json \n");
+        ref_str = "Delete database: ../DB_DATA/my_db/my_db.json \n";
+        res = compare_io_response_str(read_str, ref_str);
         REQUIRE(res);
+
 
         // Use none exist database
-        redirector.flush();
-        stdin_write_data(redirector, prompt_buf, "use " + not_exist_db_name + "\n");
-        check_commands(prompt_buf, query_state);
-
         // Check `USE` command output string
+        redirector.flush();
+        cmd_str = "use " + not_exist_db_name + "\n";
+        query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
         read_str = redirector.read_stderr();
-        res = compare_io_response_str(read_str, "Database not_exist_db not exist \n");
+        ref_str = "Database not_exist_db not exist \n";
+        res = compare_io_response_str(read_str, ref_str);
         REQUIRE(res);
-
-        // Close
-        free_prompt_buf(prompt_buf);
-        query_state->close(query_state);
     }
+
+    // Close
+    free_prompt_buf(prompt_buf);
+    query_state->close(query_state);
 }
 
 TEST_CASE("Create Table JSON Test", "[create_table]") {
