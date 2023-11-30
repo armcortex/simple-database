@@ -198,14 +198,14 @@ TEST_CASE("Commands behavior", "[command]") {
     bool fileExists;
     bool res;
 
-    std::string db_name = "my_db";
-    std::string db_folder = WORKSPACE_PATH_FULL "/" + db_name + "/";
-    std::string db_file_path = WORKSPACE_PATH_FULL "/" + db_name + "/" + db_name + ".json";
+    const std::string db_name = "my_db";
+    const std::string db_folder = WORKSPACE_PATH_FULL "/" + db_name + "/";
+    const std::string db_file_path = WORKSPACE_PATH_FULL "/" + db_name + "/" + db_name + ".json";
 
-    std::string table_name = "my_table";
-    std::string table_file_path = db_folder + table_name + ".csv";
+    const std::string table_name = "my_table";
+    const std::string table_file_path = db_folder + table_name + ".csv";
 
-    std::string not_exist_db_name = "not_exist_db";
+    const std::string not_exist_db_name = "not_exist_db";
 
 
     // Init
@@ -371,13 +371,19 @@ TEST_CASE("Commands behavior", "[command]") {
 TEST_CASE("Create Table JSON Test", "[create_table]") {
     setvbuf(stdout, nullptr, _IONBF, 0);
 
-    const std::string db_name = "my_db";
-    const std::string table_name = "my_table";
-    const std::string db_folder = WORKSPACE_PATH_FULL "/" + db_name + "/";
-    const std::string db_file_path = db_folder + db_name + ".json";
-    const std::string table_file_path = db_folder + table_name + ".csv";
+    std::string cmd_str;
+    std::string query_res;
     std::string read_str;
     bool fileExists;
+    bool res;
+
+    const std::string db_name = "my_db";
+    const std::string db_folder = WORKSPACE_PATH_FULL "/" + db_name + "/";
+    const std::string db_file_path = db_folder + db_name + ".json";
+
+    const std::string table_name = "my_table";
+    const std::string table_file_path = db_folder + table_name + ".csv";
+
 
     // Init
     query_state_t *query_state = query_state_construct();
@@ -390,18 +396,18 @@ TEST_CASE("Create Table JSON Test", "[create_table]") {
 
         // Testing
         // Create database
-        stdin_write_data(redirector, prompt_buf, "create database " + db_name + "\n");
-        check_commands(prompt_buf, query_state);
+        cmd_str = "create database " + db_name + "\n";
+        query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
         fileExists = std::filesystem::exists(db_file_path);
         REQUIRE(fileExists);
 
         // Use database
-        stdin_write_data(redirector, prompt_buf, "use " + db_name + "\n");
-        check_commands(prompt_buf, query_state);
+        cmd_str = "use " + db_name + "\n";
+        query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
 
         // Create table
-        stdin_write_data(redirector, prompt_buf, "create table " + table_name + " name STRING age INT height FLOAT \n");
-        check_commands(prompt_buf, query_state);
+        cmd_str = "create table " + table_name + " name STRING age INT height FLOAT \n";
+        query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
         fileExists = std::filesystem::exists(table_file_path);
         REQUIRE(fileExists);
 
@@ -434,8 +440,8 @@ TEST_CASE("Create Table JSON Test", "[create_table]") {
         REQUIRE(table_content == ref_table_content);
 
         // Delete database
-        stdin_write_data(redirector, prompt_buf, "delete database " + db_name + "\n");
-        check_commands(prompt_buf, query_state);
+        cmd_str = "delete database " + db_name + "\n";
+        query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
         fileExists = std::filesystem::exists(db_folder);
         REQUIRE_FALSE(fileExists);
     }
