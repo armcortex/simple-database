@@ -451,7 +451,6 @@ TEST_CASE("Create Table JSON Test", "[create_table]") {
     query_state->close(query_state);
 }
 
-
 TEST_CASE("Insert Data Test", "[insert]") {
     setvbuf(stdout, nullptr, _IONBF, 0);
 
@@ -591,6 +590,62 @@ TEST_CASE("Insert Data Test", "[insert]") {
         std::string db_json_str = db_json.dump(2);
         REQUIRE(db_json["tables"][0]["table_name"] == table_name);
         REQUIRE(db_json["tables"][0]["data_cnt"] == (insert_datas.size() * repeat_times));
+
+        // Close
+        cmd_str = "delete database " + db_name + "\n";
+        execute_cmd(redirector, prompt_buf, query_state, cmd_str);
+    }
+
+    // Close
+    free_prompt_buf(prompt_buf);
+    query_state->close(query_state);
+}
+
+TEST_CASE("Select table Test", "[select]") {
+    setvbuf(stdout, nullptr, _IONBF, 0);
+
+    std::string cmd_str;
+    std::string query_res;
+    std::string read_str;
+    std::string ref_str;
+    bool fileExists;
+    bool res;
+
+    const std::string db_name = "my_db";
+    const std::string db_folder = WORKSPACE_PATH_FULL "/" + db_name + "/";
+    const std::string db_file_path = db_folder + db_name + ".json";
+
+    const std::string table_name = "my_table";
+    const std::string table_file_path = db_folder + table_name + ".csv";
+
+    const std::string not_exist_table_name = "none_my_table";
+
+    // Init
+    query_state_t *query_state = query_state_construct();
+    query_state->init(query_state);
+    prompt_buf_t *prompt_buf = new_prompt_buf();
+
+    SECTION("Select table not found") {
+        // Init
+        IORedirector redirector;
+
+        // Create database
+        cmd_str = "create database " + db_name + "\n";
+        execute_cmd(redirector, prompt_buf, query_state, cmd_str);
+
+        // Use database
+        cmd_str = "use " + db_name + "\n";
+        execute_cmd(redirector, prompt_buf, query_state, cmd_str);
+
+
+        // Testing
+        redirector.flush();
+        cmd_str = "select * from " + not_exist_table_name + " \n";
+        query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
+        read_str = redirector.read_stderr();
+        ref_str = "Table none_my_table not found\n";
+        res = compare_io_response_str(read_str, ref_str);
+        REQUIRE(res);
 
         // Close
         cmd_str = "delete database " + db_name + "\n";

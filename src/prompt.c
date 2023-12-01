@@ -161,6 +161,27 @@ void check_commands(prompt_buf_t *prompt_buf, query_state_t *query_state) {
                 strncmp(cmds[1], "help", 4) == 0) {
                 select_command_info();
             }
+            // select all column
+            // `select * from table_name`
+            else if (strncmp(cmds[1], "*", 1) == 0) {
+                if (strncmp(cmds[2], "from", 4) == 0) {
+                    char table_name_path[PATH_MAX] = {0};
+                    if (check_table_exist((const char*)cmds[3], table_name_path)) {
+
+                    }
+                    else {
+                        fprintf(stderr, "Table %s not found\n", cmds[3]);
+                    }
+                }
+                else {
+                    fprintf(stderr, "Unrecognized command '%s' \n\n", prompt_buf->buf);
+                }
+            }
+            // select specific column name
+            else {
+                // TODO: make sure column name exist
+                ;
+            }
         }
     }
     // Insert
