@@ -454,15 +454,17 @@ TEST_CASE("Create Table JSON Test", "[create_table]") {
 TEST_CASE("Insert Data Test", "[insert]") {
     setvbuf(stdout, nullptr, _IONBF, 0);
 
-    const std::string db_name = "my_db";
-    const std::string table_name = "my_table";
-    const std::string db_folder = WORKSPACE_PATH_FULL "/" + db_name + "/";
-    const std::string db_file_path = db_folder + db_name + ".json";
-    const std::string table_file_path = db_folder + table_name + ".csv";
-    std::string read_str;
     std::string cmd_str;
+    std::string read_str;
     bool fileExists;
     bool res;
+
+    const std::string db_name = "my_db";
+    const std::string db_folder = WORKSPACE_PATH_FULL "/" + db_name + "/";
+    const std::string db_file_path = db_folder + db_name + ".json";
+
+    const std::string table_name = "my_table";
+    const std::string table_file_path = db_folder + table_name + ".csv";
 
 
     // Init
