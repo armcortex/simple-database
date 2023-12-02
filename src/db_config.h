@@ -18,6 +18,7 @@ extern "C" {
 #define WORKSPACE_PATH_FULL             WORKSPACE_PATH_BASE DB_WORKING_FOLDER
 
 #define DB_NAME_MAX                     (256)
+#define CELL_TEXT_MAX                   (32)
 
 #ifdef __cplusplus
 }

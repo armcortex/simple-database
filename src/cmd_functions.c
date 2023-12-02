@@ -21,6 +21,88 @@
 static char g_db_file_path[PATH_MAX] = {0};
 static char g_db_name[DB_NAME_MAX] = {0};
 
+
+table_data_t* table_data_init(size_t len) {
+    table_data_t *t = (table_data_t*)malloc(sizeof(table_data_t));
+    if (t == NULL) {
+        fprintf(stderr, "Failed to allocate memory.\n");
+        assert(0);
+    }
+
+    t->types = (table_data_enum_t*)malloc(len * sizeof(table_data_enum_t));
+    if (t->types == NULL) {
+        fprintf(stderr, "Failed to allocate memory.\n");
+        assert(0);
+    }
+
+    t->len = len;
+    t->rows = NULL;
+    return t;
+}
+
+void table_data_close(table_data_t *t) {
+    free(t->types);
+    if (t->rows != NULL) {
+        free(t->rows);
+    }
+    free(t);
+}
+
+void table_data_add_type(table_data_t *t, const char *type, size_t idx) {
+    if (idx >= t->len) {
+        fprintf(stderr, "Table type out of range, should less than %zu, idx: %zu", t->len, idx);
+        assert(0);
+    }
+
+    if (strncmp(type, "STRING", 6) == 0) {
+        t->types[idx] = TABLE_STRING;
+    }
+    else if (strncmp(type, "INT", 3) == 0) {
+        t->types[idx] = TABLE_INT;
+    }
+    else if (strncmp(type, "FLOAT", 5) == 0) {
+        t->types[idx] = TABLE_FLOAT;
+    }
+    else {
+        fprintf(stderr, "Table type not supported: %s\n", type);
+        assert(0);
+    }
+}
+
+table_row_t* table_data_create_row_node(char **data, size_t len) {
+    table_row_t *t = (table_row_t*)malloc(sizeof(table_row_t*));
+    if (t == NULL) {
+        fprintf(stderr, "Failed to allocate memory.\n");
+        assert(0);
+    }
+    t->next = NULL;
+
+    t->data = (char**)malloc(len * sizeof(char*));
+    for (size_t i=0; i<len; i++) {
+        t->data[i] = (char*)calloc(CELL_TEXT_MAX,  sizeof(char));
+        if (t->data[i] == NULL) {
+            fprintf(stderr, "Failed to allocate memory.\n");
+            assert(0);
+        }
+
+        strncpy(t->data[i], data[i], strlen(data[i]));
+    }
+    return t;
+}
+
+void table_data_insert_row_data(table_data_t *t, char **data) {
+    if (t->rows == NULL) {
+        t->rows = table_data_create_row_node(data, t->len);
+        return;
+    }
+
+    table_row_t *last = t->rows;
+    while (last->next) {
+        last = last->next;
+    }
+    last->next = table_data_create_row_node(data, t->len);
+}
+
 void basic_command_info() {
     fprintf(stdout, "All Support commands: \n");
     fprintf(stdout, "\t help: \n");
@@ -296,6 +378,125 @@ void delete_table_all(const char *db_base_path) {
         }
         closedir(d);
     }
+}
+
+table_data_t* select_table(const char *table_name, char *table_name_path) {
+    current_db_t *db = get_current_db();
+    snprintf(table_name_path, PATH_MAX, "%s/%s.csv", db->folder_path, table_name);
+
+    // Get table structure
+    table_data_t *table_struct = select_init_table_struct(table_name);
+
+    // Read table content
+    u_int32_t res_lines = 0;
+    char *table = read_file(table_name_path, 1, &res_lines);
+
+    // Split into lines
+    splitter_t lines_splitter = split_construct();
+    size_t lines_num_tokens;
+    char** lines = lines_splitter.run(table, "\n", &lines_num_tokens);
+
+    // Split into cell, save to table_struct
+    for (size_t i=0; i<lines_num_tokens; i++) {
+        splitter_t cells_splitter = split_construct();
+        size_t cells_num_tokens;
+        char** cells = cells_splitter.run(lines[i], ",", &cells_num_tokens);
+
+        // insert data
+        table_data_insert_row_data(table_struct, cells);
+
+        cells_splitter.free(cells, cells_num_tokens);
+    }
+
+    table_row_t *head = table_struct->rows;
+    while (head) {
+        for (size_t i=0; i<3; i++) {
+            logger_str(false, "%s \n", head->data[i]);
+        }
+        logger_str(true, "\n");
+
+        head = head->next;
+    }
+
+
+
+
+    // Close
+    lines_splitter.free(lines, lines_num_tokens);
+
+
+    free(table);
+    select_close_table_struct(table_struct);
+}
+
+table_data_t* select_init_table_struct(const char *table_name) {
+    current_db_t *db = get_current_db();
+
+    u_int32_t res_lines = 0;
+    char *content = read_file(db->name_path, 0, &res_lines);
+
+    // Parse the JSON content
+    cJSON *root = cJSON_Parse(content);
+    free(content);
+    if (root == NULL) {
+        fprintf(stderr, "Failed to parse JSON\n");
+        assert(0);
+    }
+
+    // find "tables" array
+    cJSON *tables = cJSON_GetObjectItemCaseSensitive(root, "tables");
+    if (!cJSON_IsArray(tables)) {
+        fprintf(stderr, "\"tables\" is not an array\n");
+        cJSON_Delete(root);
+        assert(0);
+    }
+
+    table_data_t *table_data = NULL;
+    int column_len;
+    cJSON *table;
+    size_t type_idx = 0;
+    cJSON_ArrayForEach(table, tables) {
+        cJSON *name = cJSON_GetObjectItemCaseSensitive(table, "table_name");
+        if (cJSON_IsString(name) && strcmp(name->valuestring, table_name) == 0) {
+            cJSON *columns = cJSON_GetObjectItemCaseSensitive(table, "columns");
+            if (!cJSON_IsArray(columns)) {
+                fprintf(stderr, "\"columns\" is not an array for table %s\n", table_name);
+                break;
+            }
+
+            // Create table info
+            column_len = cJSON_GetArraySize(columns);
+            table_data = table_data_init(column_len);
+
+            cJSON *column;
+            cJSON_ArrayForEach(column, columns) {
+                cJSON *column_name = cJSON_GetObjectItemCaseSensitive(column, "column_name");
+                cJSON *type = cJSON_GetObjectItemCaseSensitive(column, "type");
+
+                if (cJSON_IsString(column_name) && cJSON_IsString(type)) {
+                    table_data_add_type(table_data, type->valuestring, type_idx);
+//                    logger_str("Column name: %s, Type: %s\n", column_name->valuestring, type->valuestring);
+                    type_idx += 1;
+                }
+            }
+            break;  // Once the specified table is found, no need to check other tables.
+        }
+    }
+
+    cJSON_Delete(root);
+    return table_data;
+}
+
+void select_close_table_struct(void *p) {
+    ;
+}
+
+void select_table_display(table_data_t *table_data) {
+    ;
+}
+
+void select_table_close(table_data_t *table_data) {
+    ;
 }
 
 const char* create_filename(const char *filename, const char *ext) {

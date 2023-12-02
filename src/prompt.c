@@ -167,7 +167,7 @@ void check_commands(prompt_buf_t *prompt_buf, query_state_t *query_state) {
                 if (strncmp(cmds[2], "from", 4) == 0) {
                     char table_name_path[PATH_MAX] = {0};
                     if (check_table_exist((const char*)cmds[3], table_name_path)) {
-
+                        select_table((const char*)cmds[3], table_name_path);
                     }
                     else {
                         fprintf(stderr, "Table %s not found\n", cmds[3]);
