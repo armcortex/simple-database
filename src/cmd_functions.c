@@ -116,7 +116,8 @@ void create_database_meta(const char *filename) {
 }
 
 void add_database_new_table(const char *db_filename, cJSON *new_table) {
-    char *content = read_file(db_filename, 0);
+    u_int32_t res_lines = 0;
+    char *content = read_file(db_filename, 0, &res_lines);
 
     // Parse the JSON content
     cJSON *json = cJSON_Parse(content);
@@ -222,7 +223,8 @@ void insert_table_data(const char *filename_path, const char *table_name, char *
 }
 
 void insert_table_update_database_meta(const char *db_filename, const char *table_name, size_t data_update_cnt) {
-    char *content = read_file(db_filename, 0);
+    u_int32_t res_lines = 0;
+    char *content = read_file(db_filename, 0, &res_lines);
 
     // Parse the JSON content
     cJSON *root = cJSON_Parse(content);

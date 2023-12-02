@@ -122,7 +122,7 @@ bool exist_file(const char *name) {
     return (stat(name, &st) == 0);
 }
 
-char* read_file(const char* filename, u_int32_t skip_lines) {
+char* read_file(const char* filename, u_int32_t skip_lines, u_int32_t *res_lines) {
     const int MAX_LINE_LENGTH = 1024;
 
     FILE *file = fopen(filename, "r");
@@ -152,6 +152,7 @@ char* read_file(const char* filename, u_int32_t skip_lines) {
         content = new_content;
         strncpy(content + content_length, line, line_length + 1);
         content_length += line_length;
+        (*res_lines) += 1;
     }
 
     if (content != NULL) {
@@ -162,22 +163,24 @@ char* read_file(const char* filename, u_int32_t skip_lines) {
     return content;
 }
 
-void logger_str(const char *format, ...) {
-    const char* filename = "../logger_str.txt";
+void logger_str(bool with_time, const char *format, ...) {
+    const char *filename = "../logger_str.txt";
     FILE *f_log = fopen(filename, "a");
     if (f_log == NULL) {
         fprintf(stderr, "Failed to open file: %s\n", filename);
         assert(0);
     }
 
-    // Calc time
-    char formatted_time[30] = {0};
-    time_t current_time = time(NULL);
-    strftime(formatted_time, sizeof(formatted_time), "[%Y-%m-%d %H:%M:%S] - ",
-             localtime(&current_time));
+    if (with_time) {
+        // Calc time
+        char formatted_time[30] = {0};
+        time_t current_time = time(NULL);
+        strftime(formatted_time, sizeof(formatted_time), "[%Y-%m-%d %H:%M:%S] - ",
+                 localtime(&current_time));
 
-    // Write to file
-    fprintf(f_log, "%s", formatted_time);
+        // Write to file
+        fprintf(f_log, "%s", formatted_time);
+    }
 
     // Args
     va_list args;
