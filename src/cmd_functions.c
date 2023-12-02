@@ -385,7 +385,7 @@ table_data_t* select_table(const char *table_name, char *table_name_path) {
     snprintf(table_name_path, PATH_MAX, "%s/%s.csv", db->folder_path, table_name);
 
     // Get table structure
-    table_data_t *table_struct = select_init_table_struct(table_name);
+    table_data_t *table_data = select_init_table_struct(table_name);
 
     // Read table content
     u_int32_t res_lines = 0;
@@ -403,30 +403,16 @@ table_data_t* select_table(const char *table_name, char *table_name_path) {
         char** cells = cells_splitter.run(lines[i], ",", &cells_num_tokens);
 
         // insert data
-        table_data_insert_row_data(table_struct, cells);
+        table_data_insert_row_data(table_data, cells);
 
         cells_splitter.free(cells, cells_num_tokens);
     }
 
-    table_row_t *head = table_struct->rows;
-    while (head) {
-        for (size_t i=0; i<3; i++) {
-            logger_str(false, "%s \n", head->data[i]);
-        }
-        logger_str(true, "\n");
-
-        head = head->next;
-    }
-
-
-
 
     // Close
     lines_splitter.free(lines, lines_num_tokens);
-
-
     free(table);
-    select_close_table_struct(table_struct);
+    return table_data;
 }
 
 table_data_t* select_init_table_struct(const char *table_name) {
@@ -492,11 +478,21 @@ void select_close_table_struct(void *p) {
 }
 
 void select_table_display(table_data_t *table_data) {
-    ;
+    size_t len = table_data->len;
+    table_row_t *head = table_data->rows;
+    while (head) {
+        for (size_t i=0; i<len-1; i++) {
+            fprintf(stdout, "%s,", head->data[i]);
+        }
+        fprintf(stdout, "%s", head->data[len-1]);
+        fprintf(stdout, "\n");
+
+        head = head->next;
+    }
 }
 
 void select_table_close(table_data_t *table_data) {
-    ;
+    table_data_close(table_data);
 }
 
 const char* create_filename(const char *filename, const char *ext) {
