@@ -436,7 +436,7 @@ TEST_CASE("Create Table JSON Test", "[create_table]") {
         // check table csv file
         std::ifstream file(table_file_path);
         std::string table_content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-        std::string ref_table_content = "name, age, height\n";
+        std::string ref_table_content = "name,age,height\n";
         REQUIRE(table_content == ref_table_content);
 
         // Delete database
@@ -528,7 +528,7 @@ TEST_CASE("Insert Data Test", "[insert]") {
         // check table data
         std::ifstream file(table_file_path);
         std::string table_content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-        std::string ref_table_content = "name, age, height\nJohn, 30, 170 \nJane, 25, 165 \nAlice, 28, 180 \nBob, 31, 173 \nCharlie, 29, 160 \n";
+        std::string ref_table_content = "name,age,height\nJohn,30,170\nJane,25,165\nAlice,28,180\nBob,31,173\nCharlie,29,160\n";
         REQUIRE(table_content == ref_table_content);
 
         // check database meta
@@ -577,8 +577,8 @@ TEST_CASE("Insert Data Test", "[insert]") {
         // check table data
         std::ifstream file(table_file_path);
         std::string table_content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-        std::string ref_base = "name, age, height\n";
-        std::string ref_data_base = "John, 30, 170 \nJane, 25, 165 \nAlice, 28, 180 \nBob, 31, 173 \nCharlie, 29, 160 \n";
+        std::string ref_base = "name,age,height\n";
+        std::string ref_data_base = "John,30,170\nJane,25,165\nAlice,28,180\nBob,31,173\nCharlie,29,160\n";
         std::string ref_data;
         for (int i=0; i<repeat_times; i++) {
             ref_data += ref_data_base;
@@ -690,7 +690,7 @@ TEST_CASE("Select table Test", "[select]") {
         cmd_str = "select * from " + table_name + " \n";
         execute_cmd(redirector, prompt_buf, query_state, cmd_str);
         read_str = redirector.read_stdout();
-        ref_str = "Table none_my_table not found\n";
+        ref_str = "";
         res = compare_io_response_str(read_str, ref_str);
 //        REQUIRE(res);
 

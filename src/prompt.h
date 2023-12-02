@@ -24,7 +24,7 @@ typedef enum {
     INSERT,
     UNDEFINED,
     COUNT,
-}State_t;
+} State_t;
 
 typedef struct {
     char *buf;

@@ -176,7 +176,7 @@ void create_table(const char *filename_path, const char *filename, char **args, 
 
     // Show column on the first line
     for (size_t i=0; i<(len-2); i+=2) {
-        fprintf(file, "%s, ", args[i]);
+        fprintf(file, "%s,", args[i]);
     }
     fprintf(file, "%s\n", args[len-2]);
     fclose(file);
@@ -212,9 +212,9 @@ void insert_table_data(const char *filename_path, const char *table_name, char *
     }
 
     for (size_t i=0; i<len-1; i++) {
-        fprintf(file, "%s, ", datas[i]);
+        fprintf(file, "%s,", datas[i]);
     }
-    fprintf(file, "%s \n", datas[len-1]);
+    fprintf(file, "%s\n", datas[len-1]);
     fclose(file);
 
     current_db_t *curr_db = get_current_db();
@@ -237,7 +237,7 @@ void insert_table_update_database_meta(const char *db_filename, const char *tabl
     if (!cJSON_IsArray(tables)) {
         fprintf(stderr, "\"tables\" is not an array\n");
         cJSON_Delete(root);
-        return;
+        assert(0);
     }
 
     // traverse all array
