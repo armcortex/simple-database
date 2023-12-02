@@ -690,7 +690,7 @@ TEST_CASE("Select table Test", "[select]") {
         cmd_str = "select * from " + table_name + " \n";
         execute_cmd(redirector, prompt_buf, query_state, cmd_str);
         read_str = redirector.read_stdout();
-        ref_str = "John,30,170\nJane,25,165\nAlice,28,180\nBob,31,173\nCharlie,29,160\n";
+        ref_str = "name,age,height\nJohn,30,170\nJane,25,165\nAlice,28,180\nBob,31,173\nCharlie,29,160\n";
         res = compare_io_response_str(read_str, ref_str);
         REQUIRE(res);
 

@@ -27,6 +27,7 @@ typedef struct table_row_t {
 
 typedef struct table_data_t {
     table_data_enum_t *types;
+    char **table_column_names;
     table_row_t *rows;
     size_t len;
 } table_data_t;
@@ -35,6 +36,7 @@ typedef struct table_data_t {
 table_data_t* table_data_init(size_t len);
 void table_data_close(table_data_t *t);
 void table_data_add_type(table_data_t *t, const char *type, size_t idx);
+void table_data_add_column_name(table_data_t *t, const char *column_name, size_t idx);
 table_row_t* table_data_create_row_node(char **data, size_t len);
 void table_data_insert_row_data(table_data_t *t, char **data);
 

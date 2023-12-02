@@ -35,6 +35,19 @@ table_data_t* table_data_init(size_t len) {
         assert(0);
     }
 
+    t->table_column_names = (char**)malloc(len * sizeof(char*));
+    if (t->table_column_names == NULL) {
+        fprintf(stderr, "Failed to allocate memory.\n");
+        assert(0);
+    }
+    for (size_t i=0; i<len; i++) {
+        t->table_column_names[i] = (char*)calloc(CELL_TEXT_MAX,  sizeof(char));
+        if (t->table_column_names[i] == NULL) {
+            fprintf(stderr, "Failed to allocate memory.\n");
+            assert(0);
+        }
+    }
+
     t->len = len;
     t->rows = NULL;
     return t;
@@ -42,6 +55,7 @@ table_data_t* table_data_init(size_t len) {
 
 void table_data_close(table_data_t *t) {
     free(t->types);
+    free(t->table_column_names);
     if (t->rows != NULL) {
         free(t->rows);
     }
@@ -67,6 +81,14 @@ void table_data_add_type(table_data_t *t, const char *type, size_t idx) {
         fprintf(stderr, "Table type not supported: %s\n", type);
         assert(0);
     }
+}
+
+void table_data_add_column_name(table_data_t *t, const char *column_name, size_t idx) {
+    if (idx >= t->len) {
+        fprintf(stderr, "Table type out of range, should less than %zu, idx: %zu", t->len, idx);
+        assert(0);
+    }
+    strncpy(t->table_column_names[idx], column_name, strlen(column_name));
 }
 
 table_row_t* table_data_create_row_node(char **data, size_t len) {
@@ -461,6 +483,7 @@ table_data_t* select_init_table_struct(const char *table_name) {
 
                 if (cJSON_IsString(column_name) && cJSON_IsString(type)) {
                     table_data_add_type(table_data, type->valuestring, type_idx);
+                    table_data_add_column_name(table_data, column_name->valuestring, type_idx);
 //                    logger_str("Column name: %s, Type: %s\n", column_name->valuestring, type->valuestring);
                     type_idx += 1;
                 }
@@ -479,6 +502,14 @@ void select_close_table_struct(void *p) {
 
 void select_table_display(table_data_t *table_data) {
     size_t len = table_data->len;
+
+    // Print column names
+    for (size_t i=0; i<len-1; i++) {
+        fprintf(stdout, "%s,", table_data->table_column_names[i]);
+    }
+    fprintf(stdout, "%s\n", table_data->table_column_names[len-1]);
+
+    // Print data
     table_row_t *head = table_data->rows;
     while (head) {
         for (size_t i=0; i<len-1; i++) {
