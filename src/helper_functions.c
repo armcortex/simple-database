@@ -10,6 +10,8 @@
 #include <limits.h>
 #include <sys/stat.h>
 #include <assert.h>
+#include <stdarg.h>
+#include <time.h>
 
 #include "helper_functions.h"
 
@@ -158,4 +160,30 @@ char* read_file(const char* filename, u_int32_t skip_lines) {
     fclose(file);
 
     return content;
+}
+
+void logger_str(const char *format, ...) {
+    const char* filename = "../logger_str.txt";
+    FILE *f_log = fopen(filename, "a");
+    if (f_log == NULL) {
+        fprintf(stderr, "Failed to open file: %s\n", filename);
+        assert(0);
+    }
+
+    // Calc time
+    char formatted_time[30] = {0};
+    time_t current_time = time(NULL);
+    strftime(formatted_time, sizeof(formatted_time), "[%Y-%m-%d %H:%M:%S] - ",
+             localtime(&current_time));
+
+    // Write to file
+    fprintf(f_log, "%s", formatted_time);
+
+    // Args
+    va_list args;
+    va_start(args, format);
+    vfprintf(f_log, format, args);
+    va_end(args);
+
+    fclose(f_log);
 }

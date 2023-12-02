@@ -26,6 +26,8 @@ bool exist_folder(const char *name);
 bool exist_file(const char *name);
 char* read_file(const char* filename, u_int32_t skip_lines);
 
+void logger_str(const char *format, ...);
+
 #ifdef __cplusplus
 }
 #endif
