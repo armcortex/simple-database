@@ -67,7 +67,9 @@ void delete_table(const char *name);
 void delete_table_all(const char *db_base_path);
 
 // Select command
-table_data_t* select_table(const char *table_name, char *table_name_path);
+table_data_t* select_table(const char *table_name, char *table_name_path, const char *select_columns,
+                            const char **args, size_t args_len);
+
 table_data_t* select_init_table_struct(const char *table_name);
 void select_close_table_struct(void *ptr);
 void select_table_display(table_data_t *table_data);

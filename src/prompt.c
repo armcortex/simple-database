@@ -15,6 +15,7 @@
 void print_prompt() {
     current_db_t *db = get_current_db();
     fprintf(stdout, "%s > ", db->name);
+    // TODO: fix bug, when delete current using database, the prompt still showing it, not clean it.
 }
 
 prompt_buf_t* new_prompt_buf() {
@@ -163,20 +164,29 @@ void check_commands(prompt_buf_t *prompt_buf, query_state_t *query_state) {
             }
             // select all column
             // `select * from table_name`
-            else if (strncmp(cmds[1], "*", 1) == 0) {
-                if (strncmp(cmds[2], "from", 4) == 0) {
-                    char table_name_path[PATH_MAX] = {0};
-                    if (check_table_exist((const char*)cmds[3], table_name_path)) {
-                        table_data_t *table_data = select_table((const char*)cmds[3], table_name_path);
-                        select_table_display(table_data);
-                        select_table_close(table_data);
+            else if (strncmp(cmds[2], "from", 4) == 0) {
+                char table_name_path[PATH_MAX] = {0};
+                if (check_table_exist((const char*)cmds[3], table_name_path)) {
+                    table_data_t *table_data = NULL;
+                    if (num_tokens > 4) {
+                        table_data = select_table((const char*)cmds[3],
+                                                                table_name_path,
+                                                                (const char*)cmds[1],
+                                                                (const char**)&cmds[4], num_tokens-4);
                     }
                     else {
-                        fprintf(stderr, "Table %s not found\n", cmds[3]);
+                        table_data = select_table((const char*)cmds[3],
+                                                                table_name_path,
+                                                                (const char*)cmds[1],
+                                                                (const char**)"", 0);
                     }
+//                    table_data_t *table_data = select_table((const char*)cmds[3], table_name_path, (const char*)cmds[1], );
+
+                    select_table_display(table_data);
+                    select_table_close(table_data);
                 }
                 else {
-                    fprintf(stderr, "Unrecognized command '%s' \n\n", prompt_buf->buf);
+                    fprintf(stderr, "Table %s not found\n", cmds[3]);
                 }
             }
             // select specific column name
@@ -208,6 +218,14 @@ void check_commands(prompt_buf_t *prompt_buf, query_state_t *query_state) {
             }
         }
     }
+    // TODO: Add list command, like
+    // TODO: `list database <database_name>` to show all database
+    // TODO: `list table <table_name>` to show all table under current using database
+
+    // TODO: Add info to show columns, like
+    // TODO: info database <database_name> to print whole json file
+    // TODO info table <table_name> only print specific table column_name
+
     // Undefined command
     else {
         query_state->state = UNDEFINED;

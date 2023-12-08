@@ -402,7 +402,9 @@ void delete_table_all(const char *db_base_path) {
     }
 }
 
-table_data_t* select_table(const char *table_name, char *table_name_path) {
+table_data_t* select_table(const char *table_name, char *table_name_path, const char *select_columns,
+                            const char **args, size_t args_len) {
+
     current_db_t *db = get_current_db();
     snprintf(table_name_path, PATH_MAX, "%s/%s.csv", db->folder_path, table_name);
 
