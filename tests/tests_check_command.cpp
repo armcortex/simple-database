@@ -732,7 +732,7 @@ TEST_CASE("Select table Test", "[select]") {
 
         // Testing
         redirector.flush();
-        cmd_str = "select * from " + table_name + " where age < 29 \n";
+        cmd_str = "select name,age from " + table_name + " where age < 29;\n";
         execute_cmd(redirector, prompt_buf, query_state, cmd_str);
         read_str = redirector.read_stdout();
         ref_str = "";

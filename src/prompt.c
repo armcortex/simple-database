@@ -11,6 +11,7 @@
 #include "helper_functions.h"
 #include "cmd_functions.h"
 #include "database.h"
+#include "parser.h"
 
 void print_prompt() {
     current_db_t *db = get_current_db();
@@ -22,6 +23,7 @@ prompt_buf_t* new_prompt_buf() {
     prompt_buf_t *prompt_buf = (prompt_buf_t*)malloc(sizeof(prompt_buf_t));
     if (prompt_buf == NULL) {
         fprintf(stderr, "Failed to allocate memory.\n");
+        assert(0);
     }
 
     prompt_buf->buf = NULL;
@@ -168,7 +170,9 @@ void check_commands(prompt_buf_t *prompt_buf, query_state_t *query_state) {
                 char table_name_path[PATH_MAX] = {0};
                 if (check_table_exist((const char*)cmds[3], table_name_path)) {
                     table_data_t *table_data = NULL;
+                    select_parsed_data_t *select_parsed_data = NULL;
                     if (num_tokens > 4) {
+                        parse_select_cmd((const char*)prompt_buf->buf, select_parsed_data);
                         table_data = select_table((const char*)cmds[3],
                                                                 table_name_path,
                                                                 (const char*)cmds[1],
