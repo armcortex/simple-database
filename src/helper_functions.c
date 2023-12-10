@@ -122,7 +122,7 @@ bool exist_file(const char *name) {
     return (stat(name, &st) == 0);
 }
 
-char* read_file(const char* filename, u_int32_t skip_lines, u_int32_t *res_lines) {
+char* read_file(const char* filename, uint32_t skip_lines, uint32_t *res_lines) {
     const int MAX_LINE_LENGTH = 1024;
 
     FILE *file = fopen(filename, "r");
