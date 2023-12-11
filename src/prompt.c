@@ -182,16 +182,16 @@ void check_commands(prompt_buf_t *prompt_buf, query_state_t *query_state) {
                     select_parsed_data_t *select_parsed_data = NULL;
                     if (num_tokens > 4) {
                         parse_select_cmd((const char*)prompt_buf->buf, &select_parsed_data);
-                        table_data = select_table((const char*)cmds[3],
-                                                                table_name_path,
-                                                                (const char*)cmds[1],
-                                                                (const char**)&cmds[4], num_tokens-4);
+                        table_data = load_select_table_data((const char *) cmds[3],
+                                                            table_name_path,
+                                                            (const char *) cmds[1],
+                                                            (const char **) &cmds[4], num_tokens - 4);
                     }
                     else {
-                        table_data = select_table((const char*)cmds[3],
-                                                                table_name_path,
-                                                                (const char*)cmds[1],
-                                                                (const char**)"", 0);
+                        table_data = load_select_table_data((const char *) cmds[3],
+                                                            table_name_path,
+                                                            (const char *) cmds[1],
+                                                            (const char **) "", 0);
                     }
 
                     select_table_display(table_data);
