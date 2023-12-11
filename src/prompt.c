@@ -274,10 +274,12 @@ static void query_state_init(query_state_t *q) {
 static void query_state_close(query_state_t *q) {
     if (q->args != NULL) {
         free(q->args);
+        q->args = NULL;
     }
 
     if (q != NULL) {
         free(q);
+        q = NULL;
     }
 }
 

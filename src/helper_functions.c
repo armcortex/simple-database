@@ -19,8 +19,10 @@
 static void split_free(char** tokens, size_t count) {
     for (size_t i=0; i<count; i++) {
         free(tokens[i]);
+        tokens[i] = NULL;
     }
     free(tokens);
+    tokens = NULL;
 }
 
 static char** split_run(const char* str, const char* delim, size_t *num_tokens) {
@@ -35,6 +37,7 @@ static char** split_run(const char* str, const char* delim, size_t *num_tokens) 
     if (!tokens) {
         fprintf(stderr, "Failed to allocate memory.\n");
         free(str_copy);
+        str_copy = NULL;
         exit(EXIT_FAILURE);
     }
 
@@ -48,6 +51,7 @@ static char** split_run(const char* str, const char* delim, size_t *num_tokens) 
                 fprintf(stderr, "Failed to allocate memory.\n");
                 split_free(tokens, count);
                 free(str_copy);
+                str_copy = NULL;
                 exit(EXIT_FAILURE);
             }
             tokens = new_tokens;
@@ -57,6 +61,7 @@ static char** split_run(const char* str, const char* delim, size_t *num_tokens) 
             fprintf(stderr, "Failed to allocate memory.\n");
             split_free(tokens, count);
             free(str_copy);
+            str_copy = NULL;
             exit(EXIT_FAILURE);
         }
         count++;
@@ -65,6 +70,7 @@ static char** split_run(const char* str, const char* delim, size_t *num_tokens) 
 
     *num_tokens = count;
     free(str_copy);
+    str_copy = NULL;
     return tokens;
 }
 
@@ -146,6 +152,7 @@ char* read_file(const char* filename, uint32_t skip_lines, uint32_t *res_lines) 
         if (new_content == NULL) {
             fprintf(stderr, "Failed to allocate memory\n");
             free(content);
+            content = NULL;
             fclose(file);
             assert(0);
         }

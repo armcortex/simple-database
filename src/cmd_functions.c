@@ -56,10 +56,14 @@ table_data_t* table_data_init(size_t len) {
 void table_data_close(table_data_t *t) {
     free(t->types);
     free(t->table_column_names);
+    t->types = NULL;
+    t->table_column_names = NULL;
     if (t->rows != NULL) {
         free(t->rows);
+        t->rows = NULL;
     }
     free(t);
+    t = NULL;
 }
 
 void table_data_add_type(table_data_t *t, const char *type, size_t idx) {
@@ -226,6 +230,7 @@ void add_database_new_table(const char *db_filename, cJSON *new_table) {
     // Parse the JSON content
     cJSON *json = cJSON_Parse(content);
     free(content);
+    content = NULL;
     if (json == NULL) {
         fprintf(stderr, "Failed to parse JSON\n");
         assert(0);
@@ -333,6 +338,7 @@ void insert_table_update_database_meta(const char *db_filename, const char *tabl
     // Parse the JSON content
     cJSON *root = cJSON_Parse(content);
     free(content);
+    content = NULL;
     if (root == NULL) {
         fprintf(stderr, "Failed to parse JSON\n");
         assert(0);
@@ -434,6 +440,7 @@ table_data_t* select_load_table_data(const char *table_name, char *table_name_pa
     // Close
     lines_splitter.free(lines, lines_num_tokens);
     free(table);
+    table = NULL;
     return table_data;
 }
 
@@ -446,6 +453,7 @@ table_data_t* select_load_table_column_names(const char *table_name) {
     // Parse the JSON content
     cJSON *root = cJSON_Parse(content);
     free(content);
+    content = NULL;
     if (root == NULL) {
         fprintf(stderr, "Failed to parse JSON\n");
         assert(0);
