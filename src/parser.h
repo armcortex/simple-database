@@ -20,14 +20,12 @@ typedef enum {
 
 typedef struct select_parsed_data_t {
     select_state_t state;
-    void **args;
+    char *args;
 } select_parsed_data_t;
 
 
-
-
-void parse_select_cmd(const char *sql_cmd, select_parsed_data_t *parsed_data);
-
+void parse_select_cmd(const char *sql_cmd, select_parsed_data_t **parsed_data);
+void parse_select_cmd_close(select_parsed_data_t **parsed_data);
 
 #ifdef __cplusplus
 }

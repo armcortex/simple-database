@@ -169,10 +169,19 @@ void check_commands(prompt_buf_t *prompt_buf, query_state_t *query_state) {
             else if (strncmp(cmds[2], "from", 4) == 0) {
                 char table_name_path[PATH_MAX] = {0};
                 if (check_table_exist((const char*)cmds[3], table_name_path)) {
+                    // TODO: this should do several checks
+                    // TODO: 1. `from` table exist
+                    // TODO: 2. `select` column_names exist
+
+                    // TODO: Steps:
+                    // TODO: 1. get database meta data, read the table's column_names
+                    // TODO: 2. parse SQL commands, into {"select": ["column_names"], "from": ["tables"], "where": ["args]}
+                    // TODO: 3. Check parsed["select"] in meta["table"]["column_names"]
+                    // TODO: 4. parse `where` args, to calc, ex: `age < 29`
                     table_data_t *table_data = NULL;
                     select_parsed_data_t *select_parsed_data = NULL;
                     if (num_tokens > 4) {
-                        parse_select_cmd((const char*)prompt_buf->buf, select_parsed_data);
+                        parse_select_cmd((const char*)prompt_buf->buf, &select_parsed_data);
                         table_data = select_table((const char*)cmds[3],
                                                                 table_name_path,
                                                                 (const char*)cmds[1],
@@ -184,10 +193,12 @@ void check_commands(prompt_buf_t *prompt_buf, query_state_t *query_state) {
                                                                 (const char*)cmds[1],
                                                                 (const char**)"", 0);
                     }
-//                    table_data_t *table_data = select_table((const char*)cmds[3], table_name_path, (const char*)cmds[1], );
 
                     select_table_display(table_data);
                     select_table_close(table_data);
+
+                    // Free
+                    parse_select_cmd_close(&select_parsed_data);
                 }
                 else {
                     fprintf(stderr, "Table %s not found\n", cmds[3]);
