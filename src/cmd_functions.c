@@ -402,13 +402,13 @@ void delete_table_all(const char *db_base_path) {
     }
 }
 
-table_data_t* load_select_table_data(const char *table_name, char *table_name_path, const char *select_columns,
+table_data_t* select_load_table_data(const char *table_name, char *table_name_path, const char *select_columns,
                                      const char **args, size_t args_len) {
     current_db_t *db = get_current_db();
     snprintf(table_name_path, PATH_MAX, "%s/%s.csv", db->folder_path, table_name);
 
     // Get table structure
-    table_data_t *table_data = select_init_table_struct(table_name);
+    table_data_t *table_data = select_load_table_column_names(table_name);
 
     // Read table content
     u_int32_t res_lines = 0;
@@ -437,7 +437,7 @@ table_data_t* load_select_table_data(const char *table_name, char *table_name_pa
     return table_data;
 }
 
-table_data_t* select_init_table_struct(const char *table_name) {
+table_data_t* select_load_table_column_names(const char *table_name) {
     current_db_t *db = get_current_db();
 
     u_int32_t res_lines = 0;
@@ -494,10 +494,6 @@ table_data_t* select_init_table_struct(const char *table_name) {
 
     cJSON_Delete(root);
     return table_data;
-}
-
-void select_close_table_struct(void *p) {
-    ;
 }
 
 void select_table_display(table_data_t *table_data) {

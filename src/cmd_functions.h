@@ -32,7 +32,7 @@ typedef struct table_data_t {
     size_t len;
 } table_data_t;
 
-
+// Table data manipulate
 table_data_t* table_data_init(size_t len);
 void table_data_close(table_data_t *t);
 void table_data_add_type(table_data_t *t, const char *type, size_t idx);
@@ -67,11 +67,10 @@ void delete_table(const char *name);
 void delete_table_all(const char *db_base_path);
 
 // Select command
-table_data_t* load_select_table_data(const char *table_name, char *table_name_path, const char *select_columns,
+table_data_t* select_load_table_data(const char *table_name, char *table_name_path, const char *select_columns,
                                      const char **args, size_t args_len);
 
-table_data_t* select_init_table_struct(const char *table_name);
-void select_close_table_struct(void *ptr);
+table_data_t* select_load_table_column_names(const char *table_name);
 void select_table_display(table_data_t *table_data);
 void select_table_close(table_data_t *table_data);
 
