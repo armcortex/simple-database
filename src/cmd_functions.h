@@ -26,11 +26,23 @@ typedef struct table_row_t {
 } table_row_t;
 
 typedef struct table_data_t {
-    table_data_enum_t *types;
     char **table_column_names;
+    table_data_enum_t *types;
     table_row_t *rows;
     size_t len;
 } table_data_t;
+
+typedef enum {
+    SELECT_SELECT_CMD = 0,
+    SELECT_FROM_CMD,
+    SELECT_WHERE_CMD,
+} select_state_t;
+
+typedef struct select_parsed_data_t {
+    select_state_t state;
+    char *args;
+} select_parsed_data_t;
+
 
 // Table data manipulate
 table_data_t* table_data_init(size_t len);
@@ -38,7 +50,7 @@ void table_data_close(table_data_t *t);
 void table_data_add_type(table_data_t *t, const char *type, size_t idx);
 void table_data_add_column_name(table_data_t *t, const char *column_name, size_t idx);
 table_row_t* table_data_create_row_node(char **data, size_t len);
-void table_data_insert_row_data(table_data_t *t, char **data);
+void table_data_insert_row_data(table_data_t *t, char **data, size_t data_len);
 
 // Help info
 void basic_command_info(void);
@@ -67,8 +79,7 @@ void delete_table(const char *name);
 void delete_table_all(const char *db_base_path);
 
 // Select command
-table_data_t* select_load_table_data(const char *table_name, char *table_name_path, const char *select_columns,
-                                     const char **args, size_t args_len);
+void select_load_table_data(table_data_t *table_data, char *table_name_path, select_parsed_data_t *parsed_data, size_t parsed_len);
 
 table_data_t* select_load_table_column_names(const char *table_name);
 void select_table_display(table_data_t *table_data);

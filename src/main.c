@@ -27,7 +27,7 @@ void check_environment_info(void) {
     fprintf(stdout, "==============================\n\n");
 }
 
-int main1() {
+int main_app() {
     setvbuf(stdout, NULL, _IONBF, 0);
     if (VERBOSE) {
         check_environment_info();
@@ -208,10 +208,11 @@ int test_canbus_convert() {
     return 0;
 }
 
-
 int main() {
     setvbuf(stdout, 0, _IONBF, 0);
+    main_app();
 //    test_offset_crc32();
-    test_canbus_convert();
+//    test_canbus_convert();
+
     return 0;
 }

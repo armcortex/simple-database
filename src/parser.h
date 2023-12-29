@@ -9,23 +9,20 @@
 extern "C" {
 #endif
 
-#define MAX_MATCHES             (4)
+#include <stdbool.h>
+#include <stddef.h>
+
+#include "cmd_functions.h"
+
+#define MAX_MATCHES             (5)
 #define MAX_SELECT_CMD_LEN      (128)
 
-typedef enum {
-    SELECT_SELECT_CMD = 0,
-    SELECT_FROM_CMD,
-    SELECT_WHERE_CMD,
-} select_state_t;
-
-typedef struct select_parsed_data_t {
-    select_state_t state;
-    char *args;
-} select_parsed_data_t;
 
 
-void parse_select_cmd(const char *sql_cmd, select_parsed_data_t **parsed_data);
-void parse_select_cmd_close(select_parsed_data_t **parsed_data);
+select_parsed_data_t* parse_select_cmd(const char *sql_cmd, size_t *match_cnt);
+void parse_select_cmd_close(select_parsed_data_t *parsed_data);
+const char* check_select_column_names_correct(select_parsed_data_t *parsed_data, table_data_t *table_data);
+
 
 #ifdef __cplusplus
 }

@@ -27,6 +27,8 @@ bool exist_folder(const char *name);
 bool exist_file(const char *name);
 char* read_file(const char* filename, uint32_t skip_lines, uint32_t *res_lines);
 
+void delete_semicolon(char *s);
+
 void logger_str(bool with_time, const char *format, ...);
 
 #ifdef __cplusplus

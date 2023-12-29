@@ -9,3 +9,6 @@ cmake-build-*/
 # MISC
 .DS_Store
 /DB_DATA/
+
+# Ohters
+/tmp

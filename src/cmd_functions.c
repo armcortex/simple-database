@@ -12,6 +12,7 @@
 #include <time.h>
 #include <dirent.h>
 #include <cJSON.h>
+#include <regex.h>
 
 #include "cmd_functions.h"
 #include "db_config.h"
@@ -116,9 +117,9 @@ table_row_t* table_data_create_row_node(char **data, size_t len) {
     return t;
 }
 
-void table_data_insert_row_data(table_data_t *t, char **data) {
+void table_data_insert_row_data(table_data_t *t, char **data, size_t data_len) {
     if (t->rows == NULL) {
-        t->rows = table_data_create_row_node(data, t->len);
+        t->rows = table_data_create_row_node(data, data_len);
         return;
     }
 
@@ -126,7 +127,7 @@ void table_data_insert_row_data(table_data_t *t, char **data) {
     while (last->next) {
         last = last->next;
     }
-    last->next = table_data_create_row_node(data, t->len);
+    last->next = table_data_create_row_node(data, data_len);
 }
 
 void basic_command_info() {
@@ -408,14 +409,34 @@ void delete_table_all(const char *db_base_path) {
     }
 }
 
-table_data_t* select_load_table_data(const char *table_name, char *table_name_path, const char *select_columns,
-                                     const char **args, size_t args_len) {
-    current_db_t *db = get_current_db();
-    snprintf(table_name_path, PATH_MAX, "%s/%s.csv", db->folder_path, table_name);
+uint8_t* find_parsed_colummn_name_idx(table_data_t *table_data, select_parsed_data_t *parsed_data, size_t parsed_len, uint8_t *res_len) {
+    size_t col_len = table_data->len;
+    uint8_t res_idx = 0;
+    uint8_t *res = (uint8_t*)malloc(parsed_len * sizeof(uint8_t));
+    memset(res, 0, parsed_len * sizeof(uint8_t));
 
-    // Get table structure
-    table_data_t *table_data = select_load_table_column_names(table_name);
+    // Split column_names
+    splitter_t splitter = split_construct();
+    size_t col_name_num = 0;
+    char **col_names = splitter.run(parsed_data[0].args, ",", &col_name_num);
 
+    // Find selected column_name index
+    for (size_t i=0; i<col_len; i++) {
+        for (size_t j=0; j<col_name_num; j++) {
+            size_t col_name_len = strlen(table_data->table_column_names[i]);
+            if (strncmp(table_data->table_column_names[i], col_names[j], col_name_len) == 0) {
+                res[res_idx] = j;
+                res_idx++;
+            }
+        }
+    }
+    *res_len = res_idx;
+
+    splitter.free(col_names, col_name_num);
+    return res;
+}
+
+void select_load_table_data(table_data_t *table_data, char *table_name_path, select_parsed_data_t *parsed_data, size_t parsed_len) {
     // Read table content
     u_int32_t res_lines = 0;
     char *table = read_file(table_name_path, 1, &res_lines);
@@ -426,28 +447,50 @@ table_data_t* select_load_table_data(const char *table_name, char *table_name_pa
     char** lines = lines_splitter.run(table, "\n", &lines_num_tokens);
 
     // Split into cell, save to table_struct
+    uint8_t selected_col_name_len = 0;
     for (size_t i=0; i<lines_num_tokens; i++) {
         splitter_t cells_splitter = split_construct();
         size_t cells_num_tokens;
         char** cells = cells_splitter.run(lines[i], ",", &cells_num_tokens);
 
-        // insert data
-        table_data_insert_row_data(table_data, cells);
+        // filter
+        // TODO: Just use parsed_data (containe all user wanted colummn name), and filter out the data
+        // find wanted cells index, based on table meta info of column and compare to `parsed_data` to get wanted index
+        uint8_t *selected_col_name_idxs = find_parsed_colummn_name_idx(table_data, parsed_data, parsed_len, &selected_col_name_len);
 
+        // Get filtered data
+        char **tmp_cells = (char**)malloc(selected_col_name_len * sizeof(char*));
+        memset(tmp_cells, 0, selected_col_name_len * sizeof(char*));
+        for (uint8_t j=0; j<selected_col_name_len; j++) {
+            uint8_t idx = selected_col_name_idxs[j];
+            uint8_t str_len = strlen(cells[idx]) + 1;
+            tmp_cells[j] = (char*)malloc(str_len * sizeof(char));
+            strncpy(tmp_cells[j], cells[idx], str_len);
+        }
+
+        // insert data
+        table_data_insert_row_data(table_data, tmp_cells, selected_col_name_len);
+
+
+        // Free
+        for (size_t j=0; j<selected_col_name_len; j++) {
+            free(tmp_cells[j]);
+        }
+        free(tmp_cells);
         cells_splitter.free(cells, cells_num_tokens);
     }
+    table_data->len = selected_col_name_len;
 
     // Close
     lines_splitter.free(lines, lines_num_tokens);
     free(table);
     table = NULL;
-    return table_data;
 }
 
 table_data_t* select_load_table_column_names(const char *table_name) {
     current_db_t *db = get_current_db();
 
-    u_int32_t res_lines = 0;
+    uint32_t res_lines = 0;
     char *content = read_file(db->name_path, 0, &res_lines);
 
     // Parse the JSON content

@@ -12,6 +12,7 @@
 #include <assert.h>
 #include <stdarg.h>
 #include <time.h>
+#include <regex.h>
 
 #include "helper_functions.h"
 
@@ -168,6 +169,13 @@ char* read_file(const char* filename, uint32_t skip_lines, uint32_t *res_lines) 
     fclose(file);
 
     return content;
+}
+
+void delete_semicolon(char *s) {
+    size_t n = strlen(s);
+    if (s[n-1] == ';') {
+        s[n-1] = '\0';
+    }
 }
 
 void logger_str(bool with_time, const char *format, ...) {
