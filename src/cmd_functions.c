@@ -15,7 +15,6 @@
 #include <regex.h>
 
 #include "cmd_functions.h"
-#include "db_config.h"
 #include "helper_functions.h"
 #include "database.h"
 
@@ -30,57 +29,59 @@ table_data_t* table_data_init(size_t len) {
         assert(0);
     }
 
-    t->types = (table_data_enum_t*)malloc(len * sizeof(table_data_enum_t));
-    if (t->types == NULL) {
-        fprintf(stderr, "Failed to allocate memory.\n");
-        assert(0);
-    }
-
-    t->table_column_names = (char**)malloc(len * sizeof(char*));
-    if (t->table_column_names == NULL) {
+    // Columns
+    t->col_enable_cnt = 0;
+    t->col_len = len;
+    t->cols = (table_col_t*)calloc(len,  sizeof(table_col_t));
+    if (t->cols == NULL) {
         fprintf(stderr, "Failed to allocate memory.\n");
         assert(0);
     }
     for (size_t i=0; i<len; i++) {
-        t->table_column_names[i] = (char*)calloc(CELL_TEXT_MAX,  sizeof(char));
-        if (t->table_column_names[i] == NULL) {
-            fprintf(stderr, "Failed to allocate memory.\n");
-            assert(0);
-        }
+        t->cols[i].enable = false;
     }
 
-    t->len = len;
+    // Rows
+    t->row_len = 0;
     t->rows = NULL;
     return t;
 }
 
 void table_data_close(table_data_t *t) {
-    free(t->types);
-    free(t->table_column_names);
-    t->types = NULL;
-    t->table_column_names = NULL;
-    if (t->rows != NULL) {
-        free(t->rows);
-        t->rows = NULL;
+    if (t->cols != NULL) {
+        free(t->cols);
+        t->cols = NULL;
     }
+
+    if (t->rows != NULL) {
+        table_row_t* curr = t->rows;
+        table_row_t* next;
+        while(curr != NULL) {
+            next = curr->next;
+            free(curr->data);
+            free(curr);
+            curr = next;
+        }
+    }
+
     free(t);
     t = NULL;
 }
 
 void table_data_add_type(table_data_t *t, const char *type, size_t idx) {
-    if (idx >= t->len) {
-        fprintf(stderr, "Table type out of range, should less than %zu, idx: %zu", t->len, idx);
+    if (idx >= t->col_len) {
+        fprintf(stderr, "Table type out of range, should less than %zu, idx: %zu", t->col_len, idx);
         assert(0);
     }
 
     if (strncmp(type, "STRING", 6) == 0) {
-        t->types[idx] = TABLE_STRING;
+        t->cols[idx].type = TABLE_STRING;
     }
     else if (strncmp(type, "INT", 3) == 0) {
-        t->types[idx] = TABLE_INT;
+        t->cols[idx].type = TABLE_INT;
     }
     else if (strncmp(type, "FLOAT", 5) == 0) {
-        t->types[idx] = TABLE_FLOAT;
+        t->cols[idx].type = TABLE_FLOAT;
     }
     else {
         fprintf(stderr, "Table type not supported: %s\n", type);
@@ -89,37 +90,39 @@ void table_data_add_type(table_data_t *t, const char *type, size_t idx) {
 }
 
 void table_data_add_column_name(table_data_t *t, const char *column_name, size_t idx) {
-    if (idx >= t->len) {
-        fprintf(stderr, "Table type out of range, should less than %zu, idx: %zu", t->len, idx);
+    if (idx >= t->col_len) {
+        fprintf(stderr, "Table type out of range, should less than %zu, idx: %zu", t->col_len, idx);
         assert(0);
     }
-    strncpy(t->table_column_names[idx], column_name, strlen(column_name));
+    strncpy(t->cols[idx].name, column_name, CELL_TEXT_MAX-1);
+    t->cols[idx].name[CELL_TEXT_MAX-1] = '\0';
 }
 
 table_row_t* table_data_create_row_node(char **data, size_t len) {
-    table_row_t *t = (table_row_t*)malloc(sizeof(table_row_t*));
-    if (t == NULL) {
+    table_row_t *row = (table_row_t*)calloc(1, sizeof(table_row_t));
+    if (row == NULL) {
         fprintf(stderr, "Failed to allocate memory.\n");
         assert(0);
     }
-    t->next = NULL;
 
-    t->data = (char**)malloc(len * sizeof(char*));
-    for (size_t i=0; i<len; i++) {
-        t->data[i] = (char*)calloc(CELL_TEXT_MAX,  sizeof(char));
-        if (t->data[i] == NULL) {
-            fprintf(stderr, "Failed to allocate memory.\n");
-            assert(0);
-        }
-
-        strncpy(t->data[i], data[i], strlen(data[i]));
+    row->next = NULL;
+    row->data = (row_cell_t*)calloc(len, sizeof(row_cell_t));
+    if (row->data == NULL) {
+        fprintf(stderr, "Failed to allocate memory.\n");
+        assert(0);
     }
-    return t;
+    for (size_t i=0; i<len; i++) {
+        strncpy(row->data[i].cell, data[i], CELL_TEXT_MAX-1);
+        row->data[i].cell[CELL_TEXT_MAX-1] = '\0';
+    }
+
+    return row;
 }
 
 void table_data_insert_row_data(table_data_t *t, char **data, size_t data_len) {
     if (t->rows == NULL) {
         t->rows = table_data_create_row_node(data, data_len);
+        t->row_len = 1;
         return;
     }
 
@@ -128,6 +131,7 @@ void table_data_insert_row_data(table_data_t *t, char **data, size_t data_len) {
         last = last->next;
     }
     last->next = table_data_create_row_node(data, data_len);
+    t->row_len++;
 }
 
 void basic_command_info() {
@@ -409,34 +413,33 @@ void delete_table_all(const char *db_base_path) {
     }
 }
 
-uint8_t* find_parsed_colummn_name_idx(table_data_t *table_data, select_parsed_data_t *parsed_data, size_t parsed_len, uint8_t *res_len) {
-    size_t col_len = table_data->len;
-    uint8_t res_idx = 0;
-    uint8_t *res = (uint8_t*)malloc(parsed_len * sizeof(uint8_t));
-    memset(res, 0, parsed_len * sizeof(uint8_t));
+// uint8_t* find_parsed_colummn_name_idx(table_data_t *t, parsed_sql_cmd_t *parsed_data, size_t parsed_len, uint8_t *res_len) {
+//     size_t col_len = t->col_len;
+//     uint8_t res_idx = 0;
+//     uint8_t *res = (uint8_t*)calloc(parsed_len, sizeof(uint8_t));
+//
+//     // Split column_names
+//     splitter_t splitter = split_construct();
+//     size_t col_name_num = 0;
+//     char **col_names = splitter.run(parsed_data[0].args, ",", &col_name_num);
+//
+//     // Find selected column_name index
+//     for (size_t i=0; i<col_len; i++) {
+//         for (size_t j=0; j<col_name_num; j++) {
+//             size_t col_name_len = strlen(t->cols[i].name);
+//             if (strncmp(t->cols[i].name, col_names[j], col_name_len) == 0) {
+//                 res[res_idx] = j;
+//                 res_idx++;
+//             }
+//         }
+//     }
+//     *res_len = res_idx;
+//
+//     splitter.free(col_names, col_name_num);
+//     return res;
+// }
 
-    // Split column_names
-    splitter_t splitter = split_construct();
-    size_t col_name_num = 0;
-    char **col_names = splitter.run(parsed_data[0].args, ",", &col_name_num);
-
-    // Find selected column_name index
-    for (size_t i=0; i<col_len; i++) {
-        for (size_t j=0; j<col_name_num; j++) {
-            size_t col_name_len = strlen(table_data->table_column_names[i]);
-            if (strncmp(table_data->table_column_names[i], col_names[j], col_name_len) == 0) {
-                res[res_idx] = j;
-                res_idx++;
-            }
-        }
-    }
-    *res_len = res_idx;
-
-    splitter.free(col_names, col_name_num);
-    return res;
-}
-
-void select_load_table_data(table_data_t *table_data, char *table_name_path, select_parsed_data_t *parsed_data, size_t parsed_len) {
+void select_load_table_data(table_data_t *t, char *table_name_path, parsed_sql_cmd_t *parsed_data, size_t parsed_len) {
     // Read table content
     u_int32_t res_lines = 0;
     char *table = read_file(table_name_path, 1, &res_lines);
@@ -447,39 +450,53 @@ void select_load_table_data(table_data_t *table_data, char *table_name_path, sel
     char** lines = lines_splitter.run(table, "\n", &lines_num_tokens);
 
     // Split into cell, save to table_struct
-    uint8_t selected_col_name_len = 0;
     for (size_t i=0; i<lines_num_tokens; i++) {
         splitter_t cells_splitter = split_construct();
         size_t cells_num_tokens;
         char** cells = cells_splitter.run(lines[i], ",", &cells_num_tokens);
 
-        // filter
-        // TODO: Just use parsed_data (containe all user wanted colummn name), and filter out the data
-        // find wanted cells index, based on table meta info of column and compare to `parsed_data` to get wanted index
-        uint8_t *selected_col_name_idxs = find_parsed_colummn_name_idx(table_data, parsed_data, parsed_len, &selected_col_name_len);
-
-        // Get filtered data
-        char **tmp_cells = (char**)malloc(selected_col_name_len * sizeof(char*));
-        memset(tmp_cells, 0, selected_col_name_len * sizeof(char*));
-        for (uint8_t j=0; j<selected_col_name_len; j++) {
-            uint8_t idx = selected_col_name_idxs[j];
-            uint8_t str_len = strlen(cells[idx]) + 1;
-            tmp_cells[j] = (char*)malloc(str_len * sizeof(char));
-            strncpy(tmp_cells[j], cells[idx], str_len);
+        // According table_col_t enable, only insert wanted data to tmp_cells
+        uint8_t tmp_row_idx = 0;
+        char **tmp_row = (char**)calloc(t->col_enable_cnt,  sizeof(char*));
+        for (size_t j=0; j<t->col_len; j++) {
+            if (t->cols[j].enable) {
+                uint8_t str_len = strlen(cells[j]) + 1;
+                tmp_row[tmp_row_idx] = (char*)malloc(str_len * sizeof(char));
+                strncpy(tmp_row[tmp_row_idx], cells[j], str_len);
+                tmp_row_idx++;
+            }
         }
 
-        // insert data
-        table_data_insert_row_data(table_data, tmp_cells, selected_col_name_len);
 
+        // // filter
+        // // TODO: Just use parsed_data (containe all user wanted colummn name), and filter out the data
+        // // find wanted cells index, based on table meta info of column and compare to `parsed_data` to get wanted index
+        // uint8_t *selected_col_name_idxs = find_parsed_colummn_name_idx(t, parsed_data, parsed_len, &selected_col_name_len);
+        //
+        // // Get filtered data
+        // char **tmp_cells = (char**)malloc(selected_col_name_len * sizeof(char*));
+        // memset(tmp_cells, 0, selected_col_name_len * sizeof(char*));
+        // for (uint8_t j=0; j<selected_col_name_len; j++) {
+        //     uint8_t idx = selected_col_name_idxs[j];
+        //     uint8_t str_len = strlen(cells[idx]) + 1;
+        //     tmp_cells[j] = (char*)malloc(str_len * sizeof(char));
+        //     strncpy(tmp_cells[j], cells[idx], str_len);
+        // }
+
+
+        // TODO: only insert  t->cols[i].enable == true
+        // insert data
+        table_data_insert_row_data(t, tmp_row, tmp_row_idx);
 
         // Free
-        for (size_t j=0; j<selected_col_name_len; j++) {
-            free(tmp_cells[j]);
+        for (size_t j=0; j<t->col_enable_cnt; j++) {
+            free(tmp_row[j]);
         }
-        free(tmp_cells);
+        free(tmp_row);
+
         cells_splitter.free(cells, cells_num_tokens);
     }
-    table_data->len = selected_col_name_len;
+    // t->len = selected_col_name_len;
 
     // Close
     lines_splitter.free(lines, lines_num_tokens);
@@ -487,7 +504,7 @@ void select_load_table_data(table_data_t *table_data, char *table_name_path, sel
     table = NULL;
 }
 
-table_data_t* select_load_table_column_names(const char *table_name) {
+table_data_t* select_load_table_metadata(const char *table_name) {
     current_db_t *db = get_current_db();
 
     uint32_t res_lines = 0;
@@ -547,30 +564,68 @@ table_data_t* select_load_table_column_names(const char *table_name) {
     return table_data;
 }
 
-void select_table_display(table_data_t *table_data) {
-    size_t len = table_data->len;
+bool select_fetch_available_column(table_data_t *t, parsed_sql_cmd_t *select_cmd) {
+    if (select_cmd->state != SQL_SELECT_CMD) {
+        fprintf(stderr, "Wrong Command\n");
+        assert(0);
+    }
+
+    splitter_t col_splitter = split_construct();
+    size_t col_num_tokens;
+    char** column_names = col_splitter.run((const char*)select_cmd->args, ",", &col_num_tokens);
+
+    // TODO: fix bug, compare column_names index, and return selected column index
+    // TODO: fix bug, maybe need a new struct to contain these selected data info
+    for (size_t i = 0; i < col_num_tokens; i++) {
+        bool found = false;
+        for (size_t j = 0; j < t->col_len; j++) {
+            if (strncmp(column_names[i], t->cols[j].name, strlen(t->cols[j].name)) == 0) {
+                t->cols[j].enable = true;
+                t->col_enable_cnt++;
+                found = true;
+                break;
+            }
+        }
+        if (!found) {
+            fprintf(stderr, "Column name not matched: %s to (",column_names[i] );
+            for (size_t j = 0; j < t->col_len-1; j++) {
+                fprintf(stderr, "%s, ", t->cols[j].name);
+            }
+            fprintf(stderr, "%s) \n", t->cols[t->col_len-1].name);
+
+            col_splitter.free(column_names, col_num_tokens);
+            return false;
+        }
+    }
+
+    col_splitter.free(column_names, col_num_tokens);
+    return true;
+}
+
+void select_table_display(table_data_t *t) {
+    size_t len = t->col_enable_cnt;
 
     // Print column names
     for (size_t i=0; i<len-1; i++) {
-        fprintf(stdout, "%s,", table_data->table_column_names[i]);
+        fprintf(stdout, "%s,", t->cols[i].name);
     }
-    fprintf(stdout, "%s\n", table_data->table_column_names[len-1]);
+    fprintf(stdout, "%s\n", t->cols[len-1].name);
 
     // Print data
-    table_row_t *head = table_data->rows;
+    table_row_t *head = t->rows;
     while (head) {
         for (size_t i=0; i<len-1; i++) {
-            fprintf(stdout, "%s,", head->data[i]);
+            fprintf(stdout, "%s,", head->data[i].cell);
         }
-        fprintf(stdout, "%s", head->data[len-1]);
+        fprintf(stdout, "%s", head->data[len-1].cell);
         fprintf(stdout, "\n");
 
         head = head->next;
     }
 }
 
-void select_table_close(table_data_t *table_data) {
-    table_data_close(table_data);
+void select_table_close(table_data_t *t) {
+    table_data_close(t);
 }
 
 const char* create_filename(const char *filename, const char *ext) {

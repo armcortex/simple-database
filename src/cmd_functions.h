@@ -11,37 +11,50 @@ extern "C" {
 
 #include <stdio.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <cJSON.h>
 
+#include "db_config.h"
 
 typedef enum {
     TABLE_STRING = 0,
     TABLE_INT,
     TABLE_FLOAT,
-} table_data_enum_t;
+} table_col_type_t;
+
+typedef struct row_cell_t {
+    char cell[CELL_TEXT_MAX];
+} row_cell_t;
 
 typedef struct table_row_t {
+    row_cell_t *data;
     struct table_row_t *next;
-    char **data;
 } table_row_t;
 
+typedef struct table_col_t {
+    char name[CELL_TEXT_MAX];
+    table_col_type_t type;
+    uint8_t enable;
+} table_col_t;
+
 typedef struct table_data_t {
-    char **table_column_names;
-    table_data_enum_t *types;
+    table_col_t *cols;
     table_row_t *rows;
-    size_t len;
+    size_t col_len;
+    size_t col_enable_cnt;
+    size_t row_len;
 } table_data_t;
 
 typedef enum {
-    SELECT_SELECT_CMD = 0,
-    SELECT_FROM_CMD,
-    SELECT_WHERE_CMD,
-} select_state_t;
+    SQL_SELECT_CMD = 0,
+    SQL_FROM_CMD,
+    SQL_WHERE_CMD,
+} sql_state_t;
 
-typedef struct select_parsed_data_t {
-    select_state_t state;
+typedef struct parsed_sql_cmd_t {
+    sql_state_t state;
     char *args;
-} select_parsed_data_t;
+} parsed_sql_cmd_t;
 
 
 // Table data manipulate
@@ -79,11 +92,12 @@ void delete_table(const char *name);
 void delete_table_all(const char *db_base_path);
 
 // Select command
-void select_load_table_data(table_data_t *table_data, char *table_name_path, select_parsed_data_t *parsed_data, size_t parsed_len);
+void select_load_table_data(table_data_t *t, char *table_name_path, parsed_sql_cmd_t *parsed_data, size_t parsed_len);
 
-table_data_t* select_load_table_column_names(const char *table_name);
-void select_table_display(table_data_t *table_data);
-void select_table_close(table_data_t *table_data);
+table_data_t* select_load_table_metadata(const char *table_name);
+bool select_fetch_available_column(table_data_t *t, parsed_sql_cmd_t *select_cmd);
+void select_table_display(table_data_t *t);
+void select_table_close(table_data_t *t);
 
 // MISC
 const char* create_filename(const char *name, const char *ext);

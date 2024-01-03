@@ -609,6 +609,7 @@ TEST_CASE("Select table Test", "[select]") {
     std::string cmd_str;
     std::string query_res;
     std::string read_str;
+    std::string read_err_str;
     std::string ref_str;
     bool fileExists;
     bool res;
@@ -621,6 +622,14 @@ TEST_CASE("Select table Test", "[select]") {
     const std::string table_file_path = db_folder + table_name + ".csv";
 
     const std::string not_exist_table_name = "none_my_table";
+
+    std::vector<std::string> insert_datas = {
+            "John 30 170",
+            "Jane 25 165",
+            "Alice 28 180",
+            "Bob 31 173",
+            "Charlie 29 160"
+    };
 
     // Init
     query_state_t *query_state = query_state_construct();
@@ -671,14 +680,6 @@ TEST_CASE("Select table Test", "[select]") {
         execute_cmd(redirector, prompt_buf, query_state, cmd_str);
 
         // Insert data
-        std::vector<std::string> insert_datas = {
-                "John 30 170",
-                "Jane 25 165",
-                "Alice 28 180",
-                "Bob 31 173",
-                "Charlie 29 160"
-        };
-
         std::string cmd_str_base = "insert " + table_name + " values ";
         for (const auto& data : insert_datas) {
             cmd_str = cmd_str_base + data + "\n";
@@ -687,8 +688,8 @@ TEST_CASE("Select table Test", "[select]") {
 
         // Testing
         redirector.flush();
-//        cmd_str = "select name,age,height from " + table_name + ";\n";
-        cmd_str = "select name,age,height from " + table_name + " where age < 29\n";
+//        cmd_str = "select name,age,height from " + table_name + " \n";
+        cmd_str = "select name,age,height from " + table_name + " where age < 29\n";    // For now need `where` command
         execute_cmd(redirector, prompt_buf, query_state, cmd_str);
         read_str = redirector.read_stdout();
         ref_str = "name,age,height\nJohn,30,170\nJane,25,165\nAlice,28,180\nBob,31,173\nCharlie,29,160\n";
@@ -700,7 +701,7 @@ TEST_CASE("Select table Test", "[select]") {
         execute_cmd(redirector, prompt_buf, query_state, cmd_str);
     }
 
-    SECTION("Select and where table data") {
+    SECTION("Select and where table data 1") {
         // Init
         IORedirector redirector;
 
@@ -717,14 +718,6 @@ TEST_CASE("Select table Test", "[select]") {
         execute_cmd(redirector, prompt_buf, query_state, cmd_str);
 
         // Insert data
-        std::vector<std::string> insert_datas = {
-                "John 30 170",
-                "Jane 25 165",
-                "Alice 28 180",
-                "Bob 31 173",
-                "Charlie 29 160"
-        };
-
         std::string cmd_str_base = "insert " + table_name + " values ";
         for (const auto& data : insert_datas) {
             cmd_str = cmd_str_base + data + "\n";
@@ -734,11 +727,52 @@ TEST_CASE("Select table Test", "[select]") {
         // Testing
         redirector.flush();
         cmd_str = "select name,age from " + table_name + " where age < 29\n";
-//        cmd_str = "select name,height from " + table_name + " where age < 29\n";
 
         execute_cmd(redirector, prompt_buf, query_state, cmd_str);
         read_str = redirector.read_stdout();
+        read_err_str = redirector.read_stderr();
+
         ref_str = "name,age\nJohn,30\nJane,25\nAlice,28\nBob,31\nCharlie,29\n";  // not include `age<29` condition
+        res = compare_io_response_str(read_str, ref_str);
+        REQUIRE(res);
+
+        // Close
+        cmd_str = "delete database " + db_name + "\n";
+        execute_cmd(redirector, prompt_buf, query_state, cmd_str);
+    }
+
+    SECTION("Select and where table data 2") {
+        // Init
+        IORedirector redirector;
+
+        // Create database
+        cmd_str = "create database " + db_name + "\n";
+        execute_cmd(redirector, prompt_buf, query_state, cmd_str);
+
+        // Use database
+        cmd_str = "use " + db_name + "\n";
+        execute_cmd(redirector, prompt_buf, query_state, cmd_str);
+
+        // Create table
+        cmd_str = "create table " + table_name + " name STRING age INT height FLOAT \n";
+        execute_cmd(redirector, prompt_buf, query_state, cmd_str);
+
+        // Insert data
+        std::string cmd_str_base = "insert " + table_name + " values ";
+        for (const auto& data : insert_datas) {
+            cmd_str = cmd_str_base + data + "\n";
+            execute_cmd(redirector, prompt_buf, query_state, cmd_str);
+        }
+
+        // Testing
+        redirector.flush();
+        cmd_str = "select age,height from " + table_name + " where age < 29\n";
+
+        execute_cmd(redirector, prompt_buf, query_state, cmd_str);
+        read_str = redirector.read_stdout();
+        read_err_str = redirector.read_stderr();
+
+        ref_str = "name,age\n30,170\n25,165\n28,180\n31,173\n29,160\n";  // not include `age<29` condition
         res = compare_io_response_str(read_str, ref_str);
         REQUIRE(res);
 

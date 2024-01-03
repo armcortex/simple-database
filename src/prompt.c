@@ -181,26 +181,37 @@ void check_commands(prompt_buf_t *prompt_buf, query_state_t *query_state) {
                     // TODO: 3. Check parsed["select"] in meta["table"]["column_names"]
                     // TODO: 4. parse `where` args, to calc, ex: `age < 29`
 
-                    size_t match_cnt = 0;
-                    current_db_t *db = get_current_db();
-//                    const char *table_name = (const char *) cmds[3];
-                    snprintf(table_name_path, PATH_MAX, "%s/%s.csv", db->folder_path, table_name);
-                    table_data_t *table_data = select_load_table_column_names(table_name);
-                    select_parsed_data_t *select_parsed_data = parse_select_cmd((const char*)prompt_buf->buf, &match_cnt);
-                    const char* not_found_column_name = check_select_column_names_correct(select_parsed_data, table_data);
+
+                    // Load Table metadata
+                    table_data_t *table_data = select_load_table_metadata(table_name);
+
+                    // `select name,height from my_table where age<29
+
+                    // Parse SQL command
+                    size_t parsed_cmd_cnt = 0;
+                    parsed_sql_cmd_t *parsed_cmd = parse_sql_cmd((const char *) prompt_buf->buf, &parsed_cmd_cnt);
+
+                    // Process `select` command
+                    bool column_found = select_fetch_available_column(table_data, &parsed_cmd[0]);
+
+                    // Process `where` command
+
+                    // Filter out
 
                     // Make sure there is no non-exist table column
-                    if  (strncmp(not_found_column_name, "\0", 1) == 0) {
-                        select_load_table_data(table_data, table_name_path, select_parsed_data, match_cnt);
+                    if  (column_found) {
+                        current_db_t *db = get_current_db();
+                        snprintf(table_name_path, PATH_MAX, "%s/%s.csv", db->folder_path, table_name);
+                        select_load_table_data(table_data, table_name_path, parsed_cmd, parsed_cmd_cnt);
                     }
                     else {
-                        fprintf(stderr, "Column name not found: %s\n", not_found_column_name);
+                        fprintf(stderr, "Column name not found \n");
                     }
 
 
 
 //                    if (num_tokens > 4) {
-//                        parse_select_cmd((const char*)prompt_buf->buf, &select_parsed_data);
+//                        parse_sql_cmd((const char*)prompt_buf->buf, &parsed_cmd);
 //                        table_data = select_load_table_data((const char *) cmds[3],
 //                                                            table_name_path,
 //                                                            (const char *) cmds[1],
@@ -217,7 +228,7 @@ void check_commands(prompt_buf_t *prompt_buf, query_state_t *query_state) {
                     select_table_close(table_data);
 
                     // Free
-//                    parse_select_cmd_close(select_parsed_data);
+                    parse_select_cmd_close(parsed_cmd);
                 }
                 else {
                     fprintf(stderr, "Table %s not found\n", cmds[3]);
