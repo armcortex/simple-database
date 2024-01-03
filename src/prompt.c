@@ -203,14 +203,14 @@ void check_commands(prompt_buf_t *prompt_buf, query_state_t *query_state) {
                         current_db_t *db = get_current_db();
                         snprintf(table_name_path, PATH_MAX, "%s/%s.csv", db->folder_path, table_name);
                         select_load_table_data(table_data, table_name_path, parsed_cmd, parsed_cmd_cnt);
+
+                        select_table_display(table_data);
+                        select_table_close(table_data);
                     }
                     else {
                         fprintf(stderr, "Column name not found \n");
                     }
 
-
-                    select_table_display(table_data);
-                    select_table_close(table_data);
 
                     // Free
                     parse_select_cmd_close(parsed_cmd);

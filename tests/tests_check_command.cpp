@@ -781,6 +781,47 @@ TEST_CASE("Select table Test", "[select]") {
         execute_cmd(redirector, prompt_buf, query_state, cmd_str);
     }
 
+    SECTION("Wrong select column name and where table data") {
+        // Init
+        IORedirector redirector;
+
+        // Create database
+        cmd_str = "create database " + db_name + "\n";
+        execute_cmd(redirector, prompt_buf, query_state, cmd_str);
+
+        // Use database
+        cmd_str = "use " + db_name + "\n";
+        execute_cmd(redirector, prompt_buf, query_state, cmd_str);
+
+        // Create table
+        cmd_str = "create table " + table_name + " name STRING age INT height FLOAT \n";
+        execute_cmd(redirector, prompt_buf, query_state, cmd_str);
+
+        // Insert data
+        std::string cmd_str_base = "insert " + table_name + " values ";
+        for (const auto& data : insert_datas) {
+            cmd_str = cmd_str_base + data + "\n";
+            execute_cmd(redirector, prompt_buf, query_state, cmd_str);
+        }
+
+        // Testing
+        redirector.flush();
+        cmd_str = "select aa,bb from " + table_name + " where age < 29\n";
+
+        execute_cmd(redirector, prompt_buf, query_state, cmd_str);
+        read_str = redirector.read_stdout();
+        read_err_str = redirector.read_stderr();
+
+        ref_str = "Column name not matched: aa to (name, age, height) \nColumn name not found \n";  // not include `age<29` condition
+        res = compare_io_response_str(read_err_str, ref_str);
+        REQUIRE(res);
+
+        // Close
+        cmd_str = "delete database " + db_name + "\n";
+        execute_cmd(redirector, prompt_buf, query_state, cmd_str);
+    }
+
+
     // Close
     free_prompt_buf(prompt_buf);
     query_state->close(query_state);
