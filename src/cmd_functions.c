@@ -413,32 +413,6 @@ void delete_table_all(const char *db_base_path) {
     }
 }
 
-// uint8_t* find_parsed_colummn_name_idx(table_data_t *t, parsed_sql_cmd_t *parsed_data, size_t parsed_len, uint8_t *res_len) {
-//     size_t col_len = t->col_len;
-//     uint8_t res_idx = 0;
-//     uint8_t *res = (uint8_t*)calloc(parsed_len, sizeof(uint8_t));
-//
-//     // Split column_names
-//     splitter_t splitter = split_construct();
-//     size_t col_name_num = 0;
-//     char **col_names = splitter.run(parsed_data[0].args, ",", &col_name_num);
-//
-//     // Find selected column_name index
-//     for (size_t i=0; i<col_len; i++) {
-//         for (size_t j=0; j<col_name_num; j++) {
-//             size_t col_name_len = strlen(t->cols[i].name);
-//             if (strncmp(t->cols[i].name, col_names[j], col_name_len) == 0) {
-//                 res[res_idx] = j;
-//                 res_idx++;
-//             }
-//         }
-//     }
-//     *res_len = res_idx;
-//
-//     splitter.free(col_names, col_name_num);
-//     return res;
-// }
-
 void select_load_table_data(table_data_t *t, char *table_name_path, parsed_sql_cmd_t *parsed_data, size_t parsed_len) {
     // Read table content
     u_int32_t res_lines = 0;
@@ -455,7 +429,7 @@ void select_load_table_data(table_data_t *t, char *table_name_path, parsed_sql_c
         size_t cells_num_tokens;
         char** cells = cells_splitter.run(lines[i], ",", &cells_num_tokens);
 
-        // According table_col_t enable, only insert wanted data to tmp_cells
+        // Filter out via selected column_name
         uint8_t tmp_row_idx = 0;
         char **tmp_row = (char**)calloc(t->col_enable_cnt,  sizeof(char*));
         for (size_t j=0; j<t->col_len; j++) {
@@ -467,24 +441,6 @@ void select_load_table_data(table_data_t *t, char *table_name_path, parsed_sql_c
             }
         }
 
-
-        // // filter
-        // // TODO: Just use parsed_data (containe all user wanted colummn name), and filter out the data
-        // // find wanted cells index, based on table meta info of column and compare to `parsed_data` to get wanted index
-        // uint8_t *selected_col_name_idxs = find_parsed_colummn_name_idx(t, parsed_data, parsed_len, &selected_col_name_len);
-        //
-        // // Get filtered data
-        // char **tmp_cells = (char**)malloc(selected_col_name_len * sizeof(char*));
-        // memset(tmp_cells, 0, selected_col_name_len * sizeof(char*));
-        // for (uint8_t j=0; j<selected_col_name_len; j++) {
-        //     uint8_t idx = selected_col_name_idxs[j];
-        //     uint8_t str_len = strlen(cells[idx]) + 1;
-        //     tmp_cells[j] = (char*)malloc(str_len * sizeof(char));
-        //     strncpy(tmp_cells[j], cells[idx], str_len);
-        // }
-
-
-        // TODO: only insert  t->cols[i].enable == true
         // insert data
         table_data_insert_row_data(t, tmp_row, tmp_row_idx);
 
@@ -493,10 +449,8 @@ void select_load_table_data(table_data_t *t, char *table_name_path, parsed_sql_c
             free(tmp_row[j]);
         }
         free(tmp_row);
-
         cells_splitter.free(cells, cells_num_tokens);
     }
-    // t->len = selected_col_name_len;
 
     // Close
     lines_splitter.free(lines, lines_num_tokens);
@@ -574,8 +528,7 @@ bool select_fetch_available_column(table_data_t *t, parsed_sql_cmd_t *select_cmd
     size_t col_num_tokens;
     char** column_names = col_splitter.run((const char*)select_cmd->args, ",", &col_num_tokens);
 
-    // TODO: fix bug, compare column_names index, and return selected column index
-    // TODO: fix bug, maybe need a new struct to contain these selected data info
+    // Find selected column_name
     for (size_t i = 0; i < col_num_tokens; i++) {
         bool found = false;
         for (size_t j = 0; j < t->col_len; j++) {

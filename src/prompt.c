@@ -209,21 +209,6 @@ void check_commands(prompt_buf_t *prompt_buf, query_state_t *query_state) {
                     }
 
 
-
-//                    if (num_tokens > 4) {
-//                        parse_sql_cmd((const char*)prompt_buf->buf, &parsed_cmd);
-//                        table_data = select_load_table_data((const char *) cmds[3],
-//                                                            table_name_path,
-//                                                            (const char *) cmds[1],
-//                                                            (const char **) &cmds[4], num_tokens - 4);
-//                    }
-//                    else {
-//                        table_data = select_load_table_data((const char *) cmds[3],
-//                                                            table_name_path,
-//                                                            (const char *) cmds[1],
-//                                                            (const char **) "", 0);
-//                    }
-
                     select_table_display(table_data);
                     select_table_close(table_data);
 
