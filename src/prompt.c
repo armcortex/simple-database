@@ -195,6 +195,7 @@ void check_commands(prompt_buf_t *prompt_buf, query_state_t *query_state) {
                     bool column_found = select_fetch_available_column(table_data, &parsed_cmd[0]);
 
                     // Process `where` command
+                    bool row_status = select_fetch_available_row(table_data, &parsed_cmd[2]);
 
                     // Filter out
 
@@ -202,7 +203,7 @@ void check_commands(prompt_buf_t *prompt_buf, query_state_t *query_state) {
                     if  (column_found) {
                         current_db_t *db = get_current_db();
                         snprintf(table_name_path, PATH_MAX, "%s/%s.csv", db->folder_path, table_name);
-                        select_load_table_data(table_data, table_name_path, parsed_cmd, parsed_cmd_cnt);
+                        select_load_table_data(table_data, table_name_path);
 
                         select_table_display(table_data);
                         select_table_close(table_data);

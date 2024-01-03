@@ -105,6 +105,7 @@ table_row_t* table_data_create_row_node(char **data, size_t len) {
         assert(0);
     }
 
+    row->enable = false;
     row->next = NULL;
     row->data = (row_cell_t*)calloc(len, sizeof(row_cell_t));
     if (row->data == NULL) {
@@ -413,7 +414,7 @@ void delete_table_all(const char *db_base_path) {
     }
 }
 
-void select_load_table_data(table_data_t *t, char *table_name_path, parsed_sql_cmd_t *parsed_data, size_t parsed_len) {
+void select_load_table_data(table_data_t *t, char *table_name_path) {
     // Read table content
     u_int32_t res_lines = 0;
     char *table = read_file(table_name_path, 1, &res_lines);
@@ -552,6 +553,133 @@ bool select_fetch_available_column(table_data_t *t, parsed_sql_cmd_t *select_cmd
     }
 
     col_splitter.free(column_names, col_num_tokens);
+    return true;
+}
+
+logic_op_t calc_op_str(const char *op) {
+    if (strncmp(op, "and", 3) == 0) {
+        return OP_AND;
+    }
+    else if (strncmp(op, "or", 2) == 0) {
+        return OP_OR;
+    }
+    else if (strncmp(op, "!=", 2) == 0) {
+        return OP_NE;
+    }
+    else if (strncmp(op, "<=", 2) == 0) {
+        return OP_LE;
+    }
+    else if (strncmp(op, ">=", 2) == 0) {
+        return OP_GE;
+    }
+    else if (strncmp(op, "=", 1) == 0) {
+        return OP_EQ;
+    }
+    else if (strncmp(op, "<", 1) == 0) {
+        return OP_LT;
+    }
+    else if (strncmp(op, ">", 1) == 0) {
+        return OP_GT;
+    }
+    else {
+        fprintf(stderr, "Command not supported: %s\n", op);
+        assert(0);
+    }
+}
+
+void calc_val_str(table_data_t *t, where_args_cond_t *cond, size_t cond_idx, size_t col_idx, char *op_str, char *val_str) {
+    uint8_t str_len = strlen(t->cols[col_idx].name);
+    if (t->cols[col_idx].enable && strncmp(cond[cond_idx].column, t->cols[col_idx].name, str_len)==0) {
+        cond[cond_idx].op = calc_op_str(op_str);
+
+        switch (t->cols[col_idx].type) {
+            case TABLE_STRING: {
+                strncpy(cond[cond_idx].val.s, val_str, strlen(val_str));
+            }
+                break;
+            case TABLE_INT: {
+                cond[cond_idx].val.i = atoi(val_str);
+            }
+                break;
+            case TABLE_FLOAT: {
+                cond[cond_idx].val.f = atof(val_str);
+            }
+                break;
+            default: {
+                fprintf(stderr, "Unsupported column type\n");
+                assert(0);
+            }
+        }
+    }
+}
+
+
+#define WHERE_MATCH_CNT     (10)
+bool parse_where_args(table_data_t *t, const char* sql_cmd) {
+    regex_t regex;
+    regmatch_t matches[WHERE_MATCH_CNT] = {0};
+    int ret;
+    where_args_cond_t cond[WHERE_MATCH_CNT] = {0};
+    size_t cond_idx = 0;
+
+    // regex compile
+    ret = regcomp(&regex, "(and|or)", REG_EXTENDED);
+    if (ret) {
+        fprintf(stderr, "Could not compile regex\n");
+        assert(0);
+    }
+
+    // regex match
+    char *cursor = (char*)sql_cmd;
+    char buf_str[CELL_TEXT_MAX] = {0};
+    char op_str[5] = {0};
+    char val_str[CELL_TEXT_MAX] = {0};
+    while (regexec(&regex, cursor, 1, matches, 0) == 0) {
+
+        size_t length = matches[0].rm_so;
+        strncpy(buf_str, cursor, length);
+        buf_str[length] = '\0';
+
+        // parse each sub condition
+        sscanf(buf_str, "%s %s %s", cond[cond_idx].column, op_str, val_str);
+
+        // get column_name
+        for (size_t i=0; i<t->col_enable_cnt; i++) {
+            calc_val_str(t, cond, cond_idx, i, op_str, val_str);
+        }
+
+
+        cond_idx++;
+        cursor += matches[0].rm_eo;
+    }
+
+    // last one
+    if (*cursor != '\0') {
+        sscanf(cursor, "%s %s %s", cond[cond_idx].column, op_str, val_str);
+
+        // get column_name
+        for (size_t i=0; i<t->col_enable_cnt; i++) {
+            calc_val_str(t, cond, cond_idx, i, op_str, val_str);
+        }
+
+        cond_idx++;
+    }
+
+    regfree(&regex);
+}
+
+// `where` format should be like below
+// One condition: <column_name>,<op>,<value>
+// Multi-condition: <column_name>,<op>,<value> <and/or> <column_name>,<op>,<value>
+bool select_fetch_available_row(table_data_t *t, parsed_sql_cmd_t *select_cmd) {
+    // if (select_cmd->state != SQL_WHERE_CMD) {
+    //     fprintf(stderr, "Wrong Command\n");
+    //     assert(0);
+    // }
+
+    char s[] = "age < 29 and name = Jane or name = Alice";
+    parse_where_args(t, (const char*)s);
+
     return true;
 }
 

@@ -28,6 +28,7 @@ typedef struct row_cell_t {
 
 typedef struct table_row_t {
     row_cell_t *data;
+    uint8_t enable;
     struct table_row_t *next;
 } table_row_t;
 
@@ -55,6 +56,31 @@ typedef struct parsed_sql_cmd_t {
     sql_state_t state;
     char *args;
 } parsed_sql_cmd_t;
+
+
+typedef enum {
+    OP_NULL = 0,
+    OP_AND,     // &&
+    OP_OR,      // ||
+    OP_EQ,      // =
+    OP_NE,      // !=
+    OP_LT,      // <
+    OP_GT,      // >
+    OP_LE,      // <=
+    OP_GE,      // >=
+} logic_op_t;
+
+typedef struct value_type_t {
+    char s[CELL_TEXT_MAX];
+    int i;
+    float f;
+} value_type_t;
+
+typedef struct where_args_cond_t {
+    char column[CELL_TEXT_MAX];
+    logic_op_t op;
+    value_type_t val;
+} where_args_cond_t;
 
 
 // Table data manipulate
@@ -92,10 +118,11 @@ void delete_table(const char *name);
 void delete_table_all(const char *db_base_path);
 
 // Select command
-void select_load_table_data(table_data_t *t, char *table_name_path, parsed_sql_cmd_t *parsed_data, size_t parsed_len);
+void select_load_table_data(table_data_t *t, char *table_name_path);
 
 table_data_t* select_load_table_metadata(const char *table_name);
 bool select_fetch_available_column(table_data_t *t, parsed_sql_cmd_t *select_cmd);
+bool select_fetch_available_row(table_data_t *t, parsed_sql_cmd_t *select_cmd);
 void select_table_display(table_data_t *t);
 void select_table_close(table_data_t *t);
 
