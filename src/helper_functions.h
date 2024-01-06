@@ -9,9 +9,22 @@
 extern "C" {
 #endif
 
+#include <stdio.h>
+#include <stdlib.h>
 #include <stddef.h>
 #include <stdbool.h>
 #include <stdint.h>
+
+
+#define DB_ASSERT(x) \
+    do { \
+        if (!(x)) { \
+            fflush(stdout); \
+            fprintf(stderr, "DB_ASSERT: %s:%d: %s\n", __FILE__, __LINE__, #x); \
+            abort(); \
+        } \
+    } while (0)
+
 
 typedef struct {
     char** (*run)(const char* str, const char* delim, size_t *num_tokens);

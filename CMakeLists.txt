@@ -31,6 +31,8 @@ set(PROJ_SOURCES
         src/database.h
         src/parser.c
         src/parser.h
+        src/rpn.c
+        src/rpn.h
 )
 
 add_library(simple_database_lib ${PROJ_SOURCES})

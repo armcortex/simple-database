@@ -8,6 +8,7 @@
 #include "inputs.h"
 #include "helper_functions.h"
 #include "db_config.h"
+#include "rpn.h"
 
 void check_environment_info(void) {
     fprintf(stdout, "Current Environment Info: \n");
@@ -111,7 +112,7 @@ int test_offset_crc32() {
 
 #include <string.h>
 #include <stdio.h>
-#include <assert.h>
+
 
 typedef struct canbus_message_t {
     uint32_t stdid;
@@ -149,7 +150,7 @@ int string_to_canbus_struct(const char *str, canbus_message_t *msg) {
 
     int res = sscanf(str, "ID: 0x%X, Ext: %hhu, RTR: %hhu, DLC: %hhu, ", &id, &ide, &rtr, &dlc);
     if (res != 4) {
-        assert(0);
+        DB_ASSERT(!"sscanf() not match to 4\n");
     }
 
     msg->stdid = (ide==0) ? id : 0;
@@ -160,7 +161,7 @@ int string_to_canbus_struct(const char *str, canbus_message_t *msg) {
 
     const char *dataPart = strstr(str, "Data: ");
     if (dataPart == NULL) {
-        assert(0);
+        DB_ASSERT(!"Failed to strstr()\n");
     }
 
     dataPart += strlen("Data:") + 1;
@@ -168,7 +169,7 @@ int string_to_canbus_struct(const char *str, canbus_message_t *msg) {
         uint8_t dataByte;
         int res1 = sscanf(dataPart, "%hhu", &dataByte);
         if (res1 != 1) {
-            assert(0);
+            DB_ASSERT(!"sscanf() not match to 1");
         }
         msg->data[i] = dataByte;
 
@@ -208,11 +209,15 @@ int test_canbus_convert() {
     return 0;
 }
 
+
+
 int main() {
     setvbuf(stdout, 0, _IONBF, 0);
     main_app();
 //    test_offset_crc32();
 //    test_canbus_convert();
+
+    // main_rpn();
 
     return 0;
 }

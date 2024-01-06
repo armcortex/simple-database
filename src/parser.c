@@ -7,7 +7,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <assert.h>
 #include <string.h>
 #include <regex.h>
 
@@ -24,8 +23,7 @@ parsed_sql_cmd_t* parse_sql_cmd(const char *sql_cmd, size_t *match_cnt) {
     // compile regex
     ret = regcomp(&regex, pattern, REG_EXTENDED);
     if (ret) {
-        fprintf(stderr, "Could not compile regex\n");
-        assert(0);
+        DB_ASSERT(!"Could not compile regex\n");
     }
 
     // regex match
@@ -45,14 +43,12 @@ parsed_sql_cmd_t* parse_sql_cmd(const char *sql_cmd, size_t *match_cnt) {
         }
     }
     else if (ret == REG_NOMATCH) {
-        fprintf(stderr, "No match found\n");
         logger_str(true, "No match found\n");
-        assert(0);
+        DB_ASSERT(!"No match found\n");
     }
     else {
-        fprintf(stderr, "Regex match failed\n");
         logger_str(true, "Regex match failed\n");
-        assert(0);
+        DB_ASSERT(!"Regex match failed\n");
     }
 
     // free

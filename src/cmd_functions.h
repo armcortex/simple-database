@@ -16,6 +16,8 @@ extern "C" {
 
 #include "db_config.h"
 
+#define WHERE_MATCH_CNT     (10)
+
 typedef enum {
     TABLE_STRING = 0,
     TABLE_INT,
@@ -32,6 +34,12 @@ typedef struct table_row_t {
     struct table_row_t *next;
 } table_row_t;
 
+#if 0
+typedef struct table_row_mask_t {
+    uint8_t enable;
+} table_row_mask_t;
+#endif
+
 typedef struct table_col_t {
     char name[CELL_TEXT_MAX];
     table_col_type_t type;
@@ -41,6 +49,7 @@ typedef struct table_col_t {
 typedef struct table_data_t {
     table_col_t *cols;
     table_row_t *rows;
+    // table_row_mask_t *rows_mask;        // Filter usage
     size_t col_len;
     size_t col_enable_cnt;
     size_t row_len;
@@ -84,7 +93,7 @@ typedef struct where_args_cond_t {
 
 
 // Table data manipulate
-table_data_t* table_data_init(size_t len);
+table_data_t *table_data_init(size_t col_len, size_t row_len);
 void table_data_close(table_data_t *t);
 void table_data_add_type(table_data_t *t, const char *type, size_t idx);
 void table_data_add_column_name(table_data_t *t, const char *column_name, size_t idx);
@@ -118,11 +127,15 @@ void delete_table(const char *name);
 void delete_table_all(const char *db_base_path);
 
 // Select command
-void select_load_table_data(table_data_t *t, char *table_name_path);
+void select_load_table_data(table_data_t *t, char *table_name_path, where_args_cond_t *conditions, size_t condition_len);
 
 table_data_t* select_load_table_metadata(const char *table_name);
 bool select_fetch_available_column(table_data_t *t, parsed_sql_cmd_t *select_cmd);
-bool select_fetch_available_row(table_data_t *t, parsed_sql_cmd_t *select_cmd);
+
+void parse_where_args(table_data_t *t, const char *sql_cmd, where_args_cond_t *conds, size_t *args_len);
+bool is_op_and_or(logic_op_t op);
+
+bool select_fetch_available_row(table_data_t *t, parsed_sql_cmd_t *select_cmd, where_args_cond_t *conditions, size_t *condition_len);
 void select_table_display(table_data_t *t);
 void select_table_close(table_data_t *t);
 
@@ -132,6 +145,12 @@ const char* create_filename_full_path(const char *base, const char *name, const 
 const char* str_concat(const char *format, ...);
 
 bool check_table_exist(const char *table_name, char *table_name_path);
+
+bool compare_column_name(const char *ref, const char *src);
+
+#if 1
+size_t find_column_name_idx(table_data_t *t, const char *col_name);
+#endif
 
 // TODO: add serialization() and deserialization() for table data
 

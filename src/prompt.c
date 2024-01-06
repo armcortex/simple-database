@@ -5,7 +5,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
 
 #include "prompt.h"
 #include "helper_functions.h"
@@ -22,8 +21,7 @@ void print_prompt() {
 prompt_buf_t* new_prompt_buf() {
     prompt_buf_t *prompt_buf = (prompt_buf_t*)malloc(sizeof(prompt_buf_t));
     if (prompt_buf == NULL) {
-        fprintf(stderr, "Failed to allocate memory.\n");
-        assert(0);
+        DB_ASSERT(!"Failed to allocate memory.\n");
     }
 
     prompt_buf->buf = NULL;
@@ -195,7 +193,12 @@ void check_commands(prompt_buf_t *prompt_buf, query_state_t *query_state) {
                     bool column_found = select_fetch_available_column(table_data, &parsed_cmd[0]);
 
                     // Process `where` command
-                    bool row_status = select_fetch_available_row(table_data, &parsed_cmd[2]);
+                    size_t condition_len = 0;
+                    where_args_cond_t conditions[WHERE_MATCH_CNT] = {0};
+                    bool row_status = select_fetch_available_row(table_data, &parsed_cmd[2], conditions, &condition_len);
+                    if (!row_status) {
+                        DB_ASSERT(!"ROW data error\n");
+                    }
 
                     // Filter out
 
@@ -203,7 +206,7 @@ void check_commands(prompt_buf_t *prompt_buf, query_state_t *query_state) {
                     if  (column_found) {
                         current_db_t *db = get_current_db();
                         snprintf(table_name_path, PATH_MAX, "%s/%s.csv", db->folder_path, table_name);
-                        select_load_table_data(table_data, table_name_path);
+                        select_load_table_data(table_data, table_name_path, conditions, condition_len);
 
                         select_table_display(table_data);
                         select_table_close(table_data);
@@ -214,7 +217,7 @@ void check_commands(prompt_buf_t *prompt_buf, query_state_t *query_state) {
 
 
                     // Free
-                    parse_select_cmd_close(parsed_cmd);
+                    // parse_select_cmd_close(parsed_cmd);
                 }
                 else {
                     fprintf(stderr, "Table %s not found\n", cmds[3]);
@@ -302,8 +305,7 @@ static void query_state_close(query_state_t *q) {
 query_state_t* query_state_construct() {
     query_state_t *q = (query_state_t*)malloc(sizeof(query_state_t));
     if (q == NULL) {
-        fprintf(stderr, "Failed to allocate memory.\n");
-        assert(q != NULL);
+        DB_ASSERT(!"Failed to allocate memory.\n");
     }
     memset(q, 0, sizeof(query_state_t));
 

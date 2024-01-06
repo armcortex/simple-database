@@ -9,7 +9,6 @@
 #include <unistd.h>
 #include <limits.h>
 #include <sys/stat.h>
-#include <assert.h>
 #include <stdarg.h>
 #include <time.h>
 #include <regex.h>
@@ -135,7 +134,7 @@ char* read_file(const char* filename, uint32_t skip_lines, uint32_t *res_lines) 
     FILE *file = fopen(filename, "r");
     if (file == NULL) {
         fprintf(stderr, "Failed to open file: %s\n", filename);
-        assert(0);
+        DB_ASSERT(0);
     }
 
     // Skip lines
@@ -151,11 +150,10 @@ char* read_file(const char* filename, uint32_t skip_lines, uint32_t *res_lines) 
         size_t line_length = strlen(line);
         char *new_content = realloc(content, content_length + line_length + 1);
         if (new_content == NULL) {
-            fprintf(stderr, "Failed to allocate memory\n");
             free(content);
             content = NULL;
             fclose(file);
-            assert(0);
+            DB_ASSERT(!"Failed to allocate memory\n");
         }
         content = new_content;
         strncpy(content + content_length, line, line_length + 1);
@@ -183,7 +181,7 @@ void logger_str(bool with_time, const char *format, ...) {
     FILE *f_log = fopen(filename, "a");
     if (f_log == NULL) {
         fprintf(stderr, "Failed to open file: %s\n", filename);
-        assert(0);
+        DB_ASSERT(0);
     }
 
     if (with_time) {

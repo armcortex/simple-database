@@ -7,7 +7,6 @@
 #include <string.h>
 #include <unistd.h>
 #include <limits.h>
-#include <assert.h>
 #include <stdarg.h>
 #include <time.h>
 #include <dirent.h>
@@ -17,33 +16,41 @@
 #include "cmd_functions.h"
 #include "helper_functions.h"
 #include "database.h"
+#include "rpn.h"
 
 static char g_db_file_path[PATH_MAX] = {0};
 static char g_db_name[DB_NAME_MAX] = {0};
 
 
-table_data_t* table_data_init(size_t len) {
+table_data_t *table_data_init(size_t col_len, size_t row_len) {
     table_data_t *t = (table_data_t*)malloc(sizeof(table_data_t));
     if (t == NULL) {
-        fprintf(stderr, "Failed to allocate memory.\n");
-        assert(0);
+        DB_ASSERT(!"Failed to allocate memory.\n");
     }
 
     // Columns
     t->col_enable_cnt = 0;
-    t->col_len = len;
-    t->cols = (table_col_t*)calloc(len,  sizeof(table_col_t));
+    t->col_len = col_len;
+    t->cols = (table_col_t*)calloc(col_len, sizeof(table_col_t));
     if (t->cols == NULL) {
-        fprintf(stderr, "Failed to allocate memory.\n");
-        assert(0);
+        DB_ASSERT(!"Failed to allocate memory.\n");
     }
-    for (size_t i=0; i<len; i++) {
+    for (size_t i=0; i < col_len; i++) {
         t->cols[i].enable = false;
     }
 
     // Rows
-    t->row_len = 0;
+    t->row_len = row_len;
     t->rows = NULL;
+#if 0
+    t->rows_mask = (table_row_mask_t*)malloc(row_len * sizeof(table_row_mask_t));
+    if (t->rows_mask == NULL) {
+        DB_ASSERT(!"Failed to allocate memory.\n");
+    }
+    for (size_t i=0; i<row_len; i++) {
+        t->rows_mask[i].enable = false;
+    }
+#endif
     return t;
 }
 
@@ -64,6 +71,13 @@ void table_data_close(table_data_t *t) {
         }
     }
 
+#if 0
+    if (t->rows_mask != NULL) {
+        free(t->rows_mask);
+        t->rows_mask = NULL;
+    }
+#endif
+
     free(t);
     t = NULL;
 }
@@ -71,7 +85,7 @@ void table_data_close(table_data_t *t) {
 void table_data_add_type(table_data_t *t, const char *type, size_t idx) {
     if (idx >= t->col_len) {
         fprintf(stderr, "Table type out of range, should less than %zu, idx: %zu", t->col_len, idx);
-        assert(0);
+        DB_ASSERT(0);
     }
 
     if (strncmp(type, "STRING", 6) == 0) {
@@ -85,14 +99,14 @@ void table_data_add_type(table_data_t *t, const char *type, size_t idx) {
     }
     else {
         fprintf(stderr, "Table type not supported: %s\n", type);
-        assert(0);
+        DB_ASSERT(0);
     }
 }
 
 void table_data_add_column_name(table_data_t *t, const char *column_name, size_t idx) {
     if (idx >= t->col_len) {
         fprintf(stderr, "Table type out of range, should less than %zu, idx: %zu", t->col_len, idx);
-        assert(0);
+        DB_ASSERT(0);
     }
     strncpy(t->cols[idx].name, column_name, CELL_TEXT_MAX-1);
     t->cols[idx].name[CELL_TEXT_MAX-1] = '\0';
@@ -101,16 +115,14 @@ void table_data_add_column_name(table_data_t *t, const char *column_name, size_t
 table_row_t* table_data_create_row_node(char **data, size_t len) {
     table_row_t *row = (table_row_t*)calloc(1, sizeof(table_row_t));
     if (row == NULL) {
-        fprintf(stderr, "Failed to allocate memory.\n");
-        assert(0);
+        DB_ASSERT(!"Failed to allocate memory.\n");
     }
 
     row->enable = false;
     row->next = NULL;
     row->data = (row_cell_t*)calloc(len, sizeof(row_cell_t));
     if (row->data == NULL) {
-        fprintf(stderr, "Failed to allocate memory.\n");
-        assert(0);
+        DB_ASSERT(!"Failed to allocate memory.\n");
     }
     for (size_t i=0; i<len; i++) {
         strncpy(row->data[i].cell, data[i], CELL_TEXT_MAX-1);
@@ -123,7 +135,7 @@ table_row_t* table_data_create_row_node(char **data, size_t len) {
 void table_data_insert_row_data(table_data_t *t, char **data, size_t data_len) {
     if (t->rows == NULL) {
         t->rows = table_data_create_row_node(data, data_len);
-        t->row_len = 1;
+        // t->row_len = 1;
         return;
     }
 
@@ -132,7 +144,7 @@ void table_data_insert_row_data(table_data_t *t, char **data, size_t data_len) {
         last = last->next;
     }
     last->next = table_data_create_row_node(data, data_len);
-    t->row_len++;
+    // t->row_len++;
 }
 
 void basic_command_info() {
@@ -174,7 +186,7 @@ void create_database(const char *filename) {
     FILE *file = fopen(filename, "w");
     if (file == NULL) {
         fprintf(stderr, "Failed to create database: %s \n", filename);
-        assert(0);
+        DB_ASSERT(0);
     }
     fclose(file);
 
@@ -184,8 +196,7 @@ void create_database(const char *filename) {
 void create_database_meta(const char *filename) {
     cJSON *json = cJSON_CreateObject();
     if (json == NULL) {
-        fprintf(stderr, "Failed to create JSON object \n");
-        assert(0);
+        DB_ASSERT(!"Failed to create JSON object \n");
     }
 
     // Calc time
@@ -202,18 +213,16 @@ void create_database_meta(const char *filename) {
     // Create an empty array
     cJSON *tables_array = cJSON_CreateArray();
     if (tables_array == NULL) {
-        fprintf(stderr, "Failed to create tables array \n");
         cJSON_Delete(json);
-        assert(0);
+        DB_ASSERT(!"Failed to create tables array \n");
     }
     cJSON_AddItemToObject(json, "tables", tables_array);
 
     // Write to file
     char *json_str = cJSON_Print(json);
     if (json_str == NULL) {
-        fprintf(stderr, "Failed to init cJSON_Print() \n");
         cJSON_Delete(json);
-        assert(0);
+        DB_ASSERT(!"Failed to init cJSON_Print() \n");
     }
 
     FILE *file = fopen(filename, "a");
@@ -221,7 +230,7 @@ void create_database_meta(const char *filename) {
         fprintf(stderr, "Failed to write database: %s \n", filename);
         cJSON_free(json_str);
         cJSON_Delete(json);
-        assert(0);
+        DB_ASSERT(0);
     }
     fprintf(file, "%s", json_str);
     fclose(file);
@@ -238,16 +247,14 @@ void add_database_new_table(const char *db_filename, cJSON *new_table) {
     free(content);
     content = NULL;
     if (json == NULL) {
-        fprintf(stderr, "Failed to parse JSON\n");
-        assert(0);
+        DB_ASSERT(!"Failed to parse JSON\n");
     }
 
     // Get the tables array
     cJSON *tables = cJSON_GetObjectItem(json, "tables");
     if (!cJSON_IsArray(tables)) {
-        fprintf(stderr, "\"table\" is not an array\n");
         cJSON_Delete(json);
-        assert(0);
+        DB_ASSERT(!"\"table\" is not an array\n");
     }
 
     // Add the new table to the tables array
@@ -264,7 +271,7 @@ void add_database_new_table(const char *db_filename, cJSON *new_table) {
     if (file == NULL) {
         fprintf(stderr, "Failed to open database file:: %s\n", db_filename);
         cJSON_Delete(json);
-        assert(0);
+        DB_ASSERT(0);
     }
     char *modified_content = cJSON_Print(json);
     fprintf(file, "%s", modified_content);
@@ -276,7 +283,7 @@ void add_database_new_table(const char *db_filename, cJSON *new_table) {
 void delete_database(const char *filename) {
     if (remove(filename) != 0) {
         fprintf(stderr, "Failed to delete database: %s \n", filename);
-        assert(0);
+        DB_ASSERT(0);
     }
     else {
         fprintf(stdout, "Delete database: %s \n", filename);
@@ -287,7 +294,7 @@ void create_table(const char *filename_path, const char *filename, char **args, 
     FILE *file = fopen(filename_path, "w");
     if (file == NULL) {
         fprintf(stderr, "Failed to create table: %s \n", filename_path);
-        assert(0);
+        DB_ASSERT(0);
     }
 
     // Show column on the first line
@@ -324,7 +331,7 @@ void insert_table_data(const char *filename_path, const char *table_name, char *
     FILE *file = fopen(filename_path, "a");
     if (file == NULL) {
         fprintf(stderr, "Failed to insert data: %s \n", filename_path);
-        assert(0);
+        DB_ASSERT(0);
     }
 
     for (size_t i=0; i<len-1; i++) {
@@ -346,16 +353,14 @@ void insert_table_update_database_meta(const char *db_filename, const char *tabl
     free(content);
     content = NULL;
     if (root == NULL) {
-        fprintf(stderr, "Failed to parse JSON\n");
-        assert(0);
+        DB_ASSERT(!"Failed to parse JSON\n");
     }
 
     // find "tables" array
     cJSON *tables = cJSON_GetObjectItemCaseSensitive(root, "tables");
     if (!cJSON_IsArray(tables)) {
-        fprintf(stderr, "\"tables\" is not an array\n");
         cJSON_Delete(root);
-        assert(0);
+        DB_ASSERT(!"\"tables\" is not an array\n");
     }
 
     // traverse all array
@@ -377,7 +382,7 @@ void insert_table_update_database_meta(const char *db_filename, const char *tabl
     if (file == NULL) {
         fprintf(stderr, "Failed to open database file:: %s\n", db_filename);
         cJSON_Delete(root);
-        assert(0);
+        DB_ASSERT(0);
     }
     char *modified_content = cJSON_Print(root);
     fprintf(file, "%s", modified_content);
@@ -389,7 +394,7 @@ void insert_table_update_database_meta(const char *db_filename, const char *tabl
 void delete_table(const char *filename) {
     if (remove(filename) != 0) {
         fprintf(stderr, "Failed to delete table: %s \n", filename);
-        assert(0);
+        DB_ASSERT(0);
     }
     else {
         fprintf(stdout, "Delete table: %s \n", filename);
@@ -414,7 +419,7 @@ void delete_table_all(const char *db_base_path) {
     }
 }
 
-void select_load_table_data(table_data_t *t, char *table_name_path) {
+void select_load_table_data(table_data_t *t, char *table_name_path, where_args_cond_t *conditions, size_t condition_len) {
     // Read table content
     u_int32_t res_lines = 0;
     char *table = read_file(table_name_path, 1, &res_lines);
@@ -430,11 +435,20 @@ void select_load_table_data(table_data_t *t, char *table_name_path) {
         size_t cells_num_tokens;
         char** cells = cells_splitter.run(lines[i], ",", &cells_num_tokens);
 
+        bool not_skip = evaluate_where_conditions(t, cells, cells_num_tokens, conditions, condition_len);
+        if (!not_skip) {
+            cells_splitter.free(cells, cells_num_tokens);
+            continue;
+        }
+
         // Filter out via selected column_name
         uint8_t tmp_row_idx = 0;
         char **tmp_row = (char**)calloc(t->col_enable_cnt,  sizeof(char*));
         for (size_t j=0; j<t->col_len; j++) {
             if (t->cols[j].enable) {
+                // size_t where_col_idx = find_column_name_idx(t, con)
+
+
                 uint8_t str_len = strlen(cells[j]) + 1;
                 tmp_row[tmp_row_idx] = (char*)malloc(str_len * sizeof(char));
                 strncpy(tmp_row[tmp_row_idx], cells[j], str_len);
@@ -470,16 +484,14 @@ table_data_t* select_load_table_metadata(const char *table_name) {
     free(content);
     content = NULL;
     if (root == NULL) {
-        fprintf(stderr, "Failed to parse JSON\n");
-        assert(0);
+        DB_ASSERT(!"Failed to parse JSON\n");
     }
 
     // find "tables" array
     cJSON *tables = cJSON_GetObjectItemCaseSensitive(root, "tables");
     if (!cJSON_IsArray(tables)) {
-        fprintf(stderr, "\"tables\" is not an array\n");
         cJSON_Delete(root);
-        assert(0);
+        DB_ASSERT(!"\"tables\" is not an array\n");
     }
 
     table_data_t *table_data = NULL;
@@ -494,10 +506,17 @@ table_data_t* select_load_table_metadata(const char *table_name) {
                 fprintf(stderr, "\"columns\" is not an array for table %s\n", table_name);
                 break;
             }
+            column_len = cJSON_GetArraySize(columns);
+
+            cJSON *rows = cJSON_GetObjectItemCaseSensitive(table, "data_cnt");
+            if (!cJSON_IsNumber(rows)) {
+                fprintf(stderr, "\"data_cnt\" is not a number for table %s\n", table_name);
+                break;
+            }
+            size_t row_len = (size_t)cJSON_GetNumberValue(rows);
 
             // Create table info
-            column_len = cJSON_GetArraySize(columns);
-            table_data = table_data_init(column_len);
+            table_data = table_data_init(column_len, row_len);
 
             cJSON *column;
             cJSON_ArrayForEach(column, columns) {
@@ -521,8 +540,7 @@ table_data_t* select_load_table_metadata(const char *table_name) {
 
 bool select_fetch_available_column(table_data_t *t, parsed_sql_cmd_t *select_cmd) {
     if (select_cmd->state != SQL_SELECT_CMD) {
-        fprintf(stderr, "Wrong Command\n");
-        assert(0);
+        DB_ASSERT(!"Wrong Command\n");
     }
 
     splitter_t col_splitter = split_construct();
@@ -556,7 +574,7 @@ bool select_fetch_available_column(table_data_t *t, parsed_sql_cmd_t *select_cmd
     return true;
 }
 
-logic_op_t calc_op_str(const char *op) {
+static logic_op_t calc_op_str(const char *op) {
     if (strncmp(op, "and", 3) == 0) {
         return OP_AND;
     }
@@ -583,11 +601,11 @@ logic_op_t calc_op_str(const char *op) {
     }
     else {
         fprintf(stderr, "Command not supported: %s\n", op);
-        assert(0);
+        DB_ASSERT(0);
     }
 }
 
-void calc_val_str(table_data_t *t, where_args_cond_t *cond, size_t cond_idx, size_t col_idx, char *op_str, char *val_str) {
+static void calc_val_str(table_data_t *t, where_args_cond_t *cond, size_t cond_idx, size_t col_idx, char *op_str, char *val_str) {
     uint8_t str_len = strlen(t->cols[col_idx].name);
     if (t->cols[col_idx].enable && strncmp(cond[cond_idx].column, t->cols[col_idx].name, str_len)==0) {
         cond[cond_idx].op = calc_op_str(op_str);
@@ -596,89 +614,121 @@ void calc_val_str(table_data_t *t, where_args_cond_t *cond, size_t cond_idx, siz
             case TABLE_STRING: {
                 strncpy(cond[cond_idx].val.s, val_str, strlen(val_str));
             }
-                break;
+            break;
             case TABLE_INT: {
                 cond[cond_idx].val.i = atoi(val_str);
             }
-                break;
+            break;
             case TABLE_FLOAT: {
                 cond[cond_idx].val.f = atof(val_str);
             }
-                break;
+            break;
             default: {
-                fprintf(stderr, "Unsupported column type\n");
-                assert(0);
+                DB_ASSERT(!"Unsupported column type\n");
             }
         }
     }
 }
 
-
-#define WHERE_MATCH_CNT     (10)
-bool parse_where_args(table_data_t *t, const char* sql_cmd) {
+void parse_where_args(table_data_t *t, const char *sql_cmd, where_args_cond_t *conds, size_t *args_len) {
     regex_t regex;
     regmatch_t matches[WHERE_MATCH_CNT] = {0};
     int ret;
-    where_args_cond_t cond[WHERE_MATCH_CNT] = {0};
     size_t cond_idx = 0;
 
+    const char *pattern1 = "(and|or)";
+    const char* pattern2 = "([a-zA-Z0-9_]+) *([=<>]+) *([a-zA-Z0-9_]+) *(and|or)?";
+
     // regex compile
-    ret = regcomp(&regex, "(and|or)", REG_EXTENDED);
+    ret = regcomp(&regex, pattern1, REG_EXTENDED);
     if (ret) {
-        fprintf(stderr, "Could not compile regex\n");
-        assert(0);
+        DB_ASSERT(!"Could not compile regex\n");
     }
 
     // regex match
     char *cursor = (char*)sql_cmd;
     char buf_str[CELL_TEXT_MAX] = {0};
-    char op_str[5] = {0};
     char val_str[CELL_TEXT_MAX] = {0};
+    char op_str[5] = {0};
     while (regexec(&regex, cursor, 1, matches, 0) == 0) {
-
         size_t length = matches[0].rm_so;
         strncpy(buf_str, cursor, length);
         buf_str[length] = '\0';
 
-        // parse each sub condition
-        sscanf(buf_str, "%s %s %s", cond[cond_idx].column, op_str, val_str);
-
-        // get column_name
+        // parse sub condition and save to struct
+        sscanf(buf_str, "%s %s %s", conds[cond_idx].column, op_str, val_str);
         for (size_t i=0; i<t->col_enable_cnt; i++) {
-            calc_val_str(t, cond, cond_idx, i, op_str, val_str);
+            calc_val_str(t, conds, cond_idx, i, op_str, val_str);
         }
-
-
         cond_idx++;
+
+        // save `and` or `or operate
+        strncpy(buf_str, cursor + matches[0].rm_so, matches[0].rm_eo - matches[0].rm_so);
+        conds[cond_idx++].op = calc_op_str(buf_str);
+
         cursor += matches[0].rm_eo;
+        DB_ASSERT(cond_idx < WHERE_MATCH_CNT && "Out of range\n");
     }
 
     // last one
     if (*cursor != '\0') {
-        sscanf(cursor, "%s %s %s", cond[cond_idx].column, op_str, val_str);
-
-        // get column_name
+        // parse sub condition and save to struct
+        sscanf(cursor, "%s %s %s", conds[cond_idx].column, op_str, val_str);
         for (size_t i=0; i<t->col_enable_cnt; i++) {
-            calc_val_str(t, cond, cond_idx, i, op_str, val_str);
+            calc_val_str(t, conds, cond_idx, i, op_str, val_str);
         }
 
         cond_idx++;
+        DB_ASSERT(cond_idx < WHERE_MATCH_CNT && "Out of range\n");
     }
 
     regfree(&regex);
+    *args_len = cond_idx;
+}
+
+bool is_op_and_or(logic_op_t op) {
+    return (op == OP_AND) || (op == OP_OR);
 }
 
 // `where` format should be like below
 // One condition: <column_name>,<op>,<value>
 // Multi-condition: <column_name>,<op>,<value> <and/or> <column_name>,<op>,<value>
-bool select_fetch_available_row(table_data_t *t, parsed_sql_cmd_t *select_cmd) {
-    // if (select_cmd->state != SQL_WHERE_CMD) {
-    //     fprintf(stderr, "Wrong Command\n");
-    //     assert(0);
-    // }
+bool select_fetch_available_row(table_data_t *t, parsed_sql_cmd_t *select_cmd, where_args_cond_t *conditions, size_t *condition_len) {
+    if (select_cmd->state != SQL_WHERE_CMD) {
+        DB_ASSERT(!"Wrong Command\n");
+    }
 
-    char s[] = "age < 29 and name = Jane or name = Alice";
-    parse_where_args(t, (const char*)s);
+    // Parse `where` args
+    // char s[] = "age<29 and name=Jane or name=Alice";
+    // char s[] = "age<29";
+    // size_t condition_len = 0;
+    where_args_cond_t infix_conditions[WHERE_MATCH_CNT] = {0};
+    parse_where_args(t, (const char*)select_cmd->args, infix_conditions, condition_len);
+    // parse_where_args(t, (const char*)s, infix_conditions, condition_len);
+
+
+    // run Reverse Polish Notation (RPN)
+    // where_args_cond_t post_conditions[WHERE_MATCH_CNT] = {0};
+    infix_to_postfix(infix_conditions, conditions, *condition_len);
+    // bool res_ok = evaluate_where_conditions(t, post_conditions, condition_len);      // this might move to `select_load_table_data()`
+
+
+    // validate `where` column_name
+    for (size_t i=0; i<(*condition_len); i++) {
+        if (!is_op_and_or(infix_conditions[i].op)) {
+            bool found = false;
+            for (size_t j=0; j<t->col_len; j++) {
+                if (t->cols[j].enable && compare_column_name(t->cols[j].name, infix_conditions[i].column)) {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                fprintf(stderr, "Column not available: %s\n", infix_conditions[i].column);
+                return false;
+            }
+        }
+    }
 
     return true;
 }
@@ -745,3 +795,20 @@ bool check_table_exist(const char *table_name, char *table_name_path) {
     snprintf(table_name_path, PATH_MAX, "%s/%s.csv", db->folder_path, table_name);
     return exist_file(table_name_path);
 }
+
+bool compare_column_name(const char *ref, const char *src) {
+    size_t str_len = strlen(ref);
+    return strncmp(ref, src, str_len) == 0;
+}
+
+#if 1
+size_t find_column_name_idx(table_data_t *t, const char *col_name) {
+    size_t str_len = strlen(col_name);
+    for (size_t i=0; i<str_len; i++) {
+        if (strncmp(t->cols[i].name, col_name, str_len) == 0) {
+            return i;
+        }
+    }
+    return -1;
+}
+#endif
