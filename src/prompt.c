@@ -196,14 +196,9 @@ void check_commands(prompt_buf_t *prompt_buf, query_state_t *query_state) {
                     size_t condition_len = 0;
                     where_args_cond_t conditions[WHERE_MATCH_CNT] = {0};
                     bool row_status = select_fetch_available_row(table_data, &parsed_cmd[2], conditions, &condition_len);
-                    if (!row_status) {
-                        DB_ASSERT(!"ROW data error\n");
-                    }
-
-                    // Filter out
 
                     // Make sure there is no non-exist table column
-                    if  (column_found) {
+                    if  (column_found && row_status) {
                         current_db_t *db = get_current_db();
                         snprintf(table_name_path, PATH_MAX, "%s/%s.csv", db->folder_path, table_name);
                         select_load_table_data(table_data, table_name_path, conditions, condition_len);
@@ -215,9 +210,8 @@ void check_commands(prompt_buf_t *prompt_buf, query_state_t *query_state) {
                         fprintf(stderr, "Column name not found \n");
                     }
 
-
                     // Free
-                    // parse_select_cmd_close(parsed_cmd);
+                    parse_select_cmd_close(parsed_cmd);
                 }
                 else {
                     fprintf(stderr, "Table %s not found\n", cmds[3]);

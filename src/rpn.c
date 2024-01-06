@@ -278,8 +278,3 @@ bool evaluate_where_conditions(table_data_t *t, char **cell, size_t cell_len, wh
     }
     return true;
 }
-
-int main_rpn() {
-
-    return 0;
-}

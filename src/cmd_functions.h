@@ -16,7 +16,7 @@ extern "C" {
 
 #include "db_config.h"
 
-#define WHERE_MATCH_CNT     (10)
+#define WHERE_MATCH_CNT     (20)
 
 typedef enum {
     TABLE_STRING = 0,
@@ -145,12 +145,9 @@ const char* create_filename_full_path(const char *base, const char *name, const 
 const char* str_concat(const char *format, ...);
 
 bool check_table_exist(const char *table_name, char *table_name_path);
-
 bool compare_column_name(const char *ref, const char *src);
-
-#if 1
 size_t find_column_name_idx(table_data_t *t, const char *col_name);
-#endif
+
 
 // TODO: add serialization() and deserialization() for table data
 

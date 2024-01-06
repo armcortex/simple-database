@@ -699,19 +699,11 @@ bool select_fetch_available_row(table_data_t *t, parsed_sql_cmd_t *select_cmd, w
     }
 
     // Parse `where` args
-    // char s[] = "age<29 and name=Jane or name=Alice";
-    // char s[] = "age<29";
-    // size_t condition_len = 0;
     where_args_cond_t infix_conditions[WHERE_MATCH_CNT] = {0};
     parse_where_args(t, (const char*)select_cmd->args, infix_conditions, condition_len);
-    // parse_where_args(t, (const char*)s, infix_conditions, condition_len);
-
 
     // run Reverse Polish Notation (RPN)
-    // where_args_cond_t post_conditions[WHERE_MATCH_CNT] = {0};
     infix_to_postfix(infix_conditions, conditions, *condition_len);
-    // bool res_ok = evaluate_where_conditions(t, post_conditions, condition_len);      // this might move to `select_load_table_data()`
-
 
     // validate `where` column_name
     for (size_t i=0; i<(*condition_len); i++) {
@@ -801,7 +793,6 @@ bool compare_column_name(const char *ref, const char *src) {
     return strncmp(ref, src, str_len) == 0;
 }
 
-#if 1
 size_t find_column_name_idx(table_data_t *t, const char *col_name) {
     size_t str_len = strlen(col_name);
     for (size_t i=0; i<str_len; i++) {
@@ -811,4 +802,3 @@ size_t find_column_name_idx(table_data_t *t, const char *col_name) {
     }
     return -1;
 }
-#endif

@@ -14,7 +14,7 @@ extern "C" {
 
 #include "cmd_functions.h"
 
-#define RPN_STACK_MAX           (10)
+#define RPN_STACK_MAX           (20)
 
 typedef struct rpn_stack_t {
     where_args_cond_t items[RPN_STACK_MAX];
@@ -31,10 +31,8 @@ typedef struct rpn_stack_t {
 rpn_stack_t rpn_stack_construct(void);
 
 void infix_to_postfix(where_args_cond_t *infix, where_args_cond_t *postfix, size_t len);
-
 bool evaluate_where_conditions(table_data_t *t, char **cell, size_t cell_len, where_args_cond_t *conditions, size_t condition_len);
 
-int main_rpn(void);
 
 #ifdef __cplusplus
 }

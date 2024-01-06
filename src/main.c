@@ -9,8 +9,6 @@
 #include "inputs.h"
 #include "helper_functions.h"
 #include "db_config.h"
-#include "rpn.h"
-
 #include "test_fn_env.h"
 
 void check_environment_info(void) {
@@ -67,10 +65,9 @@ int main_app() {
 
 int main() {
     setvbuf(stdout, 0, _IONBF, 0);
-    // main_app();
+    main_app();
 
-    // main_rpn();
-    test_canbus_convert();
+    // test_canbus_convert();
 
     return 0;
 }
