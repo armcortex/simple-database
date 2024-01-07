@@ -33,7 +33,7 @@ static char** split_run(const char* str, const char* delim, size_t *num_tokens) 
     }
 
     size_t capacity = 10;
-    char** tokens = malloc(capacity * sizeof(char*));
+    char** tokens = calloc(capacity, sizeof(char*));
     if (!tokens) {
         fprintf(stderr, "Failed to allocate memory.\n");
         free(str_copy);
