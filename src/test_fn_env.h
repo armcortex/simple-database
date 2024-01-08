@@ -155,8 +155,20 @@ int test_canbus_convert() {
     return 0;
 }
 
+void lower(char *c) {
+    if (*c >= 'A' && *c <= 'Z') {
+        *c = *c - 'A' + 'a';
+    }
+}
+
 void test_fn_env() {
-    test_canbus_convert();
+    // test_canbus_convert();
+
+    char s[] = "A man, a plan, a canal: Panama";
+    for (int i=0; i<strlen(s); i++) {
+        lower(&s[i]);
+        printf("%c", s[i]);
+    }
 }
 
 

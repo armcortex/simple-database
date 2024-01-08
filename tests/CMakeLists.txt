@@ -29,6 +29,7 @@ add_executable(tests_run
         io_redirect.h
         tests_helper_function.cpp
         tests_check_command.cpp
+        tests_rpn.cpp
 )
 
 target_link_libraries(tests_run PRIVATE

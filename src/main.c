@@ -67,7 +67,7 @@ int main() {
     setvbuf(stdout, 0, _IONBF, 0);
     main_app();
 
-    // test_canbus_convert();
+    // test_fn_env();
 
     return 0;
 }
