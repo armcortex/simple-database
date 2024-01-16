@@ -3,6 +3,9 @@ project(Tests CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 
+# Sanitizers
+# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -g")
+
 # Download Dependencies
 Include(FetchContent)
 

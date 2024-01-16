@@ -599,6 +599,12 @@ static logic_op_t calc_op_str(const char *op) {
     else if (strncmp(op, ">", 1) == 0) {
         return OP_GT;
     }
+    else if (strncmp(op, "(", 1) == 0) {
+        return OP_OPEN_PARENTHESIS;
+    }
+    else if (strncmp(op, ")", 1) == 0) {
+        return OP_CLOSE_PARENTHESIS;
+    }
     else {
         fprintf(stderr, "Command not supported: %s\n", op);
         DB_ASSERT(0);
@@ -636,11 +642,13 @@ void parse_where_args(table_data_t *t, const char *sql_cmd, where_args_cond_t *c
     int ret;
     size_t cond_idx = 0;
 
-    const char *pattern1 = "(and|or)";
-    const char* pattern2 = "([a-zA-Z0-9_]+) *([=<>]+) *([a-zA-Z0-9_]+) *(and|or)?";
+    // const char *pattern1 = "(and|or)";
+    const char *pattern = "(and|or|\\(|\\))";
+
+    // TODO: fix here, to support `(`, and `)`
 
     // regex compile
-    ret = regcomp(&regex, pattern1, REG_EXTENDED);
+    ret = regcomp(&regex, pattern, REG_EXTENDED);
     if (ret) {
         DB_ASSERT(!"Could not compile regex\n");
     }
@@ -650,10 +658,22 @@ void parse_where_args(table_data_t *t, const char *sql_cmd, where_args_cond_t *c
     char buf_str[CELL_TEXT_MAX] = {0};
     char val_str[CELL_TEXT_MAX] = {0};
     char op_str[5] = {0};
+    size_t length = 0;
     while (regexec(&regex, cursor, 1, matches, 0) == 0) {
-        size_t length = matches[0].rm_so;
+        length = matches[0].rm_so;
         strncpy(buf_str, cursor, length);
         buf_str[length] = '\0';
+
+        // check `(` or `)`
+        length = matches[0].rm_eo - matches[0].rm_so;
+        if ((length == 1) && (strncmp(cursor+matches[0].rm_so, "(", 1)==0 || strncmp(cursor+matches[0].rm_so, "(", 1)==0)) {
+            strncpy(buf_str, cursor + matches[0].rm_so, length);
+            conds[cond_idx].op = calc_op_str(buf_str);
+            cond_idx++;
+
+            cursor += matches[0].rm_eo;
+            continue;
+        }
 
         // parse sub condition and save to struct
         sscanf(buf_str, "%s %s %s", conds[cond_idx].column, op_str, val_str);
@@ -663,8 +683,11 @@ void parse_where_args(table_data_t *t, const char *sql_cmd, where_args_cond_t *c
         cond_idx++;
 
         // save `and` or `or operate
-        strncpy(buf_str, cursor + matches[0].rm_so, matches[0].rm_eo - matches[0].rm_so);
-        conds[cond_idx++].op = calc_op_str(buf_str);
+        length = matches[0].rm_eo - matches[0].rm_so;
+        strncpy(buf_str, cursor + matches[0].rm_so, length);
+        buf_str[length] = '\0';
+        conds[cond_idx].op = calc_op_str(buf_str);
+        cond_idx++;
 
         cursor += matches[0].rm_eo;
         DB_ASSERT(cond_idx < WHERE_MATCH_CNT && "Out of range\n");
@@ -690,6 +713,18 @@ bool is_op_and_or(logic_op_t op) {
     return (op == OP_AND) || (op == OP_OR);
 }
 
+bool is_op_parenthesis(logic_op_t op) {
+    return (op == OP_OPEN_PARENTHESIS) || (op == OP_CLOSE_PARENTHESIS);
+}
+
+bool is_operator(logic_op_t op) {
+    return is_op_and_or(op);
+}
+
+bool is_operand(logic_op_t op) {
+    return (op == OP_EQ) || (op == OP_NE) || (op == OP_LT) || (op == OP_GT) || (op == OP_LE) || (op == OP_GE);
+}
+
 // `where` format should be like below
 // One condition: <column_name>,<op>,<value>
 // Multi-condition: <column_name>,<op>,<value> <and/or> <column_name>,<op>,<value>
@@ -707,7 +742,7 @@ bool select_fetch_available_row(table_data_t *t, parsed_sql_cmd_t *select_cmd, w
 
     // validate `where` column_name
     for (size_t i=0; i<(*condition_len); i++) {
-        if (!is_op_and_or(infix_conditions[i].op)) {
+        if (!is_op_and_or(infix_conditions[i].op) && !is_op_parenthesis(infix_conditions[i].op)) {
             bool found = false;
             for (size_t j=0; j<t->col_len; j++) {
                 if (t->cols[j].enable && compare_column_name(t->cols[j].name, infix_conditions[i].column)) {

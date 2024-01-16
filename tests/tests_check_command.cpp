@@ -692,7 +692,7 @@ TEST_CASE("Select table Test", "[select]") {
         redirector.flush();
        // cmd_str = "select name,age,height from " + table_name + " \n";
        cmd_str = "select name,age,height from " + table_name + " where age < 35\n";    // For now need `where` command
-        // cmd_str = "select name,age from " + table_name + " where age < 29 and name = Jane or name = Alice\n";    // For now need `where` command
+       //  cmd_str = "select name,age from " + table_name + " where age < 29 and ( name = Jane or name = Alice )\n";    // For now need `where` command
 
         execute_cmd(redirector, prompt_buf, query_state, cmd_str);
         read_str = redirector.read_stdout();
@@ -730,7 +730,8 @@ TEST_CASE("Select table Test", "[select]") {
 
         // Testing
         redirector.flush();
-        cmd_str = "select name,age from " + table_name + " where age < 29\n";
+        // cmd_str = "select name,age from " + table_name + " where age < 30\n";
+        cmd_str = "select name,age from " + table_name + " where age < 29 and ( name = Jane or name = Alice )\n";
 
         execute_cmd(redirector, prompt_buf, query_state, cmd_str);
         read_str = redirector.read_stdout();

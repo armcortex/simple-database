@@ -24,8 +24,11 @@ typedef struct rpn_stack_t {
     void (*free)(struct rpn_stack_t *ctx);
     bool (*push)(struct rpn_stack_t *ctx, where_args_cond_t item);
     where_args_cond_t (*pop)(struct rpn_stack_t *ctx);
+    int8_t (*priority)(logic_op_t op);
+    logic_op_t (*get_top_op)(struct rpn_stack_t *ctx);
     bool (*is_empty)(struct rpn_stack_t *ctx);
     bool (*is_full)(struct rpn_stack_t *ctx);
+    ssize_t (*get_index)(struct  rpn_stack_t *ctx);
 } rpn_stack_t;
 
 rpn_stack_t rpn_stack_construct(void);

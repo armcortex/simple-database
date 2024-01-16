@@ -69,14 +69,16 @@ typedef struct parsed_sql_cmd_t {
 
 typedef enum {
     OP_NULL = 0,
-    OP_AND,     // &&
-    OP_OR,      // ||
-    OP_EQ,      // =
-    OP_NE,      // !=
-    OP_LT,      // <
-    OP_GT,      // >
-    OP_LE,      // <=
-    OP_GE,      // >=
+    OP_AND,                 // &&
+    OP_OR,                  // ||
+    OP_EQ,                  // =
+    OP_NE,                  // !=
+    OP_LT,                  // <
+    OP_GT,                  // >
+    OP_LE,                  // <=
+    OP_GE,                  // >=
+    OP_OPEN_PARENTHESIS,    // (
+    OP_CLOSE_PARENTHESIS,   // )
 } logic_op_t;
 
 typedef struct value_type_t {
@@ -134,6 +136,9 @@ bool select_fetch_available_column(table_data_t *t, parsed_sql_cmd_t *select_cmd
 
 void parse_where_args(table_data_t *t, const char *sql_cmd, where_args_cond_t *conds, size_t *args_len);
 bool is_op_and_or(logic_op_t op);
+bool is_op_parenthesis(logic_op_t op);
+bool is_operator(logic_op_t op);
+bool is_operand(logic_op_t op);
 
 bool select_fetch_available_row(table_data_t *t, parsed_sql_cmd_t *select_cmd, where_args_cond_t *conditions, size_t *condition_len);
 void select_table_display(table_data_t *t);
