@@ -641,11 +641,7 @@ void parse_where_args(table_data_t *t, const char *sql_cmd, where_args_cond_t *c
     regmatch_t matches[WHERE_MATCH_CNT] = {0};
     int ret;
     size_t cond_idx = 0;
-
-    // const char *pattern1 = "(and|or)";
     const char *pattern = "(and|or|\\(|\\))";
-
-    // TODO: fix here, to support `(`, and `)`
 
     // regex compile
     ret = regcomp(&regex, pattern, REG_EXTENDED);
