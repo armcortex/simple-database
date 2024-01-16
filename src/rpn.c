@@ -90,7 +90,6 @@ void infix_to_postfix(where_args_cond_t *infix, where_args_cond_t *postfix, size
                 rpn_push(&stack, infix[i]);
             }
             else {
-                // rpn_push(&stack, infix[i]);
                 while ((!rpn_is_empty(&stack)) && (rpn_get_top_op(&stack) != OP_OPEN_PARENTHESIS)) {
                     postfix[j++] = rpn_pop(&stack);
                 }
@@ -109,49 +108,6 @@ void infix_to_postfix(where_args_cond_t *infix, where_args_cond_t *postfix, size
     }
 
     // pop all remain elements
-    while (!rpn_is_empty(&stack)) {
-        postfix[j++] = rpn_pop(&stack);
-    }
-}
-
-void infix_to_postfix_org(where_args_cond_t *infix, where_args_cond_t *postfix, size_t len) {
-    rpn_stack_t stack = rpn_stack_construct();
-    size_t j = 0;
-    for (size_t i=0; i<len; i++) {
-
-
-
-#if 0
-        if (infix[i].op == OP_NULL) {
-            continue;
-        }
-
-        if (is_op_and_or(infix[i].op)) {
-            while (!rpn_is_empty(&stack)) {
-                postfix[j++] = rpn_pop(&stack);
-            }
-            rpn_push(&stack, infix[i]);
-        }
-        else if (is_op_parenthesis(infix[i].op)) {
-            if (infix[i].op == OP_OPEN_PARENTHESIS) {
-                // while (!rpn_is_empty(&stack)) {
-                //     postfix[j++] = rpn_pop(&stack);
-                // }
-                rpn_push(&stack, infix[i]);
-            }
-            else if (infix[i].op == OP_CLOSE_PARENTHESIS) {
-                while (rpn_get_top_op(&stack) != OP_OPEN_PARENTHESIS) {
-                    postfix[j++] = rpn_pop(&stack);
-                }
-                rpn_pop(&stack);
-            }
-        }
-        else {
-            postfix[j++] = infix[i];
-        }
-#endif
-    }
-
     while (!rpn_is_empty(&stack)) {
         postfix[j++] = rpn_pop(&stack);
     }
@@ -308,11 +264,6 @@ bool evaluate_where_conditions(table_data_t *t, char **cell, size_t cell_len, wh
 
         // Process operand
         if (is_operand(conditions[i].op)) {
-            // where_args_cond_t x1 = conditions[i];
-            // size_t x1_idx = find_column_name_idx(t, x1.column);
-            // bool x1_succeed = calc_condition(t, cell, x1_idx, &x1, x1.op);
-            // if (!x1_succeed)   return false;
-
             rpn_push(&stack, conditions[i]);
         }
         // Process other logic calculate
@@ -321,7 +272,6 @@ bool evaluate_where_conditions(table_data_t *t, char **cell, size_t cell_len, wh
                 DB_ASSERT(!"Operator should be 2\n");
             }
 
-            // char s[] = "age < 29 and ( name = Jane or name = Alice )";
             where_args_cond_t x1 = rpn_pop(&stack);
             where_args_cond_t x2 = rpn_pop(&stack);
             where_args_cond_t tmp = {0};
@@ -357,5 +307,14 @@ bool evaluate_where_conditions(table_data_t *t, char **cell, size_t cell_len, wh
             rpn_push(&stack, tmp);
         }
     }
+
+    // check remain elements
+    while (!rpn_is_empty(&stack)) {
+        where_args_cond_t x1 = rpn_pop(&stack);
+        size_t x1_idx = find_column_name_idx(t, x1.column);
+        bool x1_succeed = calc_condition(t, cell, x1_idx, &x1, x1.op);
+        if (!x1_succeed)    return false;
+    }
+
     return true;
 }
