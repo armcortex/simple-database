@@ -15,7 +15,6 @@
 void print_prompt() {
     current_db_t *db = get_current_db();
     fprintf(stdout, "%s > ", db->name);
-    // TODO: fix bug, when delete current using database, the prompt still showing it, not clean it.
 }
 
 prompt_buf_t* new_prompt_buf() {
