@@ -25,8 +25,8 @@ bool compare_batch_where_args_cond_t(const where_args_cond_t a[], const where_ar
 TEST_CASE("RPN infix/postfix", "[basic]") {
     setvbuf(stdout, NULL, _IONBF, 0);
     bool res = false;
-    SECTION("infix to postfix: OP_LT, OP_EQ, OP_AND, OP_OR") {
 
+    SECTION("infix to postfix 1: OP_LT, OP_EQ, OP_AND, OP_OR") {
         // "age < 29 and name = Jane or name = Alice";
         where_args_cond_t test_data[] = {
             {"age", OP_LT, {.s="", .i=29, .f=0.0}},
@@ -48,6 +48,33 @@ TEST_CASE("RPN infix/postfix", "[basic]") {
 
         infix_to_postfix(test_data, res_data, len);
         res = compare_batch_where_args_cond_t(res_data, ref_data, len);
+        REQUIRE(res);
+    }
+    SECTION("infix to postfix 2: with parenthesis") {
+        // "age < 29 and ( name = Jane or name = Alice )";
+        where_args_cond_t test_data[] = {
+                {"age", OP_LT, {.s="", .i=29, .f=0.0}},
+                {"", OP_AND, {.s="", .i=0, .f=0.0}},
+                {"", OP_OPEN_PARENTHESIS, {.s="", .i=0, .f=0.0}},
+                {"name", OP_EQ, {.s="Jane", .i=0, .f=0.0}},
+                {"", OP_OR, {.s="", .i=0, .f=0.0}},
+                {"name", OP_EQ, {.s="Alice", .i=0, .f=0.0}},
+                {"", OP_CLOSE_PARENTHESIS, {.s="", .i=0, .f=0.0}},
+        };
+
+        where_args_cond_t ref_data[] = {
+                {"age", OP_LT, {.s="", .i=29, .f=0.0}},
+                {"name", OP_EQ, {.s="Jane", .i=0, .f=0.0}},
+                {"name", OP_EQ, {.s="Alice", .i=0, .f=0.0}},
+                {"", OP_OR, {.s="", .i=0, .f=0.0}},
+                {"", OP_AND, {.s="", .i=0, .f=0.0}},
+        };
+        const std::size_t test_len = sizeof(test_data) / sizeof(where_args_cond_t);
+        const std::size_t ref_len = sizeof(ref_data) / sizeof(where_args_cond_t);
+        where_args_cond_t res_data[ref_len] = {0};
+
+        infix_to_postfix(test_data, res_data, test_len);
+        res = compare_batch_where_args_cond_t(res_data, ref_data, ref_len);
         REQUIRE(res);
     }
 }
