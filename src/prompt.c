@@ -168,6 +168,7 @@ void check_commands(prompt_buf_t *prompt_buf, query_state_t *query_state) {
                 char table_name_path[PATH_MAX] = {0};
                 char *table_name = cmds[3];
                 delete_semicolon(table_name);
+                // Process `from` command
                 if (check_table_exist((const char*)table_name, table_name_path)) {
                     // TODO: this should do several checks
                     // TODO: 1. `from` table exist
@@ -216,11 +217,6 @@ void check_commands(prompt_buf_t *prompt_buf, query_state_t *query_state) {
                 else {
                     fprintf(stderr, "Table %s not found\n", cmds[3]);
                 }
-            }
-            // select specific column name
-            else {
-                // TODO: make sure column name exist
-                ;
             }
         }
     }
