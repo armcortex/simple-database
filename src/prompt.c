@@ -254,8 +254,11 @@ void check_commands(prompt_buf_t *prompt_buf, query_state_t *query_state) {
                 strncmp(cmds[1], "help", 4) == 0) {
                 list_command_info();
             }
+            // else if (strncmp(cmds[1], "database", 8) == 0) {
+            //     ;
+            // }
             else {
-                ;
+                fprintf(stderr, "Unrecognized command '%s' \n\n", prompt_buf->buf);
             }
         }
 

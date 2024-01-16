@@ -116,7 +116,7 @@ TEST_CASE("Help command info", "[command]") {
         cmd_str = "help\n";
         query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
         read_str = redirector.read_stdout();
-        ref_str = "All Support commands: \n\t help: \n\t exit: \n\t create: \n\t use: \n\t drop: \n\t select: \n\t list: \n";
+        ref_str = "All Support commands: \n\t help: \n\t exit: \n\t create: \n\t use: \n\t delete: \n\t select: \n\t list: \n";
         res = compare_io_response_str(read_str, ref_str);
         REQUIRE(res);
     }

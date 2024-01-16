@@ -137,7 +137,7 @@ void basic_command_info() {
     fprintf(stdout, "\t exit: \n");
     fprintf(stdout, "\t create: \n");
     fprintf(stdout, "\t use: \n");
-    fprintf(stdout, "\t drop: \n");
+    fprintf(stdout, "\t delete: \n");
     fprintf(stdout, "\t select: \n");
     fprintf(stdout, "\t list: \n");
 }
