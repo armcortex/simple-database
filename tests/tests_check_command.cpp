@@ -82,6 +82,10 @@ TEST_CASE("Basic query Commands", "[command]") {
         cmd_str = "insert\n";
         query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
         REQUIRE(query_state->state == INSERT);
+
+        cmd_str = "list\n";
+        query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
+        REQUIRE(query_state->state == LIST);
     }
 
     // Close
@@ -112,7 +116,7 @@ TEST_CASE("Help command info", "[command]") {
         cmd_str = "help\n";
         query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
         read_str = redirector.read_stdout();
-        ref_str = "All Support commands: \n\t help: \n\t exit: \n\t create: \n\t use: \n\t drop: \n\t select: \n";
+        ref_str = "All Support commands: \n\t help: \n\t exit: \n\t create: \n\t use: \n\t drop: \n\t select: \n\t list: \n";
         res = compare_io_response_str(read_str, ref_str);
         REQUIRE(res);
     }
@@ -178,6 +182,19 @@ TEST_CASE("Help command info", "[command]") {
         query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
         read_str = redirector.read_stdout();
         ref_str = "select <column_names> from <table_name> (where <condition> ...) \n";
+        res = compare_io_response_str(read_str, ref_str);
+        REQUIRE(res);
+    }
+
+    SECTION("List help command") {
+        // Init
+        IORedirector redirector;
+
+        // Testing
+        cmd_str = "list help\n";
+        query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
+        read_str = redirector.read_stdout();
+        ref_str = "List sub-commands: \n\t database <database_name> \n\t table <table_name> \n";
         res = compare_io_response_str(read_str, ref_str);
         REQUIRE(res);
     }

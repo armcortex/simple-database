@@ -22,6 +22,7 @@ typedef enum {
     DELETE,
     SELECT,
     INSERT,
+    LIST,
     UNDEFINED,
     COUNT,
 } State_t;

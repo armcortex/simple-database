@@ -170,17 +170,6 @@ void check_commands(prompt_buf_t *prompt_buf, query_state_t *query_state) {
                 delete_semicolon(table_name);
                 // Process `from` command
                 if (check_table_exist((const char*)table_name, table_name_path)) {
-                    // TODO: this should do several checks
-                    // TODO: 1. `from` table exist
-                    // TODO: 2. `select` column_names exist
-
-                    // TODO: Steps:
-                    // TODO: 1. get database meta data, read the table's column_names
-                    // TODO: 2. parse SQL commands, into {"select": ["column_names"], "from": ["tables"], "where": ["args]}
-                    // TODO: 3. Check parsed["select"] in meta["table"]["column_names"]
-                    // TODO: 4. parse `where` args, to calc, ex: `age < 29`
-
-
                     // Load Table metadata
                     table_data_t *table_data = select_load_table_metadata(table_name);
 
@@ -245,6 +234,26 @@ void check_commands(prompt_buf_t *prompt_buf, query_state_t *query_state) {
     // TODO: Add list command, like
     // TODO: `list database <database_name>` to show all database
     // TODO: `list table <table_name>` to show all table under current using database
+    // List
+    else if (strncmp(cmds[0], "list", 6) == 0) {
+        query_state->state = LIST;
+
+        // Sub-commands
+        if (cmds[1] != NULL) {
+            // Help: list all support sub commands
+            if (strncmp(cmds[1], "-h", 2) == 0 ||
+                strncmp(cmds[1], "help", 4) == 0) {
+                list_command_info();
+            }
+            else {
+                ;
+            }
+        }
+
+    }
+
+
+
 
     // TODO: Add info to show columns, like
     // TODO: info database <database_name> to print whole json file
@@ -270,6 +279,7 @@ const char* query_state_to_string(State_t state) {
         case DELETE: return "DELETE";
         case SELECT: return "SELECT";
         case INSERT: return "INSERT";
+        case LIST: return "LIST";
         case UNDEFINED: return "UNDEFINED";
         default: return "Unknown State";
     }

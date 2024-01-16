@@ -102,6 +102,7 @@ void delete_command_info(void);
 void use_command_info(void);
 void insert_command_info(void);
 void select_command_info(void);
+void list_command_info(void);
 
 // Create database command
 void create_database(const char *name);
@@ -137,6 +138,8 @@ bool select_fetch_available_row(table_data_t *t, parsed_sql_cmd_t *select_cmd, w
 void select_table_display(table_data_t *t);
 void select_table_close(table_data_t *t);
 
+// List command
+
 // MISC
 const char* create_filename(const char *name, const char *ext);
 const char* create_filename_full_path(const char *base, const char *name, const char *ext);
@@ -146,8 +149,6 @@ bool check_table_exist(const char *table_name, char *table_name_path);
 bool compare_column_name(const char *ref, const char *src);
 size_t find_column_name_idx(table_data_t *t, const char *col_name);
 
-
-// TODO: add serialization() and deserialization() for table data
 
 
 #ifdef __cplusplus

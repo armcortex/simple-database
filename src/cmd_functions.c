@@ -139,6 +139,7 @@ void basic_command_info() {
     fprintf(stdout, "\t use: \n");
     fprintf(stdout, "\t drop: \n");
     fprintf(stdout, "\t select: \n");
+    fprintf(stdout, "\t list: \n");
 }
 
 void create_command_info() {
@@ -164,6 +165,12 @@ void insert_command_info() {
 
 void select_command_info() {
     fprintf(stdout, "select <column_names> from <table_name> (where <condition> ...) \n");
+}
+
+void list_command_info(void) {
+    fprintf(stdout, "List sub-commands: \n");
+    fprintf(stdout, "\t database <database_name> \n");
+    fprintf(stdout, "\t table <table_name> \n");
 }
 
 void create_database(const char *filename) {
