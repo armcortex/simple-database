@@ -203,13 +203,13 @@ void check_commands(prompt_buf_t *prompt_buf, query_state_t *query_state) {
                         select_load_table_data(table_data, table_name_path, conditions, condition_len);
 
                         select_table_display(table_data);
-                        select_table_close(table_data);
                     }
                     else {
                         fprintf(stderr, "Column name not found \n");
                     }
 
                     // Free
+                    select_table_close(table_data);
                     parse_select_cmd_close(parsed_cmd);
                 }
                 else {
