@@ -46,6 +46,14 @@ void check_commands(prompt_buf_t *prompt_buf, query_state_t *query_state) {
     size_t num_tokens;
     char** cmds = splitter.run(prompt_buf->buf, " ", &num_tokens);
 
+    // `enter` only
+    if (num_tokens == 0) {
+        query_state->state = HELP;
+        basic_command_info();
+        splitter.free(cmds, num_tokens);
+        return;
+    }
+
     // Exit
     if (strncmp(cmds[0], "exit", 4) == 0) {
         query_state->state = EXIT;
@@ -118,7 +126,11 @@ void check_commands(prompt_buf_t *prompt_buf, query_state_t *query_state) {
                 const char *db_folder_name = str_concat("%s/%s", WORKSPACE_PATH_FULL, cmds[2]);
                 delete_table_all(db_folder_name);
                 remove_folder(db_folder_name);
+
+                // clean buffer
+                clean_current_db();
             }
+            // TODO: implement "delete table" sub-command
             else {
                 fprintf(stderr, "Unrecognized command '%s' \n\n", prompt_buf->buf);
             }
@@ -172,8 +184,6 @@ void check_commands(prompt_buf_t *prompt_buf, query_state_t *query_state) {
                 if (check_table_exist((const char*)table_name, table_name_path)) {
                     // Load Table metadata
                     table_data_t *table_data = select_load_table_metadata(table_name);
-
-                    // `select name,height from my_table where age<29
 
                     // Parse SQL command
                     size_t parsed_cmd_cnt = 0;
