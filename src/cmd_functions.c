@@ -42,15 +42,6 @@ table_data_t *table_data_init(size_t col_len, size_t row_len) {
     // Rows
     t->row_len = row_len;
     t->rows = NULL;
-#if 0
-    t->rows_mask = (table_row_mask_t*)malloc(row_len * sizeof(table_row_mask_t));
-    if (t->rows_mask == NULL) {
-        DB_ASSERT(!"Failed to allocate memory.\n");
-    }
-    for (size_t i=0; i<row_len; i++) {
-        t->rows_mask[i].enable = false;
-    }
-#endif
     return t;
 }
 
@@ -70,13 +61,6 @@ void table_data_close(table_data_t *t) {
             curr = next;
         }
     }
-
-#if 0
-    if (t->rows_mask != NULL) {
-        free(t->rows_mask);
-        t->rows_mask = NULL;
-    }
-#endif
 
     free(t);
     t = NULL;

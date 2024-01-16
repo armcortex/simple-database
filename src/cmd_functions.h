@@ -34,12 +34,6 @@ typedef struct table_row_t {
     struct table_row_t *next;
 } table_row_t;
 
-#if 0
-typedef struct table_row_mask_t {
-    uint8_t enable;
-} table_row_mask_t;
-#endif
-
 typedef struct table_col_t {
     char name[CELL_TEXT_MAX];
     table_col_type_t type;
@@ -49,7 +43,6 @@ typedef struct table_col_t {
 typedef struct table_data_t {
     table_col_t *cols;
     table_row_t *rows;
-    // table_row_mask_t *rows_mask;        // Filter usage
     size_t col_len;
     size_t col_enable_cnt;
     size_t row_len;
