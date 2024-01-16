@@ -9,13 +9,12 @@ All Support commands:
     exit: 
     create: 
         Create sub-commands: 
-            database <database name> 
+            - database <database name> 
+            - table <table name> (<column name> <column type> ...) 
     use: 
-        Use sub-commands: 
-            <database name> 
+        <database name> 
     delete: 
-        Delete sub-commands: 
-            database <database name> 
+        database <database name> 
     select: 
         select <column_names> from <table_name> (where <condition> ...)
     insert:
