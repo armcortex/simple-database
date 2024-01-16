@@ -636,7 +636,6 @@ TEST_CASE("Select table Test", "[select]") {
     query_state->init(query_state);
     prompt_buf_t *prompt_buf = new_prompt_buf();
 
-#if 0
     SECTION("Select table not found") {
         // Init
         IORedirector redirector;
@@ -663,7 +662,6 @@ TEST_CASE("Select table Test", "[select]") {
         cmd_str = "delete database " + db_name + "\n";
         execute_cmd(redirector, prompt_buf, query_state, cmd_str);
     }
-#endif
 
     SECTION("Select table data") {
         // Init
@@ -786,7 +784,6 @@ TEST_CASE("Select table Test", "[select]") {
         execute_cmd(redirector, prompt_buf, query_state, cmd_str);
     }
 
-#if 0
     SECTION("Wrong select column name and where table data") {
         // Init
         IORedirector redirector;
@@ -826,7 +823,6 @@ TEST_CASE("Select table Test", "[select]") {
         cmd_str = "delete database " + db_name + "\n";
         execute_cmd(redirector, prompt_buf, query_state, cmd_str);
     }
-#endif
 
     // Close
     free_prompt_buf(prompt_buf);

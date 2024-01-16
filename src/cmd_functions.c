@@ -731,7 +731,6 @@ bool select_fetch_available_row(table_data_t *t, parsed_sql_cmd_t *select_cmd, w
                 }
             }
             if (!found) {
-                fprintf(stderr, "Column not available: %s\n", infix_conditions[i].column);
                 return false;
             }
         }

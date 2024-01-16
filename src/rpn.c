@@ -82,6 +82,10 @@ void infix_to_postfix(where_args_cond_t *infix, where_args_cond_t *postfix, size
     rpn_stack_t stack = rpn_stack_construct();
     size_t j = 0;
     for (size_t i=0; i<len; i++) {
+        if (infix[i].op == OP_NULL) {
+            continue;
+        }
+
         if (is_operand(infix[i].op)) {
             postfix[j++] = infix[i];
         }
