@@ -21,6 +21,9 @@ All Support commands:
         insert <table_name> values <value1,value2,value3,...>
 ```
 
+## Prerequisite
+- Docker
+
 ## Usage
 
 ### 0. Create environment
