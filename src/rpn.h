@@ -17,8 +17,6 @@ extern "C" {
 #define RPN_STACK_MAX           (20)
 
 typedef struct rpn_stack_t {
-    // TODO: items should be dynamic memory: *items
-    // where_args_cond_t items[RPN_STACK_MAX];
     where_args_cond_t *items;
     ssize_t top;
 

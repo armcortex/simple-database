@@ -9,7 +9,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-static void l_rpn_init(rpn_stack_t *ctx) {
+static void rpn_init(rpn_stack_t *ctx) {
     ctx->top = -1;
     ctx->items = (where_args_cond_t*)calloc(RPN_STACK_MAX, sizeof(where_args_cond_t));
     if (ctx->items == NULL) {
@@ -17,23 +17,23 @@ static void l_rpn_init(rpn_stack_t *ctx) {
     }
 }
 
-static void l_rpn_free(rpn_stack_t *ctx) {
+static void rpn_free(rpn_stack_t *ctx) {
     free(ctx->items);
 }
 
-static ssize_t l_rpn_get_index(rpn_stack_t *ctx) {
+static ssize_t rpn_get_index(rpn_stack_t *ctx) {
     return ctx->top;
 }
 
-static bool l_rpn_is_empty(rpn_stack_t *ctx) {
+static bool rpn_is_empty(rpn_stack_t *ctx) {
     return ctx->top == -1;
 }
 
-static bool l_rpn_is_full(rpn_stack_t *ctx) {
+static bool rpn_is_full(rpn_stack_t *ctx) {
     return ctx->top == RPN_STACK_MAX;
 }
 
-static int8_t l_rpn_priority(logic_op_t op) {
+static int8_t rpn_priority(logic_op_t op) {
     if (op == OP_AND || op == OP_OR) {
         return 0;
     }
@@ -42,8 +42,8 @@ static int8_t l_rpn_priority(logic_op_t op) {
     }
 }
 
-static bool l_rpn_push(rpn_stack_t *ctx, where_args_cond_t item) {
-    if (l_rpn_is_full(ctx)) {
+static bool rpn_push(rpn_stack_t *ctx, where_args_cond_t item) {
+    if (rpn_is_full(ctx)) {
         fprintf(stderr, "RPN stack is full\n");
         return false;
     }
@@ -52,8 +52,8 @@ static bool l_rpn_push(rpn_stack_t *ctx, where_args_cond_t item) {
     return true;
 }
 
-static where_args_cond_t l_rpn_pop(rpn_stack_t *ctx) {
-    if (l_rpn_is_empty(ctx)) {
+static where_args_cond_t rpn_pop(rpn_stack_t *ctx) {
+    if (rpn_is_empty(ctx)) {
         fprintf(stderr, "RPN stack is empty\n");
         where_args_cond_t null = {0};
         return null;
@@ -61,30 +61,30 @@ static where_args_cond_t l_rpn_pop(rpn_stack_t *ctx) {
     return ctx->items[ctx->top--];
 }
 
-static logic_op_t l_rpn_get_top_op(rpn_stack_t *ctx) {
+static logic_op_t rpn_get_top_op(rpn_stack_t *ctx) {
     return ctx->items[ctx->top].op;
 }
 
 rpn_stack_t rpn_stack_construct() {
     rpn_stack_t ctx = {
-        .init = l_rpn_init,
-        .free = l_rpn_free,
-        .push = l_rpn_push,
-        .pop = l_rpn_pop,
-        .priority = l_rpn_priority,
-        .get_top_op = l_rpn_get_top_op,
-        .is_empty = l_rpn_is_empty,
-        .is_full = l_rpn_is_full,
-        .get_index = l_rpn_get_index,
+        .init = rpn_init,
+        .free = rpn_free,
+        .push = rpn_push,
+        .pop = rpn_pop,
+        .priority = rpn_priority,
+        .get_top_op = rpn_get_top_op,
+        .is_empty = rpn_is_empty,
+        .is_full = rpn_is_full,
+        .get_index = rpn_get_index,
     };
-    // memset(ctx.items, 0, RPN_STACK_MAX * sizeof(where_args_cond_t));
+
     ctx.init(&ctx);
     return ctx;
 }
 
 void infix_to_postfix(where_args_cond_t *infix, where_args_cond_t *postfix, size_t len) {
     rpn_stack_t stack = rpn_stack_construct();
-    // TODO: fix use stack.init()
+
     size_t j = 0;
     for (size_t i=0; i<len; i++) {
         if (infix[i].op == OP_NULL) {
@@ -96,26 +96,19 @@ void infix_to_postfix(where_args_cond_t *infix, where_args_cond_t *postfix, size
         }
         else if (is_op_parenthesis(infix[i].op)) {
             if (infix[i].op == OP_OPEN_PARENTHESIS) {
-                // rpn_push(&stack, infix[i]);
                 stack.push(&stack, infix[i]);
             }
             else {
-                // while ((!rpn_is_empty(&stack)) && (rpn_get_top_op(&stack) != OP_OPEN_PARENTHESIS)) {
                 while ((!stack.is_empty(&stack)) && (stack.get_top_op(&stack) != OP_OPEN_PARENTHESIS)) {
-                    // postfix[j++] = rpn_pop(&stack);
                     postfix[j++] = stack.pop(&stack);
                 }
-                // rpn_pop(&stack);
                 stack.pop(&stack);
             }
         }
         else if (is_operator(infix[i].op)) {
-            // while ((!rpn_is_empty(&stack)) && (rpn_priority(infix[i].op) <= rpn_priority(rpn_get_top_op(&stack)))) {
             while ((!stack.is_empty(&stack)) && (stack.priority(infix[i].op) <= stack.priority(stack.get_top_op(&stack)))) {
-                // postfix[j++] = rpn_pop(&stack);
                 postfix[j++] = stack.pop(&stack);
             }
-            // rpn_push(&stack, infix[i]);
             stack.push(&stack, infix[i]);
         }
         else {
@@ -125,9 +118,7 @@ void infix_to_postfix(where_args_cond_t *infix, where_args_cond_t *postfix, size
     }
 
     // pop all remain elements
-    // while (!rpn_is_empty(&stack)) {
     while (!stack.is_empty(&stack)) {
-        // postfix[j++] = rpn_pop(&stack);
         postfix[j++] = stack.pop(&stack);
     }
 
@@ -285,12 +276,10 @@ bool evaluate_where_conditions(table_data_t *t, char **cell, size_t cell_len, wh
 
         // Process operand
         if (is_operand(conditions[i].op)) {
-            // rpn_push(&stack, conditions[i]);
             stack.push(&stack, conditions[i]);
         }
         // Process other logic calculate
         else {
-            // if (rpn_get_index(&stack) < 1) {
             if (stack.get_index(&stack) < 1) {
                 stack.free(&stack);
                 DB_ASSERT(!"Operator should be 2\n");
@@ -338,15 +327,12 @@ bool evaluate_where_conditions(table_data_t *t, char **cell, size_t cell_len, wh
                     DB_ASSERT(!"Unsupported operator\n");
                 }
             }
-            // rpn_push(&stack, tmp);
             stack.push(&stack, tmp);
         }
     }
 
     // check remain elements
-    // while (!rpn_is_empty(&stack)) {
     while (!stack.is_empty(&stack)) {
-        // where_args_cond_t x1 = rpn_pop(&stack);
         where_args_cond_t x1 = stack.pop(&stack);
         size_t x1_idx = find_column_name_idx(t, x1.column);
         bool x1_succeed = calc_condition(t, cell, x1_idx, &x1, x1.op);
