@@ -23,6 +23,25 @@ All Support commands:
 
 ## Usage
 
+### 0. Create environment
+1. Build Docker Image
+```
+./scripts/build_docker_image.sh
+```
+
+2. Run Docker Container
+```
+./scripts/run_docker_container.sh
+```
+
+3. Build Project (compile with 8 cores)
+```
+mkdir build
+cd build
+cmake -DCMAKE_BUILD_TYPE=Release ..
+cmake --build . --config Release -- -j 8
+```
+
 ### 1. Create a database
 `create database test_db`
 
