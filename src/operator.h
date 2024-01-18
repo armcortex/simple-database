@@ -13,6 +13,7 @@ extern "C" {
 
 #include "table.h"
 
+bool is_op_null(logic_op_t op);
 bool is_op_and_or(logic_op_t op);
 bool is_op_parenthesis(logic_op_t op);
 bool is_operator(logic_op_t op);

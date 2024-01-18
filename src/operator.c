@@ -7,6 +7,10 @@
 
 #include "helper_functions.h"
 
+bool is_op_null(logic_op_t op) {
+    return op == OP_NULL;
+}
+
 bool is_op_and_or(logic_op_t op) {
     return (op == OP_AND) || (op == OP_OR);
 }

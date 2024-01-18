@@ -91,7 +91,7 @@ void infix_to_postfix(where_args_cond_t *infix, where_args_cond_t *postfix, size
 
     size_t j = 0;
     for (size_t i=0; i<len; i++) {
-        if (infix[i].op == OP_NULL) {
+        if (is_op_null(infix[i].op)) {
             continue;
         }
 
@@ -274,7 +274,7 @@ bool evaluate_where_conditions(table_data_t *t, char **cell, size_t cell_len, wh
     rpn_stack_t stack = rpn_stack_construct();
 
     for (size_t i=0; i < condition_len; i++) {
-        if (conditions[i].op == OP_NULL) {
+        if (is_op_null(conditions[i].op)) {
             continue;
         }
 
