@@ -46,7 +46,7 @@ TEST_CASE("RPN infix/postfix", "[basic]") {
         const std::size_t len = sizeof(test_data) / sizeof(where_args_cond_t);
         where_args_cond_t res_data[len] = {0};
 
-        infix_to_postfix(test_data, res_data, len);
+        rpn_infix_to_postfix(test_data, res_data, len);
         res = compare_batch_where_args_cond_t(res_data, ref_data, len);
         REQUIRE(res);
     }
@@ -73,7 +73,7 @@ TEST_CASE("RPN infix/postfix", "[basic]") {
         const std::size_t ref_len = sizeof(ref_data) / sizeof(where_args_cond_t);
         where_args_cond_t res_data[ref_len] = {0};
 
-        infix_to_postfix(test_data, res_data, test_len);
+        rpn_infix_to_postfix(test_data, res_data, test_len);
         res = compare_batch_where_args_cond_t(res_data, ref_data, ref_len);
         REQUIRE(res);
     }
@@ -122,7 +122,7 @@ TEST_CASE("RPN evaluation", "[basic]") {
                 cells[j] = test_data[i][j];
             }
 
-            ans = evaluate_where_conditions(&t, cells, 3, postfix_conditions, post_cond_len);
+            ans = rpn_evaluate_where_conditions(&t, cells, 3, postfix_conditions, post_cond_len);
             res.push_back(ans);
         }
         REQUIRE(res == res_ref);

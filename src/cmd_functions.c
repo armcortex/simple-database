@@ -426,7 +426,7 @@ void select_load_table_data(table_data_t *t, char *table_name_path, where_args_c
         size_t cells_num_tokens;
         char** cells = cells_splitter.run(lines[i], ",", &cells_num_tokens);
 
-        bool not_skip = evaluate_where_conditions(t, cells, cells_num_tokens, conditions, condition_len);
+        bool not_skip = rpn_evaluate_where_conditions(t, cells, cells_num_tokens, conditions, condition_len);
         if (!not_skip) {
             cells_splitter.free(cells, cells_num_tokens);
             continue;
@@ -647,7 +647,7 @@ bool select_fetch_available_row(table_data_t *t, parsed_sql_cmd_t *select_cmd, w
     select_parse_where_args(t, (const char *) select_cmd->args, infix_conditions, condition_len);
 
     // run Reverse Polish Notation (RPN)
-    infix_to_postfix(infix_conditions, conditions, *condition_len);
+    rpn_infix_to_postfix(infix_conditions, conditions, *condition_len);
 
     // validate `where` column_name
     for (size_t i=0; i<(*condition_len); i++) {

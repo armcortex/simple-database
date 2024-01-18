@@ -86,7 +86,7 @@ rpn_stack_t rpn_stack_construct() {
     return ctx;
 }
 
-void infix_to_postfix(where_args_cond_t *infix, where_args_cond_t *postfix, size_t len) {
+void rpn_infix_to_postfix(where_args_cond_t *infix, where_args_cond_t *postfix, size_t len) {
     rpn_stack_t stack = rpn_stack_construct();
 
     size_t j = 0;
@@ -129,148 +129,56 @@ void infix_to_postfix(where_args_cond_t *infix, where_args_cond_t *postfix, size
     stack.free(&stack);
 }
 
-static bool calc_condition(table_data_t *t, char **cell,size_t col_idx ,where_args_cond_t *conditions, logic_op_t op) {
+static bool rpn_check_string_condition(const char* cell_value, const char* condition_value, logic_op_t op) {
+    bool cmp = compare_column_name(cell_value, condition_value);
     switch (op) {
-        case OP_EQ: {
-            switch (t->cols[col_idx].type) {
-                case TABLE_STRING: {
-                    if (!compare_column_name((const char*)cell[col_idx], (const char*)conditions->val.s)) {
-                        return false;
-                    }
-                }
-                break;
-                case TABLE_INT: {
-                    if (atoi(cell[col_idx]) != conditions->val.i) {
-                        return false;
-                    }
-                }
-                break;
-                case TABLE_FLOAT: {
-                    if (atof(cell[col_idx]) != conditions->val.f) {
-                        return false;
-                    }
-                }
-                break;
-                default: {
-                    DB_ASSERT(!"Unsupported operator\n");
-                }
-            }
-        }
-        break;
-        case OP_NE: {
-            switch (t->cols[col_idx].type) {
-                case TABLE_STRING: {
-                    if (compare_column_name((const char*)cell[col_idx], (const char*)conditions->val.s)) {
-                        return false;
-                    }
-                }
-                break;
-                case TABLE_INT: {
-                    if (atoi(cell[col_idx]) == conditions->val.i) {
-                        return false;
-                    }
-                }
-                break;
-                case TABLE_FLOAT: {
-                    if (atof(cell[col_idx]) == conditions->val.f) {
-                        return false;
-                    }
-                }
-                break;
-                default: {
-                    DB_ASSERT(!"Unsupported operator\n");
-                }
-            }
-        }
-        break;
-        case OP_LT: {
-            switch (t->cols[col_idx].type) {
-                case TABLE_INT: {
-                    if (atoi(cell[col_idx]) >= conditions->val.i) {
-                        return false;
-                    }
-                }
-                break;
-                case TABLE_FLOAT: {
-                    if (atof(cell[col_idx]) >= conditions->val.f) {
-                        return false;
-                    }
-                }
-                break;
-                default: {
-                    DB_ASSERT(!"Unsupported operator\n");
-                }
-            }
-        }
-        break;
-        case OP_GT: {
-            switch (t->cols[col_idx].type) {
-                case TABLE_INT: {
-                    if (atoi(cell[col_idx]) <= conditions->val.i) {
-                        return false;
-                    }
-                }
-                break;
-                case TABLE_FLOAT: {
-                    if (atof(cell[col_idx]) <= conditions->val.f) {
-                        return false;
-                    }
-                }
-                break;
-                default: {
-                    DB_ASSERT(!"Unsupported operator\n");
-                }
-            }
-        }
-        break;
-        case OP_LE: {
-            switch (t->cols[col_idx].type) {
-                case TABLE_INT: {
-                    if (atoi(cell[col_idx]) > conditions->val.i) {
-                        return false;
-                    }
-                }
-                break;
-                case TABLE_FLOAT: {
-                    if (atof(cell[col_idx]) > conditions->val.f) {
-                        return false;
-                    }
-                }
-                break;
-                default: {
-                    DB_ASSERT(!"Unsupported operator\n");
-                }
-            }
-        }
-        break;
-        case OP_GE: {
-            switch (t->cols[col_idx].type) {
-                case TABLE_INT: {
-                    if (atoi(cell[col_idx]) < conditions->val.i) {
-                        return false;
-                    }
-                }
-                break;
-                case TABLE_FLOAT: {
-                    if (atof(cell[col_idx]) < conditions->val.f) {
-                        return false;
-                    }
-                }
-                break;
-                default: {
-                    DB_ASSERT(!"Unsupported operator\n");
-                }
-            }
-        }
-        break;
-        default: {
-            DB_ASSERT(!"Unsupported operator\n");
-        }
+        case OP_EQ: return cmp == true;
+        case OP_NE: return cmp != true;
+        default: DB_ASSERT(!"Unsupported operator\n");
     }
-    return true;
 }
 
-bool evaluate_where_conditions(table_data_t *t, char **cell, size_t cell_len, where_args_cond_t *conditions, size_t condition_len) {
+static bool rpn_check_int_condition(const char* cell_value, int condition_value, logic_op_t op) {
+    int value = atoi(cell_value);
+    switch (op) {
+        case OP_EQ: return value == condition_value;
+        case OP_NE: return value != condition_value;
+        case OP_LT: return value < condition_value;
+        case OP_GT: return value > condition_value;
+        case OP_LE: return value <= condition_value;
+        case OP_GE: return value >= condition_value;
+        default: DB_ASSERT(!"Unsupported operator\n");
+    }
+}
+
+static bool rpn_check_float_condition(const char* cell_value, float condition_value, logic_op_t op) {
+    float value = atof(cell_value);
+    switch (op) {
+        case OP_EQ: return value == condition_value;
+        case OP_NE: return value != condition_value;
+        case OP_LT: return value < condition_value;
+        case OP_GT: return value > condition_value;
+        case OP_LE: return value <= condition_value;
+        case OP_GE: return value >= condition_value;
+        default: DB_ASSERT(!"Unsupported operator\n");
+    }
+}
+
+static bool rpn_calc_condition(table_data_t *t, char **cell, size_t col_idx, where_args_cond_t *conditions, logic_op_t op) {
+    table_col_type_t type = t->cols[col_idx].type;
+    switch (type) {
+        case TABLE_STRING:
+            return rpn_check_string_condition(cell[col_idx], conditions->val.s, op);
+        case TABLE_INT:
+            return rpn_check_int_condition(cell[col_idx], conditions->val.i, op);
+        case TABLE_FLOAT:
+            return rpn_check_float_condition(cell[col_idx], conditions->val.f, op);
+        default:
+            DB_ASSERT(!"Unsupported column type\n");
+    }
+}
+
+bool rpn_evaluate_where_conditions(table_data_t *t, char **cell, size_t cell_len, where_args_cond_t *conditions, size_t condition_len) {
     rpn_stack_t stack = rpn_stack_construct();
 
     for (size_t i=0; i < condition_len; i++) {
@@ -295,14 +203,14 @@ bool evaluate_where_conditions(table_data_t *t, char **cell, size_t cell_len, wh
             switch (conditions[i].op) {
                 case OP_AND: {
                     size_t x1_idx = find_column_name_idx(t, x1.column);
-                    bool x1_succeed = calc_condition(t, cell, x1_idx, &x1, x1.op);
+                    bool x1_succeed = rpn_calc_condition(t, cell, x1_idx, &x1, x1.op);
                     if (!x1_succeed) {
                         stack.free(&stack);
                         return false;
                     }
 
                     size_t x2_idx = find_column_name_idx(t, x2.column);
-                    bool x2_succeed = calc_condition(t, cell, x2_idx, &x2, x2.op);
+                    bool x2_succeed = rpn_calc_condition(t, cell, x2_idx, &x2, x2.op);
                     if (!x2_succeed) {
                         stack.free(&stack);
                         return false;
@@ -312,10 +220,10 @@ bool evaluate_where_conditions(table_data_t *t, char **cell, size_t cell_len, wh
                 break;
                 case OP_OR: {
                     size_t x1_idx = find_column_name_idx(t, x1.column);
-                    bool x1_succeed = calc_condition(t, cell, x1_idx, &x1, x1.op);
+                    bool x1_succeed = rpn_calc_condition(t, cell, x1_idx, &x1, x1.op);
 
                     size_t x2_idx = find_column_name_idx(t, x2.column);
-                    bool x2_succeed = calc_condition(t, cell, x2_idx, &x2, x2.op);
+                    bool x2_succeed = rpn_calc_condition(t, cell, x2_idx, &x2, x2.op);
 
                     if ((x1_succeed == false) && (x2_succeed == false)) {
                         stack.free(&stack);
@@ -339,7 +247,7 @@ bool evaluate_where_conditions(table_data_t *t, char **cell, size_t cell_len, wh
     while (!stack.is_empty(&stack)) {
         where_args_cond_t x1 = stack.pop(&stack);
         size_t x1_idx = find_column_name_idx(t, x1.column);
-        bool x1_succeed = calc_condition(t, cell, x1_idx, &x1, x1.op);
+        bool x1_succeed = rpn_calc_condition(t, cell, x1_idx, &x1, x1.op);
         if (!x1_succeed) {
             stack.free(&stack);
             return false;
