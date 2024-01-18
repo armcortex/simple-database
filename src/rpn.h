@@ -12,7 +12,7 @@ extern "C" {
 #include <stdio.h>
 #include <stdbool.h>
 
-#include "cmd_functions.h"
+#include "table.h"
 
 #define RPN_STACK_MAX           (20)
 

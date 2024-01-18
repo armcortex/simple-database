@@ -11,6 +11,7 @@
 #include "cmd_functions.h"
 #include "database.h"
 #include "parser.h"
+#include "table.h"
 
 void print_prompt() {
     current_db_t *db = get_current_db();

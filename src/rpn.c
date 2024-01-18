@@ -4,10 +4,14 @@
 
 // Reverse Polish Notation (RPN)
 
-#include "rpn.h"
-#include "helper_functions.h"
 #include <stdlib.h>
 #include <string.h>
+
+#include "rpn.h"
+#include "helper_functions.h"
+#include "table.h"
+#include "operator.h"
+#include "cmd_functions.h"
 
 static void rpn_init(rpn_stack_t *ctx) {
     ctx->top = -1;
