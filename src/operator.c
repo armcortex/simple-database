@@ -23,7 +23,6 @@ bool is_operand(logic_op_t op) {
     return (op == OP_EQ) || (op == OP_NE) || (op == OP_LT) || (op == OP_GT) || (op == OP_LE) || (op == OP_GE);
 }
 
-
 logic_op_t calc_op_str(const char *op) {
     if (strncmp(op, "and", 3) == 0) {
         return OP_AND;

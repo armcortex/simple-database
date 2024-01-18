@@ -60,7 +60,7 @@ void select_load_table_data(table_data_t *t, char *table_name_path, where_args_c
 table_data_t* select_load_table_metadata(const char *table_name);
 bool select_fetch_available_column(table_data_t *t, parsed_sql_cmd_t *select_cmd);
 
-void parse_where_args(table_data_t *t, const char *sql_cmd, where_args_cond_t *conds, size_t *args_len);
+void select_parse_where_args(table_data_t *t, const char *sql_cmd, where_args_cond_t *conds, size_t *args_len);
 
 
 bool select_fetch_available_row(table_data_t *t, parsed_sql_cmd_t *select_cmd, where_args_cond_t *conditions, size_t *condition_len);

@@ -565,7 +565,7 @@ bool select_fetch_available_column(table_data_t *t, parsed_sql_cmd_t *select_cmd
     return true;
 }
 
-void parse_where_args(table_data_t *t, const char *sql_cmd, where_args_cond_t *conds, size_t *args_len) {
+void select_parse_where_args(table_data_t *t, const char *sql_cmd, where_args_cond_t *conds, size_t *args_len) {
     regex_t regex;
     regmatch_t matches[WHERE_MATCH_CNT] = {0};
     int ret;
@@ -644,7 +644,7 @@ bool select_fetch_available_row(table_data_t *t, parsed_sql_cmd_t *select_cmd, w
 
     // Parse `where` args
     where_args_cond_t infix_conditions[WHERE_MATCH_CNT] = {0};
-    parse_where_args(t, (const char*)select_cmd->args, infix_conditions, condition_len);
+    select_parse_where_args(t, (const char *) select_cmd->args, infix_conditions, condition_len);
 
     // run Reverse Polish Notation (RPN)
     infix_to_postfix(infix_conditions, conditions, *condition_len);
