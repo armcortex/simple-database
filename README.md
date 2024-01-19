@@ -2,6 +2,8 @@
 A self-taught project exploring database design using C 
 with Catch2 testing framework.
 
+**Still need lots of refactor and performance optimization**
+
 ## Support Command
 ```
 All Support commands: 
@@ -43,6 +45,11 @@ mkdir build
 cd build
 cmake -DCMAKE_BUILD_TYPE=Release ..
 cmake --build . --config Release -- -j 8
+```
+
+4. Execute
+```
+./simple_database
 ```
 
 ### 1. Create a database
@@ -97,4 +104,12 @@ Results:
 ```
 Delete database: ../DB_DATA/test_db/test_db.json 
 Delete table: ../DB_DATA/test_db/test_table.csv 
+```
+
+### 7. Exit
+`exit`
+
+Results:
+```
+Bye Bye 
 ```
