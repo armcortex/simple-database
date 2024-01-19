@@ -113,3 +113,7 @@ Results:
 ```
 Bye Bye 
 ```
+
+## Tests
+
+`./tests/tests_run`
