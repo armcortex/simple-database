@@ -426,7 +426,7 @@ void select_load_table_data(table_data_t *t, char *table_name_path, where_args_c
         size_t cells_num_tokens;
         char** cells = cells_splitter.run(lines[i], ",", &cells_num_tokens);
 
-        bool not_skip = evaluate_where_conditions(t, cells, cells_num_tokens, conditions, condition_len);
+        bool not_skip = rpn_evaluate_where_conditions(t, cells, cells_num_tokens, conditions, condition_len);
         if (!not_skip) {
             cells_splitter.free(cells, cells_num_tokens);
             continue;
@@ -437,9 +437,6 @@ void select_load_table_data(table_data_t *t, char *table_name_path, where_args_c
         char **tmp_row = (char**)calloc(t->col_enable_cnt,  sizeof(char*));
         for (size_t j=0; j<t->col_len; j++) {
             if (t->cols[j].enable) {
-                // size_t where_col_idx = find_column_name_idx(t, con)
-
-
                 uint8_t str_len = strlen(cells[j]) + 1;
                 tmp_row[tmp_row_idx] = (char*)malloc(str_len * sizeof(char));
                 strncpy(tmp_row[tmp_row_idx], cells[j], str_len);
@@ -565,74 +562,14 @@ bool select_fetch_available_column(table_data_t *t, parsed_sql_cmd_t *select_cmd
     return true;
 }
 
-static logic_op_t calc_op_str(const char *op) {
-    if (strncmp(op, "and", 3) == 0) {
-        return OP_AND;
-    }
-    else if (strncmp(op, "or", 2) == 0) {
-        return OP_OR;
-    }
-    else if (strncmp(op, "!=", 2) == 0) {
-        return OP_NE;
-    }
-    else if (strncmp(op, "<=", 2) == 0) {
-        return OP_LE;
-    }
-    else if (strncmp(op, ">=", 2) == 0) {
-        return OP_GE;
-    }
-    else if (strncmp(op, "=", 1) == 0) {
-        return OP_EQ;
-    }
-    else if (strncmp(op, "<", 1) == 0) {
-        return OP_LT;
-    }
-    else if (strncmp(op, ">", 1) == 0) {
-        return OP_GT;
-    }
-    else if (strncmp(op, "(", 1) == 0) {
-        return OP_OPEN_PARENTHESIS;
-    }
-    else if (strncmp(op, ")", 1) == 0) {
-        return OP_CLOSE_PARENTHESIS;
-    }
-    else {
-        fprintf(stderr, "Command not supported: %s\n", op);
-        DB_ASSERT(0);
-    }
-}
-
-static void calc_val_str(table_data_t *t, where_args_cond_t *cond, size_t cond_idx, size_t col_idx, char *op_str, char *val_str) {
-    uint8_t str_len = strlen(t->cols[col_idx].name);
-    if (t->cols[col_idx].enable && strncmp(cond[cond_idx].column, t->cols[col_idx].name, str_len)==0) {
-        cond[cond_idx].op = calc_op_str(op_str);
-
-        switch (t->cols[col_idx].type) {
-            case TABLE_STRING: {
-                strncpy(cond[cond_idx].val.s, val_str, strlen(val_str));
-            }
-            break;
-            case TABLE_INT: {
-                cond[cond_idx].val.i = atoi(val_str);
-            }
-            break;
-            case TABLE_FLOAT: {
-                cond[cond_idx].val.f = atof(val_str);
-            }
-            break;
-            default: {
-                DB_ASSERT(!"Unsupported column type\n");
-            }
-        }
-    }
-}
-
-void parse_where_args(table_data_t *t, const char *sql_cmd, where_args_cond_t *conds, size_t *args_len) {
+void select_parse_where_args(table_data_t *t, const char *sql_cmd, where_args_cond_t *conds, size_t *args_len) {
     regex_t regex;
-    regmatch_t matches[WHERE_MATCH_CNT] = {0};
+    regmatch_t matches[2] = {0};
     int ret;
     size_t cond_idx = 0;
-    const char *pattern = "(and|or|\\(|\\))";
+
+    // parse <column_name, operate, value> pair, logic operate, `(`, `)`
+    const char *pattern = "(\\w+)\\s*([<>=]+)\\s*([[:digit:]]+\\.[[:digit:]]+|[[:digit:]]+|\\w+)|\\b(and|or)\\b|\\(|\\)";
 
     // regex compile
     ret = regcomp(&regex, pattern, REG_EXTENDED);
@@ -642,74 +579,47 @@ void parse_where_args(table_data_t *t, const char *sql_cmd, where_args_cond_t *c
 
     // regex match
     char *cursor = (char*)sql_cmd;
+    size_t sql_cmd_len = strlen(sql_cmd);
     char buf_str[CELL_TEXT_MAX] = {0};
     char val_str[CELL_TEXT_MAX] = {0};
     char op_str[5] = {0};
-    size_t length = 0;
+    size_t length;
+
     while (regexec(&regex, cursor, 1, matches, 0) == 0) {
-        length = matches[0].rm_so;
+        // matched chunk
+        length = matches[0].rm_eo - matches[0].rm_so;
         strncpy(buf_str, cursor, length);
         buf_str[length] = '\0';
 
-        // check `(` or `)`
-        length = matches[0].rm_eo - matches[0].rm_so;
-        if ((length == 1) && (strncmp(cursor+matches[0].rm_so, "(", 1)==0 || strncmp(cursor+matches[0].rm_so, "(", 1)==0)) {
-            strncpy(buf_str, cursor + matches[0].rm_so, length);
-            conds[cond_idx].op = calc_op_str(buf_str);
+        // check `(`, `)`, `and`, `or`
+        if (length > 0 && length <= 3) {
+            logic_op_t tmp_op = calc_op_str(buf_str);
+            if (is_op_parenthesis(tmp_op) || is_op_and_or(tmp_op)) {
+                conds[cond_idx].op = tmp_op;
+                cond_idx++;
+            }
+        }
+        // check <column_name, operate, value>
+        else {
+            sscanf(buf_str, "%19s %4s %31s", conds[cond_idx].column, op_str, val_str);
+            for (size_t i=0; i<t->col_len; i++) {
+                if (calc_val_str(t, conds, cond_idx, i, op_str, val_str)) {
+                    break;
+                }
+            }
             cond_idx++;
-
-            cursor += matches[0].rm_eo;
-            continue;
         }
 
-        // parse sub condition and save to struct
-        sscanf(buf_str, "%s %s %s", conds[cond_idx].column, op_str, val_str);
-        for (size_t i=0; i<t->col_enable_cnt; i++) {
-            calc_val_str(t, conds, cond_idx, i, op_str, val_str);
-        }
-        cond_idx++;
-
-        // save `and` or `or operate
-        length = matches[0].rm_eo - matches[0].rm_so;
-        strncpy(buf_str, cursor + matches[0].rm_so, length);
-        buf_str[length] = '\0';
-        conds[cond_idx].op = calc_op_str(buf_str);
-        cond_idx++;
-
-        cursor += matches[0].rm_eo;
-        DB_ASSERT(cond_idx < WHERE_MATCH_CNT && "Out of range\n");
-    }
-
-    // last one
-    if (*cursor != '\0') {
-        // parse sub condition and save to struct
-        sscanf(cursor, "%s %s %s", conds[cond_idx].column, op_str, val_str);
-        for (size_t i=0; i<t->col_enable_cnt; i++) {
-            calc_val_str(t, conds, cond_idx, i, op_str, val_str);
+        if (matches[0].rm_eo + 1 > sql_cmd_len) {
+            break;
         }
 
-        cond_idx++;
+        cursor += matches[0].rm_eo + 1;
         DB_ASSERT(cond_idx < WHERE_MATCH_CNT && "Out of range\n");
     }
 
     regfree(&regex);
     *args_len = cond_idx;
-}
-
-bool is_op_and_or(logic_op_t op) {
-    return (op == OP_AND) || (op == OP_OR);
-}
-
-bool is_op_parenthesis(logic_op_t op) {
-    return (op == OP_OPEN_PARENTHESIS) || (op == OP_CLOSE_PARENTHESIS);
-}
-
-bool is_operator(logic_op_t op) {
-    return is_op_and_or(op);
-}
-
-bool is_operand(logic_op_t op) {
-    return (op == OP_EQ) || (op == OP_NE) || (op == OP_LT) || (op == OP_GT) || (op == OP_LE) || (op == OP_GE);
 }
 
 // `where` format should be like below
@@ -722,10 +632,10 @@ bool select_fetch_available_row(table_data_t *t, parsed_sql_cmd_t *select_cmd, w
 
     // Parse `where` args
     where_args_cond_t infix_conditions[WHERE_MATCH_CNT] = {0};
-    parse_where_args(t, (const char*)select_cmd->args, infix_conditions, condition_len);
+    select_parse_where_args(t, (const char *)select_cmd->args, infix_conditions, condition_len);
 
     // run Reverse Polish Notation (RPN)
-    infix_to_postfix(infix_conditions, conditions, *condition_len);
+    rpn_infix_to_postfix(infix_conditions, conditions, *condition_len);
 
     // validate `where` column_name
     for (size_t i=0; i<(*condition_len); i++) {

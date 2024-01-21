@@ -12,7 +12,7 @@ extern "C" {
 #include <stdio.h>
 #include <stdbool.h>
 
-#include "cmd_functions.h"
+#include "table.h"
 
 #define RPN_STACK_MAX           (20)
 
@@ -33,8 +33,8 @@ typedef struct rpn_stack_t {
 
 rpn_stack_t rpn_stack_construct(void);
 
-void infix_to_postfix(where_args_cond_t *infix, where_args_cond_t *postfix, size_t len);
-bool evaluate_where_conditions(table_data_t *t, char **cell, size_t cell_len, where_args_cond_t *conditions, size_t condition_len);
+void rpn_infix_to_postfix(where_args_cond_t *infix, where_args_cond_t *postfix, size_t len);
+bool rpn_evaluate_where_conditions(table_data_t *t, char **cell, size_t cell_len, where_args_cond_t *conditions, size_t condition_len);
 
 
 #ifdef __cplusplus

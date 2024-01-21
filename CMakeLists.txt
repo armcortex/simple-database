@@ -35,6 +35,9 @@ set(PROJ_SOURCES
         src/rpn.h
         src/test_fn_env.c
         src/test_fn_env.h
+        src/operator.c
+        src/operator.h
+        src/table.h
 )
 
 add_library(simple_database_lib ${PROJ_SOURCES})
