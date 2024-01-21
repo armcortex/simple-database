@@ -437,9 +437,6 @@ void select_load_table_data(table_data_t *t, char *table_name_path, where_args_c
         char **tmp_row = (char**)calloc(t->col_enable_cnt,  sizeof(char*));
         for (size_t j=0; j<t->col_len; j++) {
             if (t->cols[j].enable) {
-                // size_t where_col_idx = find_column_name_idx(t, con)
-
-
                 uint8_t str_len = strlen(cells[j]) + 1;
                 tmp_row[tmp_row_idx] = (char*)malloc(str_len * sizeof(char));
                 strncpy(tmp_row[tmp_row_idx], cells[j], str_len);
@@ -604,8 +601,7 @@ void select_parse_where_args(table_data_t *t, const char *sql_cmd, where_args_co
         }
         // check <column_name, operate, value>
         else {
-            sscanf(buf_str, "%s %s %s", conds[cond_idx].column, op_str, val_str);
-            // sscanf(buf_str, "%19s %4s %31s", conds[cond_idx].column, op_str, val_str);
+            sscanf(buf_str, "%19s %4s %31s", conds[cond_idx].column, op_str, val_str);
             for (size_t i=0; i<t->col_len; i++) {
                 if (calc_val_str(t, conds, cond_idx, i, op_str, val_str)) {
                     break;
@@ -617,78 +613,10 @@ void select_parse_where_args(table_data_t *t, const char *sql_cmd, where_args_co
         if (matches[0].rm_eo + 1 > sql_cmd_len) {
             break;
         }
-        // DB_ASSERT(matches[0].rm_eo + 1 > sql_cmd_len && "Out of range\n");
 
         cursor += matches[0].rm_eo + 1;
         DB_ASSERT(cond_idx < WHERE_MATCH_CNT && "Out of range\n");
     }
-
-#if 0
-    while (regexec(&regex, cursor, 1, matches, 0) == 0) {
-        // Copy matched chunk
-        length = matches[0].rm_so;
-        strncpy(buf_str, cursor, length);
-        buf_str[length] = '\0';
-
-        // check `(`
-        length = matches[0].rm_eo - matches[0].rm_so;
-        // if ((length == 1) && (strncmp(cursor+matches[0].rm_so, "(", 1)==0 || strncmp(cursor+matches[0].rm_so, "(", 1)==0)) {
-        if ((length == 1) && (strncmp(&cursor[matches[0].rm_so], "(", 1)==0)) {
-            strncpy(buf_str, cursor + matches[0].rm_so, length);
-            conds[cond_idx].op = calc_op_str(buf_str);
-            cond_idx++;
-
-            cursor += matches[0].rm_eo;
-            continue;
-        }
-
-        // parse sub condition and save to struct
-        sscanf(buf_str, "%s %s %s", conds[cond_idx].column, op_str, val_str);
-        // sscanf(buf_str, "%19s %4s %31s", conds[cond_idx].column, op_str, val_str);
-        for (size_t i=0; i<t->col_enable_cnt; i++) {
-            calc_val_str(t, conds, cond_idx, i, op_str, val_str);
-        }
-        cond_idx++;
-
-        // TODO: should have a smart way to parse
-        // TODO: (age<29) as chunk
-
-        // save `and` or `or operate
-        length = matches[0].rm_eo - matches[0].rm_so;
-        strncpy(buf_str, cursor + matches[0].rm_so, length);
-        buf_str[length] = '\0';
-        conds[cond_idx].op = calc_op_str(buf_str);
-        cond_idx++;
-
-// #if 1
-        // save `and` or `or operate
-        length = matches[0].rm_eo - matches[0].rm_so;
-        if ((length==2 || length==3) &&
-            (strncmp(&cursor[matches[0].rm_so], "or", 2) == 0) || (strncmp(&cursor[matches[0].rm_so], "and", 3) == 0)) {
-            strncpy(buf_str, &cursor[matches[0].rm_so], length);
-            buf_str[length] = '\0';
-            conds[cond_idx].op = calc_op_str(buf_str);
-            cond_idx++;
-        }
-// #endif
-
-        cursor += matches[0].rm_eo;
-        DB_ASSERT(cond_idx < WHERE_MATCH_CNT && "Out of range\n");
-    }
-
-    // last one
-    if (*cursor != '\0') {
-        // parse sub condition and save to struct
-        sscanf(cursor, "%s %s %s", conds[cond_idx].column, op_str, val_str);
-        // sscanf(cursor, "%19s %4s %31s", conds[cond_idx].column, op_str, val_str);
-        for (size_t i=0; i<t->col_enable_cnt; i++) {
-            calc_val_str(t, conds, cond_idx, i, op_str, val_str);
-        }
-
-        cond_idx++;
-        DB_ASSERT(cond_idx < WHERE_MATCH_CNT && "Out of range\n");
-    }
-#endif
 
     regfree(&regex);
     *args_len = cond_idx;
