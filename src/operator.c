@@ -64,7 +64,7 @@ logic_op_t calc_op_str(const char *op) {
     }
 }
 
-void calc_val_str(table_data_t *t, where_args_cond_t *cond, size_t cond_idx, size_t col_idx, char *op_str, char *val_str) {
+bool calc_val_str(table_data_t *t, where_args_cond_t *cond, size_t cond_idx, size_t col_idx, char *op_str, char *val_str) {
     uint8_t str_len = strlen(t->cols[col_idx].name);
     if (t->cols[col_idx].enable && strncmp(cond[cond_idx].column, t->cols[col_idx].name, str_len)==0) {
         cond[cond_idx].op = calc_op_str(op_str);
@@ -86,5 +86,7 @@ void calc_val_str(table_data_t *t, where_args_cond_t *cond, size_t cond_idx, siz
                 DB_ASSERT(!"Unsupported column type\n");
             }
         }
+        return true;
     }
+    return false;
 }

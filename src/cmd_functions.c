@@ -567,10 +567,12 @@ bool select_fetch_available_column(table_data_t *t, parsed_sql_cmd_t *select_cmd
 
 void select_parse_where_args(table_data_t *t, const char *sql_cmd, where_args_cond_t *conds, size_t *args_len) {
     regex_t regex;
-    regmatch_t matches[WHERE_MATCH_CNT] = {0};
+    regmatch_t matches[2] = {0};
     int ret;
     size_t cond_idx = 0;
-    const char *pattern = "(and|or|\\(|\\))";
+
+    // parse <column_name, operate, value> pair, logic operate, `(`, `)`
+    const char *pattern = "(\\w+)\\s*([<>=]+)\\s*([[:digit:]]+\\.[[:digit:]]+|[[:digit:]]+|\\w+)|\\b(and|or)\\b|\\(|\\)";
 
     // regex compile
     ret = regcomp(&regex, pattern, REG_EXTENDED);
@@ -580,18 +582,58 @@ void select_parse_where_args(table_data_t *t, const char *sql_cmd, where_args_co
 
     // regex match
     char *cursor = (char*)sql_cmd;
+    size_t sql_cmd_len = strlen(sql_cmd);
     char buf_str[CELL_TEXT_MAX] = {0};
     char val_str[CELL_TEXT_MAX] = {0};
     char op_str[5] = {0};
-    size_t length = 0;
+    size_t length;
+
     while (regexec(&regex, cursor, 1, matches, 0) == 0) {
+        // matched chunk
+        length = matches[0].rm_eo - matches[0].rm_so;
+        strncpy(buf_str, cursor, length);
+        buf_str[length] = '\0';
+
+        // check `(`, `)`, `and`, `or`
+        if (length > 0 && length <= 3) {
+            logic_op_t tmp_op = calc_op_str(buf_str);
+            if (is_op_parenthesis(tmp_op) || is_op_and_or(tmp_op)) {
+                conds[cond_idx].op = tmp_op;
+                cond_idx++;
+            }
+        }
+        // check <column_name, operate, value>
+        else {
+            sscanf(buf_str, "%s %s %s", conds[cond_idx].column, op_str, val_str);
+            // sscanf(buf_str, "%19s %4s %31s", conds[cond_idx].column, op_str, val_str);
+            for (size_t i=0; i<t->col_len; i++) {
+                if (calc_val_str(t, conds, cond_idx, i, op_str, val_str)) {
+                    break;
+                }
+            }
+            cond_idx++;
+        }
+
+        if (matches[0].rm_eo + 1 > sql_cmd_len) {
+            break;
+        }
+        // DB_ASSERT(matches[0].rm_eo + 1 > sql_cmd_len && "Out of range\n");
+
+        cursor += matches[0].rm_eo + 1;
+        DB_ASSERT(cond_idx < WHERE_MATCH_CNT && "Out of range\n");
+    }
+
+#if 0
+    while (regexec(&regex, cursor, 1, matches, 0) == 0) {
+        // Copy matched chunk
         length = matches[0].rm_so;
         strncpy(buf_str, cursor, length);
         buf_str[length] = '\0';
 
-        // check `(` or `)`
+        // check `(`
         length = matches[0].rm_eo - matches[0].rm_so;
-        if ((length == 1) && (strncmp(cursor+matches[0].rm_so, "(", 1)==0 || strncmp(cursor+matches[0].rm_so, "(", 1)==0)) {
+        // if ((length == 1) && (strncmp(cursor+matches[0].rm_so, "(", 1)==0 || strncmp(cursor+matches[0].rm_so, "(", 1)==0)) {
+        if ((length == 1) && (strncmp(&cursor[matches[0].rm_so], "(", 1)==0)) {
             strncpy(buf_str, cursor + matches[0].rm_so, length);
             conds[cond_idx].op = calc_op_str(buf_str);
             cond_idx++;
@@ -602,10 +644,14 @@ void select_parse_where_args(table_data_t *t, const char *sql_cmd, where_args_co
 
         // parse sub condition and save to struct
         sscanf(buf_str, "%s %s %s", conds[cond_idx].column, op_str, val_str);
+        // sscanf(buf_str, "%19s %4s %31s", conds[cond_idx].column, op_str, val_str);
         for (size_t i=0; i<t->col_enable_cnt; i++) {
             calc_val_str(t, conds, cond_idx, i, op_str, val_str);
         }
         cond_idx++;
+
+        // TODO: should have a smart way to parse
+        // TODO: (age<29) as chunk
 
         // save `and` or `or operate
         length = matches[0].rm_eo - matches[0].rm_so;
@@ -613,6 +659,18 @@ void select_parse_where_args(table_data_t *t, const char *sql_cmd, where_args_co
         buf_str[length] = '\0';
         conds[cond_idx].op = calc_op_str(buf_str);
         cond_idx++;
+
+// #if 1
+        // save `and` or `or operate
+        length = matches[0].rm_eo - matches[0].rm_so;
+        if ((length==2 || length==3) &&
+            (strncmp(&cursor[matches[0].rm_so], "or", 2) == 0) || (strncmp(&cursor[matches[0].rm_so], "and", 3) == 0)) {
+            strncpy(buf_str, &cursor[matches[0].rm_so], length);
+            buf_str[length] = '\0';
+            conds[cond_idx].op = calc_op_str(buf_str);
+            cond_idx++;
+        }
+// #endif
 
         cursor += matches[0].rm_eo;
         DB_ASSERT(cond_idx < WHERE_MATCH_CNT && "Out of range\n");
@@ -622,6 +680,7 @@ void select_parse_where_args(table_data_t *t, const char *sql_cmd, where_args_co
     if (*cursor != '\0') {
         // parse sub condition and save to struct
         sscanf(cursor, "%s %s %s", conds[cond_idx].column, op_str, val_str);
+        // sscanf(cursor, "%19s %4s %31s", conds[cond_idx].column, op_str, val_str);
         for (size_t i=0; i<t->col_enable_cnt; i++) {
             calc_val_str(t, conds, cond_idx, i, op_str, val_str);
         }
@@ -629,6 +688,7 @@ void select_parse_where_args(table_data_t *t, const char *sql_cmd, where_args_co
         cond_idx++;
         DB_ASSERT(cond_idx < WHERE_MATCH_CNT && "Out of range\n");
     }
+#endif
 
     regfree(&regex);
     *args_len = cond_idx;
@@ -644,7 +704,7 @@ bool select_fetch_available_row(table_data_t *t, parsed_sql_cmd_t *select_cmd, w
 
     // Parse `where` args
     where_args_cond_t infix_conditions[WHERE_MATCH_CNT] = {0};
-    select_parse_where_args(t, (const char *) select_cmd->args, infix_conditions, condition_len);
+    select_parse_where_args(t, (const char *)select_cmd->args, infix_conditions, condition_len);
 
     // run Reverse Polish Notation (RPN)
     rpn_infix_to_postfix(infix_conditions, conditions, *condition_len);

@@ -761,6 +761,7 @@ TEST_CASE("Select table Test", "[select]") {
         execute_cmd(redirector, prompt_buf, query_state, cmd_str);
     }
 
+#if 1
     SECTION("Select and where table data 2: select age,height") {
         // Init
         IORedirector redirector;
@@ -786,7 +787,7 @@ TEST_CASE("Select table Test", "[select]") {
 
         // Testing
         redirector.flush();
-        cmd_str = "select age,height from " + table_name + " where age < 29\n";
+        cmd_str = "select age,height from " + table_name + " where ( age < 29 ) and ( height < 190.2 )\n";
 
         execute_cmd(redirector, prompt_buf, query_state, cmd_str);
         read_str = redirector.read_stdout();
@@ -800,6 +801,7 @@ TEST_CASE("Select table Test", "[select]") {
         cmd_str = "delete database " + db_name + "\n";
         execute_cmd(redirector, prompt_buf, query_state, cmd_str);
     }
+#endif
 
     SECTION("Wrong select column name and where table data") {
         // Init
