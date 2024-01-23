@@ -518,7 +518,7 @@ table_data_t* select_load_table_metadata(const char *table_name) {
                     type_idx += 1;
                 }
             }
-            break;  // Once the specified table is found, no need to check other tables.
+            break;
         }
     }
 
