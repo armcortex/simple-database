@@ -10,7 +10,7 @@
 
 static current_db_t g_current_db;
 
-current_db_t* get_current_db() {
+const current_db_t * get_current_db() {
     return &g_current_db;
 }
 

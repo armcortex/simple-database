@@ -293,7 +293,7 @@ void create_table(const char *filename_path, const char *filename, char **args, 
     fclose(file);
 
     // Update new table to database meta data
-    current_db_t *curr_db = get_current_db();
+    const current_db_t *curr_db = get_current_db();
     cJSON *new_table = create_table_json(filename, args, len);
     add_database_new_table(curr_db->name_path, new_table);
 }
@@ -328,7 +328,7 @@ void insert_table_data(const char *filename_path, const char *table_name, char *
     fprintf(file, "%s\n", datas[len-1]);
     fclose(file);
 
-    current_db_t *curr_db = get_current_db();
+    const current_db_t *curr_db = get_current_db();
     insert_table_update_database_meta(curr_db->name_path, table_name, 1);
 }
 
@@ -459,7 +459,7 @@ void select_load_table_data(table_data_t *t, char *table_name_path, where_args_c
 }
 
 table_data_t* select_load_table_metadata(const char *table_name) {
-    current_db_t *db = get_current_db();
+    const current_db_t *db = get_current_db();
 
     uint32_t res_lines = 0;
     char *content = read_file(db->name_path, 0, &res_lines);
@@ -680,7 +680,7 @@ void select_table_close(table_data_t *t) {
 }
 
 bool check_table_exist(const char *table_name, char *table_name_path) {
-    current_db_t *db = get_current_db();
+    const current_db_t *db = get_current_db();
     snprintf(table_name_path, PATH_MAX, "%s/%s.csv", db->folder_path, table_name);
     return exist_file(table_name_path);
 }

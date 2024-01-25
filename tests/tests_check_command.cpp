@@ -348,7 +348,7 @@ TEST_CASE("Commands behavior", "[command]") {
         redirector.flush();
         cmd_str = "use " + db_name + "\n";
         query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
-        current_db_t *current_db =  get_current_db();
+        const current_db_t *current_db = get_current_db();
         std::string current_db_name = current_db->name;
         REQUIRE(current_db_name == db_name);
 

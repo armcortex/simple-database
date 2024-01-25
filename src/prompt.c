@@ -14,7 +14,7 @@
 #include "table.h"
 
 void print_prompt() {
-    current_db_t *db = get_current_db();
+    const current_db_t *db = get_current_db();
     fprintf(stdout, "%s > ", db->name);
 }
 
@@ -86,7 +86,7 @@ void check_commands(prompt_buf_t *prompt_buf, query_state_t *query_state) {
                 fprintf(stdout, "Create database at: %s \n", db_filename_full);
             }
             else if (strncmp(cmds[1], "table", 5) == 0) {
-                current_db_t *curr_db =  get_current_db();
+                const current_db_t *curr_db =  get_current_db();
                 if (curr_db->len == 0) {
                     fprintf(stderr, "Don't know what database to use, please use `USE` command to select database first \n");
                 }
@@ -164,7 +164,7 @@ void check_commands(prompt_buf_t *prompt_buf, query_state_t *query_state) {
                 }
                 else {
                     update_current_db(cmds[1], db_filename_full, db_folder_full);
-                    current_db_t *db = get_current_db();
+                    const current_db_t *db = get_current_db();
                     fprintf(stdout, "Using database: %s \n", db->name);
                 }
             }
@@ -205,7 +205,7 @@ void check_commands(prompt_buf_t *prompt_buf, query_state_t *query_state) {
 
                     // Make sure there is no non-exist table column
                     if  (column_found && row_status) {
-                        current_db_t *db = get_current_db();
+                        const current_db_t *db = get_current_db();
                         snprintf(table_name_path, PATH_MAX, "%s/%s.csv", db->folder_path, table_name);
                         select_load_table_data(table_data, table_name_path, conditions, condition_len);
 
