@@ -79,18 +79,11 @@ void check_commands(prompt_buf_t *prompt_buf, query_state_t *query_state) {
                 snprintf(db_foldername_full, PATH_MAX, "%s/%s", WORKSPACE_PATH_FULL, cmds[2]);
                 create_folder(db_foldername_full);
 
-                // const char *db_folder_name = str_concat("%s/%s", WORKSPACE_PATH_FULL, cmds[2]);
-                // create_folder(db_folder_name);
-
                 // Create database file
                 char db_filename_full[PATH_MAX] = {0};
                 snprintf(db_filename_full, PATH_MAX, "%s/%s/%s.json", WORKSPACE_PATH_FULL, cmds[2], cmds[2]);
                 create_database(db_filename_full);
                 fprintf(stdout, "Create database at: %s \n", db_filename_full);
-
-                // const char *db_filename = str_concat("%s/%s/%s.json", WORKSPACE_PATH_FULL, cmds[2], cmds[2]);
-                // create_database(db_filename);
-                // fprintf(stdout, "Create database at: %s \n", db_filename);
             }
             else if (strncmp(cmds[1], "table", 5) == 0) {
                 current_db_t *curr_db =  get_current_db();
@@ -106,10 +99,6 @@ void check_commands(prompt_buf_t *prompt_buf, query_state_t *query_state) {
                     snprintf(table_filename_full, PATH_MAX, "%s/%s/%s.csv", WORKSPACE_PATH_FULL, curr_db->name, cmds[2]);
                     create_table(table_filename_full, cmds[2], &cmds[3], num_tokens-3);
                     fprintf(stdout, "Create table at: %s \n", table_filename_full);
-
-                    // const char *table_filename = str_concat("%s/%s/%s.csv", WORKSPACE_PATH_FULL, curr_db->name, cmds[2]);
-                    // create_table(table_filename, cmds[2], &cmds[3], num_tokens-3);
-                    // fprintf(stdout, "Create table at: %s \n", table_filename);
                 }
             }
             else {
@@ -133,14 +122,11 @@ void check_commands(prompt_buf_t *prompt_buf, query_state_t *query_state) {
             }
             else if (strncmp(cmds[1], "database", 8) == 0) {
                 // Delete database file
-                // const char *db_filename = str_concat("%s/%s/%s.json", WORKSPACE_PATH_FULL, cmds[2], cmds[2]);
                 char db_filename_full[PATH_MAX] = {0};
                 snprintf(db_filename_full, PATH_MAX, "%s/%s/%s.json", WORKSPACE_PATH_FULL, cmds[2], cmds[2]);
-
                 delete_database(db_filename_full);
 
                 // Delete folder
-                // const char *db_folder_name = str_concat("%s/%s", WORKSPACE_PATH_FULL, cmds[2]);
                 char db_foldername_full[PATH_MAX] = {0};
                 snprintf(db_foldername_full, PATH_MAX, "%s/%s", WORKSPACE_PATH_FULL, cmds[2]);
 

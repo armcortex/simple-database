@@ -66,12 +66,6 @@ void select_table_close(table_data_t *t);
 // List command
 
 // MISC
-#if 0
-const char* create_filename(const char *name, const char *ext);
-const char* create_filename_full_path(const char *base, const char *name, const char *ext);
-const char* str_concat(const char *format, ...);
-#endif
-
 bool check_table_exist(const char *table_name, char *table_name_path);
 bool compare_column_name(const char *ref, const char *src);
 size_t find_column_name_idx(table_data_t *t, const char *col_name);

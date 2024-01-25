@@ -18,9 +18,6 @@
 #include "database.h"
 #include "rpn.h"
 
-// static char g_db_file_path[PATH_MAX] = {0};
-// static char g_db_name[DB_NAME_MAX] = {0};
-
 
 table_data_t *table_data_init(size_t col_len, size_t row_len) {
     table_data_t *t = (table_data_t*)malloc(sizeof(table_data_t));
@@ -681,39 +678,6 @@ void select_table_display(table_data_t *t) {
 void select_table_close(table_data_t *t) {
     table_data_close(t);
 }
-
-#if 0
-const char* create_filename(const char *filename, const char *ext) {
-    memset(g_db_name, 0, DB_NAME_MAX * sizeof(char));
-    strncpy(g_db_name, filename, strlen(filename));
-    strncat(g_db_name, ext, strlen(ext));
-    g_db_name[sizeof(g_db_name) - 1] = '\0';
-    return g_db_name;
-}
-
-const char* create_filename_full_path(const char *base, const char *name, const char *ext) {
-    memset(g_db_file_path, 0, PATH_MAX * sizeof(char));
-
-    strncpy(g_db_file_path, base, strlen(base));
-    strncat(g_db_file_path, "/", strlen("/")+1);
-
-    const char *filename = create_filename(name, ext);
-    strncat(g_db_file_path, filename, strlen(filename));
-    g_db_file_path[sizeof(g_db_file_path) - 1] = '\0';
-    return g_db_file_path;
-}
-
-const char* str_concat(const char *format, ...) {
-    memset(g_db_file_path, 0, PATH_MAX * sizeof(char));
-
-    va_list args;
-    va_start(args, format);
-    vsnprintf(g_db_file_path, PATH_MAX, format, args);
-    va_end(args);
-
-    return g_db_file_path;
-}
-#endif
 
 bool check_table_exist(const char *table_name, char *table_name_path) {
     current_db_t *db = get_current_db();
