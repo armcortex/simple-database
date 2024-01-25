@@ -16,7 +16,7 @@ bool compare_where_args_cond_t(const where_args_cond_t& a, const where_args_cond
 }
 
 bool compare_batch_where_args_cond_t(const where_args_cond_t a[], const where_args_cond_t b[], size_t len) {
-    for (int i=0; i<len; i++) {
+    for (size_t i=0; i<len; i++) {
         if (!compare_where_args_cond_t(a[i], b[i]))   return false;
     }
     return true;
@@ -44,11 +44,13 @@ TEST_CASE("RPN infix/postfix", "[basic]") {
                 {"", OP_OR, {.s="", .i=0, .f=0.0}},
         };
         const std::size_t len = sizeof(test_data) / sizeof(where_args_cond_t);
-        where_args_cond_t res_data[len] = {0};
+        auto *res_data = (where_args_cond_t*)calloc(len, sizeof(where_args_cond_t));
 
         rpn_infix_to_postfix(test_data, res_data, len);
         res = compare_batch_where_args_cond_t(res_data, ref_data, len);
         REQUIRE(res);
+
+        free(res_data);
     }
     SECTION("infix to postfix 2: with parenthesis") {
         // "age < 29 and ( name = Jane or name = Alice )";
@@ -71,11 +73,13 @@ TEST_CASE("RPN infix/postfix", "[basic]") {
         };
         const std::size_t test_len = sizeof(test_data) / sizeof(where_args_cond_t);
         const std::size_t ref_len = sizeof(ref_data) / sizeof(where_args_cond_t);
-        where_args_cond_t res_data[ref_len] = {0};
+        auto *res_data = (where_args_cond_t*)calloc(ref_len, sizeof(where_args_cond_t));
 
         rpn_infix_to_postfix(test_data, res_data, test_len);
         res = compare_batch_where_args_cond_t(res_data, ref_data, ref_len);
         REQUIRE(res);
+
+        free(res_data);
     }
 }
 TEST_CASE("RPN evaluation", "[basic]") {
@@ -122,7 +126,7 @@ TEST_CASE("RPN evaluation", "[basic]") {
                 cells[j] = test_data[i][j];
             }
 
-            ans = rpn_evaluate_where_conditions(&t, cells, 3, postfix_conditions, post_cond_len);
+            ans = rpn_evaluate_where_conditions(&t, cells, postfix_conditions, post_cond_len);
             res.push_back(ans);
         }
         REQUIRE(res == res_ref);

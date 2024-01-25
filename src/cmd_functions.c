@@ -423,7 +423,7 @@ void select_load_table_data(table_data_t *t, char *table_name_path, where_args_c
         size_t cells_num_tokens;
         char** cells = cells_splitter.run(lines[i], ",", &cells_num_tokens);
 
-        bool not_skip = rpn_evaluate_where_conditions(t, cells, cells_num_tokens, conditions, condition_len);
+        bool not_skip = rpn_evaluate_where_conditions(t, cells, conditions, condition_len);
         if (!not_skip) {
             cells_splitter.free(cells, cells_num_tokens);
             continue;
@@ -576,7 +576,7 @@ void select_parse_where_args(table_data_t *t, const char *sql_cmd, where_args_co
 
     // regex match
     char *cursor = (char*)sql_cmd;
-    size_t sql_cmd_len = strlen(sql_cmd);
+    int sql_cmd_len = strlen(sql_cmd);
     char buf_str[CELL_TEXT_MAX] = {0};
     char val_str[CELL_TEXT_MAX] = {0};
     char op_str[5] = {0};

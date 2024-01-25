@@ -178,7 +178,7 @@ static bool rpn_calc_condition(table_data_t *t, char **cell, size_t col_idx, whe
     }
 }
 
-bool rpn_evaluate_where_conditions(table_data_t *t, char **cell, size_t cell_len, where_args_cond_t *conditions, size_t condition_len) {
+bool rpn_evaluate_where_conditions(table_data_t *t, char **cell, where_args_cond_t *conditions, size_t condition_len) {
     rpn_stack_t stack = rpn_stack_construct();
 
     for (size_t i=0; i < condition_len; i++) {

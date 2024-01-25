@@ -392,7 +392,7 @@ TEST_CASE("Create Table JSON Test", "[create_table]") {
     std::string query_res;
     std::string read_str;
     bool fileExists;
-    bool res;
+    // bool res;
 
     const std::string db_name = "my_db";
     const std::string db_folder = WORKSPACE_PATH_FULL "/" + db_name + "/";
@@ -473,7 +473,7 @@ TEST_CASE("Insert Data Test", "[insert]") {
 
     std::string cmd_str;
     std::string read_str;
-    bool fileExists;
+    // bool fileExists;
     bool res;
 
     const std::string db_name = "my_db";
@@ -628,7 +628,7 @@ TEST_CASE("Select table Test", "[select]") {
     std::string read_str;
     std::string read_err_str;
     std::string ref_str;
-    bool fileExists;
+    // bool fileExists;
     bool res;
 
     const std::string db_name = "my_db";

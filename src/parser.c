@@ -31,7 +31,7 @@ parsed_sql_cmd_t* parse_sql_cmd(const char *sql_cmd, size_t *match_cnt) {
     if (!ret) {
         parsed_data = (parsed_sql_cmd_t *)calloc(MAX_MATCHES, sizeof(parsed_sql_cmd_t));
         for (int i=1; i<MAX_MATCHES; i++) {
-            if (matches[i].rm_so != (size_t)-1) {
+            if (matches[i].rm_so != (int)-1) {
                 size_t args_len = matches[i].rm_eo - matches[i].rm_so + 1;
                 parsed_data[i-1].state = (sql_state_t)(i-1);
                 parsed_data[i-1].args = (char*)malloc(args_len * sizeof(char));
