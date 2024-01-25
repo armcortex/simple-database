@@ -18,8 +18,8 @@
 #include "database.h"
 #include "rpn.h"
 
-static char g_db_file_path[PATH_MAX] = {0};
-static char g_db_name[DB_NAME_MAX] = {0};
+// static char g_db_file_path[PATH_MAX] = {0};
+// static char g_db_name[DB_NAME_MAX] = {0};
 
 
 table_data_t *table_data_init(size_t col_len, size_t row_len) {
@@ -682,6 +682,7 @@ void select_table_close(table_data_t *t) {
     table_data_close(t);
 }
 
+#if 0
 const char* create_filename(const char *filename, const char *ext) {
     memset(g_db_name, 0, DB_NAME_MAX * sizeof(char));
     strncpy(g_db_name, filename, strlen(filename));
@@ -712,6 +713,7 @@ const char* str_concat(const char *format, ...) {
 
     return g_db_file_path;
 }
+#endif
 
 bool check_table_exist(const char *table_name, char *table_name_path) {
     current_db_t *db = get_current_db();

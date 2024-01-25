@@ -56,13 +56,9 @@ void delete_table_all(const char *db_base_path);
 
 // Select command
 void select_load_table_data(table_data_t *t, char *table_name_path, where_args_cond_t *conditions, size_t condition_len);
-
 table_data_t* select_load_table_metadata(const char *table_name);
 bool select_fetch_available_column(table_data_t *t, parsed_sql_cmd_t *select_cmd);
-
 void select_parse_where_args(table_data_t *t, const char *sql_cmd, where_args_cond_t *conds, size_t *args_len);
-
-
 bool select_fetch_available_row(table_data_t *t, parsed_sql_cmd_t *select_cmd, where_args_cond_t *conditions, size_t *condition_len);
 void select_table_display(table_data_t *t);
 void select_table_close(table_data_t *t);
@@ -70,9 +66,11 @@ void select_table_close(table_data_t *t);
 // List command
 
 // MISC
+#if 0
 const char* create_filename(const char *name, const char *ext);
 const char* create_filename_full_path(const char *base, const char *name, const char *ext);
 const char* str_concat(const char *format, ...);
+#endif
 
 bool check_table_exist(const char *table_name, char *table_name_path);
 bool compare_column_name(const char *ref, const char *src);
