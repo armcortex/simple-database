@@ -14,7 +14,7 @@
 #include "table.h"
 
 void print_prompt() {
-    current_db_t *db = get_current_db();
+    const current_db_t *db = get_current_db();
     fprintf(stdout, "%s > ", db->name);
 }
 
@@ -75,16 +75,18 @@ void check_commands(prompt_buf_t *prompt_buf, query_state_t *query_state) {
             }
             else if (strncmp(cmds[1], "database", 8) == 0) {
                 // Create database folder
-                const char *db_folder_name = str_concat("%s/%s", WORKSPACE_PATH_FULL, cmds[2]);
-                create_folder(db_folder_name);
+                char db_foldername_full[PATH_MAX] = {0};
+                snprintf(db_foldername_full, PATH_MAX, "%s/%s", WORKSPACE_PATH_FULL, cmds[2]);
+                create_folder(db_foldername_full);
 
                 // Create database file
-                const char *db_filename = str_concat("%s/%s/%s.json", WORKSPACE_PATH_FULL, cmds[2], cmds[2]);
-                create_database(db_filename);
-                fprintf(stdout, "Create database at: %s \n", db_filename);
+                char db_filename_full[PATH_MAX] = {0};
+                snprintf(db_filename_full, PATH_MAX, "%s/%s/%s.json", WORKSPACE_PATH_FULL, cmds[2], cmds[2]);
+                create_database(db_filename_full);
+                fprintf(stdout, "Create database at: %s \n", db_filename_full);
             }
             else if (strncmp(cmds[1], "table", 5) == 0) {
-                current_db_t *curr_db =  get_current_db();
+                const current_db_t *curr_db =  get_current_db();
                 if (curr_db->len == 0) {
                     fprintf(stderr, "Don't know what database to use, please use `USE` command to select database first \n");
                 }
@@ -93,9 +95,10 @@ void check_commands(prompt_buf_t *prompt_buf, query_state_t *query_state) {
                     fprintf(stderr, "argument not enough: (<column name> <column type> ...)");
                 }
                 else {
-                    const char *table_filename = str_concat("%s/%s/%s.csv", WORKSPACE_PATH_FULL, curr_db->name, cmds[2]);
-                    create_table(table_filename, cmds[2], &cmds[3], num_tokens-3);
-                    fprintf(stdout, "Create table at: %s \n", table_filename);
+                    char table_filename_full[PATH_MAX] = {0};
+                    snprintf(table_filename_full, PATH_MAX, "%s/%s/%s.csv", WORKSPACE_PATH_FULL, curr_db->name, cmds[2]);
+                    create_table(table_filename_full, cmds[2], &cmds[3], num_tokens-3);
+                    fprintf(stdout, "Create table at: %s \n", table_filename_full);
                 }
             }
             else {
@@ -119,13 +122,16 @@ void check_commands(prompt_buf_t *prompt_buf, query_state_t *query_state) {
             }
             else if (strncmp(cmds[1], "database", 8) == 0) {
                 // Delete database file
-                const char *db_filename = str_concat("%s/%s/%s.json", WORKSPACE_PATH_FULL, cmds[2], cmds[2]);
-                delete_database(db_filename);
+                char db_filename_full[PATH_MAX] = {0};
+                snprintf(db_filename_full, PATH_MAX, "%s/%s/%s.json", WORKSPACE_PATH_FULL, cmds[2], cmds[2]);
+                delete_database(db_filename_full);
 
                 // Delete folder
-                const char *db_folder_name = str_concat("%s/%s", WORKSPACE_PATH_FULL, cmds[2]);
-                delete_table_all(db_folder_name);
-                remove_folder(db_folder_name);
+                char db_foldername_full[PATH_MAX] = {0};
+                snprintf(db_foldername_full, PATH_MAX, "%s/%s", WORKSPACE_PATH_FULL, cmds[2]);
+
+                delete_table_all(db_foldername_full);
+                remove_folder(db_foldername_full);
 
                 // clean buffer
                 clean_current_db();
@@ -148,17 +154,17 @@ void check_commands(prompt_buf_t *prompt_buf, query_state_t *query_state) {
                 use_command_info();
             }
             else {
-                char db_folder[PATH_MAX] = {0};
-                char db_filename[PATH_MAX] = {0};
-                snprintf(db_folder, PATH_MAX, "%s/%s", WORKSPACE_PATH_FULL, cmds[1]);
-                snprintf(db_filename, PATH_MAX, "%s/%s.json", db_folder, cmds[1]);
+                char db_folder_full[PATH_MAX] = {0};
+                char db_filename_full[PATH_MAX] = {0};
+                snprintf(db_folder_full, PATH_MAX, "%s/%s", WORKSPACE_PATH_FULL, cmds[1]);
+                snprintf(db_filename_full, PATH_MAX, "%s/%s.json", db_folder_full, cmds[1]);
 
-                if (!exist_file(db_filename)) {
+                if (!exist_file(db_filename_full)) {
                     fprintf(stderr, "Database %s not exist \n", cmds[1]);
                 }
                 else {
-                    update_current_db(cmds[1], db_filename, db_folder);
-                    current_db_t *db = get_current_db();
+                    update_current_db(cmds[1], db_filename_full, db_folder_full);
+                    const current_db_t *db = get_current_db();
                     fprintf(stdout, "Using database: %s \n", db->name);
                 }
             }
@@ -199,7 +205,7 @@ void check_commands(prompt_buf_t *prompt_buf, query_state_t *query_state) {
 
                     // Make sure there is no non-exist table column
                     if  (column_found && row_status) {
-                        current_db_t *db = get_current_db();
+                        const current_db_t *db = get_current_db();
                         snprintf(table_name_path, PATH_MAX, "%s/%s.csv", db->folder_path, table_name);
                         select_load_table_data(table_data, table_name_path, conditions, condition_len);
 

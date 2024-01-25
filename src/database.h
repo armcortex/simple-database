@@ -22,7 +22,7 @@ typedef struct current_db_t {
     size_t len;
 } current_db_t;
 
-current_db_t* get_current_db(void);
+const current_db_t * get_current_db(void);
 void clean_current_db(void);
 bool check_current_db_exist(void);
 void update_current_db(const char *name, const char *filename_path, const char *folder_path);

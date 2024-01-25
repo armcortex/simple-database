@@ -18,9 +18,6 @@
 #include "database.h"
 #include "rpn.h"
 
-static char g_db_file_path[PATH_MAX] = {0};
-static char g_db_name[DB_NAME_MAX] = {0};
-
 
 table_data_t *table_data_init(size_t col_len, size_t row_len) {
     table_data_t *t = (table_data_t*)malloc(sizeof(table_data_t));
@@ -296,7 +293,7 @@ void create_table(const char *filename_path, const char *filename, char **args, 
     fclose(file);
 
     // Update new table to database meta data
-    current_db_t *curr_db = get_current_db();
+    const current_db_t *curr_db = get_current_db();
     cJSON *new_table = create_table_json(filename, args, len);
     add_database_new_table(curr_db->name_path, new_table);
 }
@@ -331,7 +328,7 @@ void insert_table_data(const char *filename_path, const char *table_name, char *
     fprintf(file, "%s\n", datas[len-1]);
     fclose(file);
 
-    current_db_t *curr_db = get_current_db();
+    const current_db_t *curr_db = get_current_db();
     insert_table_update_database_meta(curr_db->name_path, table_name, 1);
 }
 
@@ -426,7 +423,7 @@ void select_load_table_data(table_data_t *t, char *table_name_path, where_args_c
         size_t cells_num_tokens;
         char** cells = cells_splitter.run(lines[i], ",", &cells_num_tokens);
 
-        bool not_skip = rpn_evaluate_where_conditions(t, cells, cells_num_tokens, conditions, condition_len);
+        bool not_skip = rpn_evaluate_where_conditions(t, cells, conditions, condition_len);
         if (!not_skip) {
             cells_splitter.free(cells, cells_num_tokens);
             continue;
@@ -462,7 +459,7 @@ void select_load_table_data(table_data_t *t, char *table_name_path, where_args_c
 }
 
 table_data_t* select_load_table_metadata(const char *table_name) {
-    current_db_t *db = get_current_db();
+    const current_db_t *db = get_current_db();
 
     uint32_t res_lines = 0;
     char *content = read_file(db->name_path, 0, &res_lines);
@@ -579,7 +576,7 @@ void select_parse_where_args(table_data_t *t, const char *sql_cmd, where_args_co
 
     // regex match
     char *cursor = (char*)sql_cmd;
-    size_t sql_cmd_len = strlen(sql_cmd);
+    int sql_cmd_len = strlen(sql_cmd);
     char buf_str[CELL_TEXT_MAX] = {0};
     char val_str[CELL_TEXT_MAX] = {0};
     char op_str[5] = {0};
@@ -682,39 +679,8 @@ void select_table_close(table_data_t *t) {
     table_data_close(t);
 }
 
-const char* create_filename(const char *filename, const char *ext) {
-    memset(g_db_name, 0, DB_NAME_MAX * sizeof(char));
-    strncpy(g_db_name, filename, strlen(filename));
-    strncat(g_db_name, ext, strlen(ext));
-    g_db_name[sizeof(g_db_name) - 1] = '\0';
-    return g_db_name;
-}
-
-const char* create_filename_full_path(const char *base, const char *name, const char *ext) {
-    memset(g_db_file_path, 0, PATH_MAX * sizeof(char));
-
-    strncpy(g_db_file_path, base, strlen(base));
-    strncat(g_db_file_path, "/", strlen("/")+1);
-
-    const char *filename = create_filename(name, ext);
-    strncat(g_db_file_path, filename, strlen(filename));
-    g_db_file_path[sizeof(g_db_file_path) - 1] = '\0';
-    return g_db_file_path;
-}
-
-const char* str_concat(const char *format, ...) {
-    memset(g_db_file_path, 0, PATH_MAX * sizeof(char));
-
-    va_list args;
-    va_start(args, format);
-    vsnprintf(g_db_file_path, PATH_MAX, format, args);
-    va_end(args);
-
-    return g_db_file_path;
-}
-
 bool check_table_exist(const char *table_name, char *table_name_path) {
-    current_db_t *db = get_current_db();
+    const current_db_t *db = get_current_db();
     snprintf(table_name_path, PATH_MAX, "%s/%s.csv", db->folder_path, table_name);
     return exist_file(table_name_path);
 }

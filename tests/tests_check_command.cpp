@@ -348,7 +348,7 @@ TEST_CASE("Commands behavior", "[command]") {
         redirector.flush();
         cmd_str = "use " + db_name + "\n";
         query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
-        current_db_t *current_db =  get_current_db();
+        const current_db_t *current_db = get_current_db();
         std::string current_db_name = current_db->name;
         REQUIRE(current_db_name == db_name);
 
@@ -392,7 +392,7 @@ TEST_CASE("Create Table JSON Test", "[create_table]") {
     std::string query_res;
     std::string read_str;
     bool fileExists;
-    bool res;
+    // bool res;
 
     const std::string db_name = "my_db";
     const std::string db_folder = WORKSPACE_PATH_FULL "/" + db_name + "/";
@@ -473,7 +473,7 @@ TEST_CASE("Insert Data Test", "[insert]") {
 
     std::string cmd_str;
     std::string read_str;
-    bool fileExists;
+    // bool fileExists;
     bool res;
 
     const std::string db_name = "my_db";
@@ -628,7 +628,7 @@ TEST_CASE("Select table Test", "[select]") {
     std::string read_str;
     std::string read_err_str;
     std::string ref_str;
-    bool fileExists;
+    // bool fileExists;
     bool res;
 
     const std::string db_name = "my_db";

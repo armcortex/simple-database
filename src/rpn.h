@@ -34,7 +34,7 @@ typedef struct rpn_stack_t {
 rpn_stack_t rpn_stack_construct(void);
 
 void rpn_infix_to_postfix(where_args_cond_t *infix, where_args_cond_t *postfix, size_t len);
-bool rpn_evaluate_where_conditions(table_data_t *t, char **cell, size_t cell_len, where_args_cond_t *conditions, size_t condition_len);
+bool rpn_evaluate_where_conditions(table_data_t *t, char **cell, where_args_cond_t *conditions, size_t condition_len);
 
 
 #ifdef __cplusplus

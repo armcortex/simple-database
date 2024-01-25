@@ -107,8 +107,6 @@ void create_folder(const char *name) {
 }
 
 void remove_folder(const char *name) {
-    struct stat st = {0};
-
     if (exist_folder(name)) {
         if (rmdir(name) == -1) {
             fprintf(stderr, "Failed to remove folder: %s \n", name);
