@@ -28,7 +28,7 @@ table_row_t* table_data_create_row_node(char **data, size_t len);
 void table_data_insert_row_data(table_data_t *t, char **data, size_t data_len);
 
 // Help info
-void basic_command_info(void);
+bool basic_command_info(char **args, size_t args_len);
 void create_command_info(void);
 void delete_command_info(void);
 void use_command_info(void);
@@ -70,6 +70,9 @@ bool check_table_exist(const char *table_name, char *table_name_path);
 bool compare_column_name(const char *ref, const char *src);
 size_t find_column_name_idx(table_data_t *t, const char *col_name);
 
+bool null_fn(char **args, size_t args_len);
+bool undefined_fn(char **args, size_t args_len);
+bool exit_fn(char **args, size_t args_len);
 
 
 #ifdef __cplusplus

@@ -12,6 +12,7 @@
 #include <dirent.h>
 #include <cJSON.h>
 #include <regex.h>
+#include <stdbool.h>
 
 #include "cmd_functions.h"
 #include "helper_functions.h"
@@ -128,7 +129,10 @@ void table_data_insert_row_data(table_data_t *t, char **data, size_t data_len) {
     // t->row_len++;
 }
 
-void basic_command_info() {
+bool basic_command_info(char **args, size_t args_len) {
+    (void)args;
+    (void)args_len;
+
     fprintf(stdout, "All Support commands: \n");
     fprintf(stdout, "\t help: \n");
     fprintf(stdout, "\t exit: \n");
@@ -137,6 +141,7 @@ void basic_command_info() {
     fprintf(stdout, "\t delete: \n");
     fprintf(stdout, "\t select: \n");
     fprintf(stdout, "\t list: \n");
+    return true;
 }
 
 void create_command_info() {
@@ -698,4 +703,28 @@ size_t find_column_name_idx(table_data_t *t, const char *col_name) {
         }
     }
     return -1;
+}
+
+bool null_fn(char **args, size_t args_len) {
+    (void)args;
+    (void)args_len;
+
+    DB_ASSERT(!"Null Function.\n");
+    return false;
+}
+
+bool undefined_fn(char **args, size_t args_len) {
+    (void)args;
+    (void)args_len;
+
+    DB_ASSERT(!"Undefined Function.\n");
+    return false;
+}
+
+bool exit_fn(char **args, size_t args_len) {
+    (void)args;
+    (void)args_len;
+
+    fprintf(stdout, "Bye Bye \n");
+    return true;
 }

@@ -22,7 +22,8 @@
 
 std::string execute_cmd(IORedirector &rd, prompt_buf_t *prompt_buf, query_state_t *query_state, std::string cmd_str) {
     std::string query_res = stdin_write_data(rd, prompt_buf, cmd_str);
-    check_commands(prompt_buf, query_state);
+    parse_commands(prompt_buf, query_state);
+    execute_commands(query_state);
     return query_res;
 }
 

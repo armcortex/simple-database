@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 
 #include "prompt.h"
 #include "helper_functions.h"
@@ -12,6 +13,20 @@
 #include "database.h"
 #include "parser.h"
 #include "table.h"
+
+
+cmd_fn_t cmd_fn_list[] = {
+        {INIT, null_fn},
+        {HELP, basic_command_info},
+        {EXIT, exit_fn},
+        {CREATE, null_fn},
+        {USE, null_fn},
+        {DELETE, null_fn},
+        {SELECT, null_fn},
+        {INSERT, null_fn},
+        {LIST, null_fn},
+        {UNDEFINED, undefined_fn},
+};
 
 void print_prompt() {
     const current_db_t *db = get_current_db();
@@ -41,7 +56,78 @@ void free_prompt_buf(prompt_buf_t *prompt_buf) {
     }
 }
 
-void check_commands(prompt_buf_t *prompt_buf, query_state_t *query_state) {
+void parse_commands(prompt_buf_t *prompt_buf, query_state_t *query_state) {
+    splitter_t splitter = split_construct();
+    size_t cmds_len;
+    char** cmds = splitter.run(prompt_buf->buf, " ", &cmds_len);
+
+    // get `enter` only
+    if (cmds_len == 0) {
+        query_state->state = HELP;
+        splitter.free(cmds, cmds_len);
+        return;
+    }
+    else {
+        // parse args
+        query_state->args_len = cmds_len - 1;
+        query_state->args = (char**)calloc(query_state->args_len, sizeof(char*));
+        for (size_t i=0; i<query_state->args_len; i++) {
+            query_state->args[i] = strdup(cmds[i+1]);
+        }
+    }
+
+    // Help
+    if (strncmp(cmds[0], "help", 4) == 0) {
+        query_state->state = HELP;
+    }
+    // Exit
+    else if (strncmp(cmds[0], "exit", 4) == 0) {
+        query_state->state = EXIT;
+    }
+    // Create
+    else if (strncmp(cmds[0], "create", 6) == 0) {
+        query_state->state = CREATE;
+    }
+    // Delete
+    else if (strncmp(cmds[0], "delete", 4) == 0) {
+        query_state->state = DELETE;
+    }
+    // Use
+    else if (strncmp(cmds[0], "use", 3) == 0) {
+        query_state->state = USE;
+    }
+    // Select
+    else if (strncmp(cmds[0], "select", 6) == 0) {
+        query_state->state = SELECT;
+    }
+    // Insert
+    else if (strncmp(cmds[0], "insert", 6) == 0) {
+        query_state->state = INSERT;
+    }
+    // List
+    else if (strncmp(cmds[0], "list", 6) == 0) {
+        query_state->state = LIST;
+    }
+    // Undefined command
+    else {
+        query_state->state = UNDEFINED;
+    }
+
+
+    // Free
+    splitter.free(cmds, cmds_len);
+}
+
+void execute_commands(query_state_t *query_state) {
+    if (cmd_fn_list[query_state->state].state != query_state->state) {
+        DB_ASSERT(!"Command states not matched\n");
+    }
+
+    cmd_fn_list[query_state->state].callback_fn(query_state->args, query_state->args_len);
+}
+
+#if 0
+void check_commands_del(prompt_buf_t *prompt_buf, query_state_t *query_state) {
     splitter_t splitter = split_construct();
     size_t num_tokens;
     char** cmds = splitter.run(prompt_buf->buf, " ", &num_tokens);
@@ -49,7 +135,7 @@ void check_commands(prompt_buf_t *prompt_buf, query_state_t *query_state) {
     // `enter` only
     if (num_tokens == 0) {
         query_state->state = HELP;
-        basic_command_info();
+        basic_command_info(NULL, 0);
         splitter.free(cmds, num_tokens);
         return;
     }
@@ -60,7 +146,7 @@ void check_commands(prompt_buf_t *prompt_buf, query_state_t *query_state) {
     }
     else if (strncmp(cmds[0], "help", 4) == 0) {
         query_state->state = HELP;
-        basic_command_info();
+        basic_command_info(NULL, 0);
     }
     // Create
     else if (strncmp(cmds[0], "create", 6) == 0) {
@@ -282,11 +368,12 @@ void check_commands(prompt_buf_t *prompt_buf, query_state_t *query_state) {
     else {
         query_state->state = UNDEFINED;
         fprintf(stderr, "Unrecognized command '%s' \n\n", prompt_buf->buf);
-        basic_command_info();
+        basic_command_info(NULL, 0);
     }
 
     splitter.free(cmds, num_tokens);
 }
+#endif
 
 const char* query_state_to_string(State_t state) {
     switch (state) {
@@ -307,6 +394,7 @@ const char* query_state_to_string(State_t state) {
 static void query_state_init(query_state_t *q) {
     q->state = INIT;
     q->args = NULL;
+    q->args_len = 0;
 }
 
 static void query_state_close(query_state_t *q) {

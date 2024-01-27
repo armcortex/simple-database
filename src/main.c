@@ -46,14 +46,14 @@ int main_app() {
         print_prompt();
         read_input(prompt_buf);
 
-        check_commands(prompt_buf, query_state);
+        parse_commands(prompt_buf, query_state);
         if (VERBOSE) {
             fprintf(stdout, "Current query state: %s\n",
                     query_state_to_string(query_state->state));
         }
+        execute_commands(query_state);
 
         if (query_state->state == EXIT) {
-            fprintf(stdout, "Bye Bye \n");
             break;
         }
     }
