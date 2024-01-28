@@ -16,14 +16,17 @@ extern "C" {
 #include <stdint.h>
 
 
-#define DB_ASSERT(x) \
-    do { \
-        if (!(x)) { \
-            fflush(stdout); \
-            fprintf(stderr, "DB_ASSERT: %s:%d: %s\n", __FILE__, __LINE__, #x); \
-            abort(); \
-        } \
+#define DB_ASSERT(x)                                                            \
+    do {                                                                        \
+if (!(x)) {                                                                     \
+            fflush(stdout);                                                     \
+            fprintf(stderr, "DB_ASSERT: %s:%d: %s\n", __FILE__, __LINE__, #x);  \
+            abort();                                                            \
+        }                                                                       \
     } while (0)
+
+#define CALC_ARRAY_SIZE(var, type)  (sizeof(var) / sizeof(type))
+
 
 
 typedef struct {

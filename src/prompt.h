@@ -27,6 +27,9 @@ typedef enum {
     HELP_SUB_HELP,
     HELP_SUB_A,
     HELP_SUB_B,
+    CREATE_SUB_HELP,
+    CREATE_SUB_DATABASE,
+    CREATE_SUB_TABLE,
     COUNT,
 } cmd_state_t;
 
@@ -43,6 +46,15 @@ typedef struct query_state_t {
     void (*init)(struct query_state_t *query_state);
     void (*close)(struct query_state_t *query_state);
 } query_state_t;
+
+
+typedef struct cmd_parse_t {
+    const char *s;
+    size_t s_len;
+    cmd_state_t state;
+    struct cmd_parse_t *sub_parse;
+    size_t sub_fn_cnt;
+} cmd_parse_t;
 
 typedef bool (*cmd_fn_cb_t)(char **args, size_t args_len);
 
