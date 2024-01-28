@@ -15,11 +15,25 @@
 #include "table.h"
 
 
+cmd_fn_t help_subcmd_fn_list[] = {
+        {HELP_SUB_HELP, basic_sub_help, NULL},
+        {HELP_SUB_A, basic_sub_a_fn, NULL},
+        {HELP_SUB_B, basic_sub_b_fn, NULL},
+};
+
+cmd_fn_t main_cmd_fn_list[] = {
+    {INIT, null_fn, NULL},
+    {HELP, basic_fn, help_subcmd_fn_list},
+};
+
+
+
+#if 0
 cmd_fn_t cmd_fn_list[] = {
         {INIT, null_fn},
-        {HELP, basic_command_info},
+        {HELP, basic_fn},
         {EXIT, exit_fn},
-        {CREATE, null_fn},
+        {CREATE, create_fn},
         {USE, null_fn},
         {DELETE, null_fn},
         {SELECT, null_fn},
@@ -27,6 +41,7 @@ cmd_fn_t cmd_fn_list[] = {
         {LIST, null_fn},
         {UNDEFINED, undefined_fn},
 };
+#endif
 
 void print_prompt() {
     const current_db_t *db = get_current_db();
@@ -79,6 +94,15 @@ void parse_commands(prompt_buf_t *prompt_buf, query_state_t *query_state) {
     // Help
     if (strncmp(cmds[0], "help", 4) == 0) {
         query_state->state = HELP;
+        if (cmds_len > 1 &&  strncmp(cmds[1], "a_fn", 4) == 0) {
+            query_state->sub_state = HELP_SUB_A;
+        }
+        else if (cmds_len > 1 && strncmp(cmds[1], "b_fn", 4) == 0) {
+            query_state->sub_state = HELP_SUB_B;
+        }
+        else {
+            query_state->sub_state = HELP_SUB_HELP;
+        }
     }
     // Exit
     else if (strncmp(cmds[0], "exit", 4) == 0) {
@@ -113,17 +137,26 @@ void parse_commands(prompt_buf_t *prompt_buf, query_state_t *query_state) {
         query_state->state = UNDEFINED;
     }
 
-
     // Free
     splitter.free(cmds, cmds_len);
 }
 
 void execute_commands(query_state_t *query_state) {
-    if (cmd_fn_list[query_state->state].state != query_state->state) {
+    if (main_cmd_fn_list[query_state->state].state != query_state->state) {
         DB_ASSERT(!"Command states not matched\n");
     }
 
-    cmd_fn_list[query_state->state].callback_fn(query_state->args, query_state->args_len);
+    cmd_fn_t *sub_fn = main_cmd_fn_list[query_state->state].sub_fn;
+    if (sub_fn) {
+        size_t fn_offset = query_state->sub_state - sub_fn[0].state;
+        sub_fn[fn_offset].callback_fn(query_state->args, query_state->args_len);
+    }
+    else {
+        main_cmd_fn_list[query_state->state].callback_fn(query_state->args, query_state->args_len);
+    }
+
+    // main_cmd_fn_list[query_state->state].callback_fn(query_state->args, query_state->args_len);
+    // TODO: How to recursive execute command(callback_fn) and sub-commands til the end
 }
 
 #if 0
@@ -135,7 +168,7 @@ void check_commands_del(prompt_buf_t *prompt_buf, query_state_t *query_state) {
     // `enter` only
     if (num_tokens == 0) {
         query_state->state = HELP;
-        basic_command_info(NULL, 0);
+        basic_command_info();
         splitter.free(cmds, num_tokens);
         return;
     }
@@ -146,7 +179,7 @@ void check_commands_del(prompt_buf_t *prompt_buf, query_state_t *query_state) {
     }
     else if (strncmp(cmds[0], "help", 4) == 0) {
         query_state->state = HELP;
-        basic_command_info(NULL, 0);
+        basic_command_info();
     }
     // Create
     else if (strncmp(cmds[0], "create", 6) == 0) {
@@ -368,14 +401,14 @@ void check_commands_del(prompt_buf_t *prompt_buf, query_state_t *query_state) {
     else {
         query_state->state = UNDEFINED;
         fprintf(stderr, "Unrecognized command '%s' \n\n", prompt_buf->buf);
-        basic_command_info(NULL, 0);
+        basic_command_info();
     }
 
     splitter.free(cmds, num_tokens);
 }
 #endif
 
-const char* query_state_to_string(State_t state) {
+const char* query_state_to_string(cmd_state_t state) {
     switch (state) {
         case INIT: return "INIT";
         case HELP: return "HELP";
@@ -393,6 +426,7 @@ const char* query_state_to_string(State_t state) {
 
 static void query_state_init(query_state_t *q) {
     q->state = INIT;
+    q->sub_state = INIT;
     q->args = NULL;
     q->args_len = 0;
 }

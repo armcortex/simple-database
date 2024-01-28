@@ -129,10 +129,38 @@ void table_data_insert_row_data(table_data_t *t, char **data, size_t data_len) {
     // t->row_len++;
 }
 
-bool basic_command_info(char **args, size_t args_len) {
+bool basic_fn(char **args, size_t args_len) {
     (void)args;
     (void)args_len;
 
+    return basic_command_info();
+}
+
+bool basic_sub_help(char **args, size_t args_len) {
+    (void)args;
+    (void)args_len;
+
+    fprintf(stdout, "This is basic_sub_help()\n");
+    return true;
+}
+
+bool basic_sub_a_fn(char **args, size_t args_len) {
+    (void)args;
+    (void)args_len;
+
+    fprintf(stdout, "This is basic_sub_a_fn()\n");
+    return true;
+}
+
+bool basic_sub_b_fn(char **args, size_t args_len) {
+    (void)args;
+    (void)args_len;
+
+    fprintf(stdout, "This is basic_sub_b_fn()\n");
+    return true;
+}
+
+bool basic_command_info() {
     fprintf(stdout, "All Support commands: \n");
     fprintf(stdout, "\t help: \n");
     fprintf(stdout, "\t exit: \n");
@@ -714,11 +742,9 @@ bool null_fn(char **args, size_t args_len) {
 }
 
 bool undefined_fn(char **args, size_t args_len) {
-    (void)args;
-    (void)args_len;
-
-    DB_ASSERT(!"Undefined Function.\n");
-    return false;
+    fprintf(stderr, "Unrecognized command\n\n");
+    basic_fn(args, args_len);
+    return true;
 }
 
 bool exit_fn(char **args, size_t args_len) {

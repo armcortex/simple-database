@@ -28,7 +28,12 @@ table_row_t* table_data_create_row_node(char **data, size_t len);
 void table_data_insert_row_data(table_data_t *t, char **data, size_t data_len);
 
 // Help info
-bool basic_command_info(char **args, size_t args_len);
+bool basic_fn(char **args, size_t args_len);
+bool basic_sub_help(char **args, size_t args_len);
+bool basic_sub_a_fn(char **args, size_t args_len);
+bool basic_sub_b_fn(char **args, size_t args_len);
+
+bool basic_command_info(void);
 void create_command_info(void);
 void delete_command_info(void);
 void use_command_info(void);

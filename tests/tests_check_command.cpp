@@ -109,6 +109,60 @@ TEST_CASE("Help command info", "[command]") {
     query_state->init(query_state);
     prompt_buf_t *prompt_buf = new_prompt_buf();
 
+    SECTION("Basic help command and sub-command 1") {
+        // Init
+        IORedirector redirector;
+
+        // Testing
+        cmd_str = "help\n";
+        query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
+        read_str = redirector.read_stdout();
+        ref_str = "This is basic_sub_help()\n";
+        res = compare_io_response_str(read_str, ref_str);
+        REQUIRE(res);
+    }
+
+    SECTION("Basic help command and sub-command 2") {
+        // Init
+        IORedirector redirector;
+
+        // Testing
+        cmd_str = "help a_fn\n";
+        query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
+        read_str = redirector.read_stdout();
+        ref_str = "This is basic_sub_a_fn()\n";
+        res = compare_io_response_str(read_str, ref_str);
+        REQUIRE(res);
+    }
+
+    SECTION("Basic help command and sub-command 3") {
+        // Init
+        IORedirector redirector;
+
+        // Testing
+        cmd_str = "help b_fn\n";
+        query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
+        read_str = redirector.read_stdout();
+        ref_str = "This is basic_sub_b_fn()\n";
+        res = compare_io_response_str(read_str, ref_str);
+        REQUIRE(res);
+    }
+
+    SECTION("Basic help command and sub-command 4") {
+        // Init
+        IORedirector redirector;
+
+        // Testing
+        cmd_str = "help b_fb\n";
+        query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
+        read_str = redirector.read_stdout();
+        ref_str = "This is basic_sub_help()\n";
+        res = compare_io_response_str(read_str, ref_str);
+        REQUIRE(res);
+    }
+
+
+#if 0
     SECTION("Basic help command") {
         // Init
         IORedirector redirector;
@@ -199,7 +253,7 @@ TEST_CASE("Help command info", "[command]") {
         res = compare_io_response_str(read_str, ref_str);
         REQUIRE(res);
     }
-
+#endif
     // Close
     free_prompt_buf(prompt_buf);
     query_state->close(query_state);

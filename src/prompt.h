@@ -24,8 +24,18 @@ typedef enum {
     INSERT,
     LIST,
     UNDEFINED,
+    HELP_SUB_HELP,
+    HELP_SUB_A,
+    HELP_SUB_B,
     COUNT,
-} State_t;
+} cmd_state_t;
+
+#if 0
+typedef enum {
+    HELP_SUB_A,
+    HELP_SUB_B,
+} state_help_t;
+#endif
 
 typedef struct {
     char *buf;
@@ -33,16 +43,21 @@ typedef struct {
 } prompt_buf_t;
 
 typedef struct query_state_t {
-    State_t state;
+    cmd_state_t state;
+    cmd_state_t sub_state;
     char **args;
     size_t args_len;
     void (*init)(struct query_state_t *query_state);
     void (*close)(struct query_state_t *query_state);
 } query_state_t;
 
+typedef bool (*cmd_fn_cb_t)(char **args, size_t args_len);
+
 typedef struct cmd_fn_t {
-    State_t state;
-    bool (*callback_fn)(char **args, size_t args_len);
+    cmd_state_t state;
+    // bool (*callback_fn)(char **args, size_t args_len);
+    cmd_fn_cb_t callback_fn;
+    struct cmd_fn_t *sub_fn;
 } cmd_fn_t;
 
 
@@ -50,7 +65,7 @@ void print_prompt(void);
 prompt_buf_t* new_prompt_buf(void);
 void free_prompt_buf(prompt_buf_t *prompt_buf);
 
-const char* query_state_to_string(State_t state);
+const char* query_state_to_string(cmd_state_t state);
 void parse_commands(prompt_buf_t *prompt_buf, query_state_t *query_state);
 void execute_commands(query_state_t *query_state);
 
