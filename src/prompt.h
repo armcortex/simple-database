@@ -30,13 +30,6 @@ typedef enum {
     COUNT,
 } cmd_state_t;
 
-#if 0
-typedef enum {
-    HELP_SUB_A,
-    HELP_SUB_B,
-} state_help_t;
-#endif
-
 typedef struct {
     char *buf;
     size_t len;
@@ -55,7 +48,6 @@ typedef bool (*cmd_fn_cb_t)(char **args, size_t args_len);
 
 typedef struct cmd_fn_t {
     cmd_state_t state;
-    // bool (*callback_fn)(char **args, size_t args_len);
     cmd_fn_cb_t callback_fn;
     struct cmd_fn_t *sub_fn;
 } cmd_fn_t;

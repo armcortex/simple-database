@@ -154,9 +154,6 @@ void execute_commands(query_state_t *query_state) {
     else {
         main_cmd_fn_list[query_state->state].callback_fn(query_state->args, query_state->args_len);
     }
-
-    // main_cmd_fn_list[query_state->state].callback_fn(query_state->args, query_state->args_len);
-    // TODO: How to recursive execute command(callback_fn) and sub-commands til the end
 }
 
 #if 0
