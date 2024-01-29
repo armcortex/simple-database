@@ -386,26 +386,27 @@ TEST_CASE("Create command", "[command]") {
         REQUIRE_FALSE(fileExists);
     }
 
-#if 0
-    SECTION("Create table") {
+    SECTION("Create table 1: wrong, not use `USE` command") {
         // Init
         IORedirector redirector;
 
         // Testing
-        cmd_str = "create non_exist_cmd\n";
+        cmd_str = "create table " + table_name + " name STRING age INT height FLOAT \n";
         query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
         read_str = redirector.read_stdout();
         read_err_str = redirector.read_stderr();
 
-        ref_str = "This is basic_sub_help()\n";
+        ref_str = "";
         res = compare_io_response_str(read_str, ref_str);
         REQUIRE(res);
 
-        ref_err_str = "";
+        ref_err_str = "Error: Don't know what database to use, please use `USE` command to select database first \n";
         res = compare_io_response_str(read_err_str, ref_err_str);
         REQUIRE(res);
+
+        fileExists = std::filesystem::exists(table_file_path);
+        REQUIRE_FALSE(fileExists);
     }
-#endif
 
     // Close
     free_prompt_buf(prompt_buf);

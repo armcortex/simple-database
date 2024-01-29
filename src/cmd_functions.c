@@ -319,7 +319,7 @@ void add_database_new_table(const char *db_filename, cJSON *new_table) {
     // Write json back to the file
     FILE *file = fopen(db_filename, "w");
     if (file == NULL) {
-        fprintf(stderr, "Failed to open database file:: %s\n", db_filename);
+        fprintf(stderr, "Failed to open database file: %s\n", db_filename);
         cJSON_Delete(json);
         DB_ASSERT(0);
     }
@@ -338,6 +338,31 @@ void delete_database(const char *filename) {
     else {
         fprintf(stdout, "Delete database: %s \n", filename);
     }
+}
+
+bool create_table_fn(char **args, size_t args_len) {
+    (void)args;
+    (void)args_len;
+
+    const current_db_t *curr_db = get_current_db();
+    if (curr_db->len == 0) {
+        fprintf(stderr, "Error: Don't know what database to use, please use `USE` command to select database first \n");
+        return false;
+    }
+    // Make sure command contain `create table table_name` and `column_name + type` pair
+    else if ((args_len < 4) || ((args_len-2) % 2 != 0)) {
+        fprintf(stderr, "Error: Argument not enough: (<column name> <column type> ...)");
+        create_command_info();
+        return false;
+    }
+    else {
+        char table_filename_full[PATH_MAX] = {0};
+        snprintf(table_filename_full, PATH_MAX, "%s/%s/%s.csv", WORKSPACE_PATH_FULL, curr_db->name, args[1]);
+        create_table(table_filename_full, args[1], &args[2], args_len-2);
+        fprintf(stdout, "Create table at: %s \n", table_filename_full);
+    }
+
+    return true;
 }
 
 void create_table(const char *filename_path, const char *filename, char **args, size_t len) {

@@ -47,7 +47,7 @@ static cmd_fn_t help_subcmd_fn_list[] = {
 static cmd_fn_t create_subcmd_fn_list[] = {
     {CREATE_SUB_HELP, create_database_help_fn, NULL},
     {CREATE_SUB_DATABASE, create_database_fn, NULL},
-    {CREATE_SUB_TABLE, NULL, NULL},
+    {CREATE_SUB_TABLE, create_table_fn, NULL},
 };
 
 // Data order must be same as cmd_state_t

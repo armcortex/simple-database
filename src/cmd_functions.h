@@ -49,6 +49,7 @@ void create_database_meta(const char *name);
 void add_database_new_table(const char *db_filename, cJSON *new_table);
 
 // Create Table command
+bool create_table_fn(char **args, size_t args_len);
 void create_table(const char *filename_path, const char *filename, char **args, size_t len);
 cJSON *create_table_json(const char *name, char **args, size_t len);
 
