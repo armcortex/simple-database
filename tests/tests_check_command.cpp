@@ -265,8 +265,21 @@ TEST_CASE("Create command", "[command]") {
     std::string cmd_str;
     std::string query_res;
     std::string read_str;
+    std::string read_err_str;
     std::string ref_str;
+    std::string ref_err_str;
+    bool fileExists;
     bool res;
+
+    const std::string db_name = "my_db";
+    const std::string db_folder = WORKSPACE_PATH_FULL "/" + db_name + "/";
+    const std::string db_file_path = WORKSPACE_PATH_FULL "/" + db_name + "/" + db_name + ".json";
+
+    const std::string table_name = "my_table";
+    const std::string table_file_path = db_folder + table_name + ".csv";
+
+    const std::string not_exist_db_name = "not_exist_db";
+
 
     // Init
     query_state_t *query_state = query_state_construct();
@@ -312,20 +325,47 @@ TEST_CASE("Create command", "[command]") {
         REQUIRE(res);
     }
 
-#if 0
-    SECTION("Create database") {
+    SECTION("Create database 1: correct") {
         // Init
         IORedirector redirector;
 
         // Testing
-        cmd_str = "create non_exist_cmd\n";
+        cmd_str = "create database " + db_name + "\n";
         query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
         read_str = redirector.read_stdout();
-        ref_str = "This is basic_sub_help()\n";
+        ref_str = "Create database at: ../DB_DATA/my_db/my_db.json \n";
         res = compare_io_response_str(read_str, ref_str);
         REQUIRE(res);
+
+        fileExists = std::filesystem::exists(db_file_path);
+        remove(db_file_path.c_str());
+        remove_folder(db_folder.c_str());
+        REQUIRE(fileExists);
     }
 
+    SECTION("Create database 2: wrong argument count") {
+        // Init
+        IORedirector redirector;
+
+        // Testing
+        cmd_str = "create database " + db_name + " wrong_arg\n";
+        query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
+        read_str = redirector.read_stdout();
+        read_err_str = redirector.read_stderr();
+
+        ref_str = "Create sub-commands: \n\t database <database name> \n\t table <table name> (<column name> <column type> ...) \n";
+        res = compare_io_response_str(read_str, ref_str);
+        REQUIRE(res);
+
+        ref_err_str = "Wrong arguments\n";
+        res = compare_io_response_str(read_err_str, ref_err_str);
+        REQUIRE(res);
+
+        fileExists = std::filesystem::exists(db_file_path);
+        REQUIRE_FALSE(fileExists);
+    }
+
+#if 0
     SECTION("Create table") {
         // Init
         IORedirector redirector;

@@ -213,6 +213,22 @@ bool create_database_fn(char **args, size_t args_len) {
     (void)args;
     (void)args_len;
 
+    if (args_len != 2) {
+        fprintf(stderr, "Wrong arguments\n");
+        create_command_info();
+        return false;
+    }
+
+    char db_foldername_full[PATH_MAX] = {0};
+    snprintf(db_foldername_full, PATH_MAX, "%s/%s", WORKSPACE_PATH_FULL, args[1]);
+    create_folder(db_foldername_full);
+
+    // Create database file
+    char db_filename_full[PATH_MAX] = {0};
+    snprintf(db_filename_full, PATH_MAX, "%s/%s/%s.json", WORKSPACE_PATH_FULL, args[1], args[1]);
+    create_database(db_filename_full);
+    fprintf(stdout, "Create database at: %s \n", db_filename_full);
+
     return true;
 }
 
