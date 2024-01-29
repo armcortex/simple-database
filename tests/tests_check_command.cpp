@@ -109,7 +109,7 @@ TEST_CASE("Help command info", "[command]") {
     query_state->init(query_state);
     prompt_buf_t *prompt_buf = new_prompt_buf();
 
-    SECTION("Basic help command and sub-command 1") {
+    SECTION("Help info 1: without sub-command") {
         // Init
         IORedirector redirector;
 
@@ -122,7 +122,7 @@ TEST_CASE("Help command info", "[command]") {
         REQUIRE(res);
     }
 
-    SECTION("Basic help command and sub-command 2") {
+    SECTION("Help info 2: correct sub-command (a_fn)") {
         // Init
         IORedirector redirector;
 
@@ -135,7 +135,7 @@ TEST_CASE("Help command info", "[command]") {
         REQUIRE(res);
     }
 
-    SECTION("Basic help command and sub-command 3") {
+    SECTION("Help info 3: correct sub-command (b_fn)") {
         // Init
         IORedirector redirector;
 
@@ -148,7 +148,7 @@ TEST_CASE("Help command info", "[command]") {
         REQUIRE(res);
     }
 
-    SECTION("Basic help command and sub-command 4") {
+    SECTION("Help info 4: wrong sub-command") {
         // Init
         IORedirector redirector;
 
@@ -259,6 +259,91 @@ TEST_CASE("Help command info", "[command]") {
     query_state->close(query_state);
 }
 
+TEST_CASE("Create command", "[command]") {
+    setvbuf(stdout, nullptr, _IONBF, 0);
+
+    std::string cmd_str;
+    std::string query_res;
+    std::string read_str;
+    std::string ref_str;
+    bool res;
+
+    // Init
+    query_state_t *query_state = query_state_construct();
+    query_state->init(query_state);
+    prompt_buf_t *prompt_buf = new_prompt_buf();
+
+    SECTION("Create help info 1: without sub-command") {
+        // Init
+        IORedirector redirector;
+
+        // Testing
+        cmd_str = "create\n";
+        query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
+        read_str = redirector.read_stdout();
+        ref_str = "Create sub-commands: \n\t database <database name> \n\t table <table name> (<column name> <column type> ...) \n";
+        res = compare_io_response_str(read_str, ref_str);
+        REQUIRE(res);
+    }
+
+    SECTION("Create help info 2: correct sub-command") {
+        // Init
+        IORedirector redirector;
+
+        // Testing
+        cmd_str = "create help\n";
+        query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
+        read_str = redirector.read_stdout();
+        ref_str = "Create sub-commands: \n\t database <database name> \n\t table <table name> (<column name> <column type> ...) \n";
+        res = compare_io_response_str(read_str, ref_str);
+        REQUIRE(res);
+    }
+
+    SECTION("Create help info 3: wrong sub-command") {
+        // Init
+        IORedirector redirector;
+
+        // Testing
+        cmd_str = "create non_exist_cmd\n";
+        query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
+        read_str = redirector.read_stdout();
+        ref_str = "Create sub-commands: \n\t database <database name> \n\t table <table name> (<column name> <column type> ...) \n";
+        res = compare_io_response_str(read_str, ref_str);
+        REQUIRE(res);
+    }
+
+#if 0
+    SECTION("Create database") {
+        // Init
+        IORedirector redirector;
+
+        // Testing
+        cmd_str = "create non_exist_cmd\n";
+        query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
+        read_str = redirector.read_stdout();
+        ref_str = "This is basic_sub_help()\n";
+        res = compare_io_response_str(read_str, ref_str);
+        REQUIRE(res);
+    }
+
+    SECTION("Create table") {
+        // Init
+        IORedirector redirector;
+
+        // Testing
+        cmd_str = "create non_exist_cmd\n";
+        query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
+        read_str = redirector.read_stdout();
+        ref_str = "This is basic_sub_help()\n";
+        res = compare_io_response_str(read_str, ref_str);
+        REQUIRE(res);
+    }
+#endif
+
+    // Close
+    free_prompt_buf(prompt_buf);
+    query_state->close(query_state);
+}
 
 TEST_CASE("Commands behavior", "[command]") {
     setvbuf(stdout, nullptr, _IONBF, 0);

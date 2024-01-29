@@ -12,6 +12,7 @@
 #include <regex>
 
 
+// Need to declare IORedirector variable inside Catch2 SECTION, otherwise it'll not show message correctly
 class IORedirector {
 private:
     int pipefd_stdin[2];

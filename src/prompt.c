@@ -45,14 +45,16 @@ static cmd_fn_t help_subcmd_fn_list[] = {
 };
 
 static cmd_fn_t create_subcmd_fn_list[] = {
-    {CREATE_SUB_HELP, NULL, NULL},
-    {CREATE_SUB_DATABASE, NULL, NULL},
+    {CREATE_SUB_HELP, create_database_help_fn, NULL},
+    {CREATE_SUB_DATABASE, create_database_fn, NULL},
     {CREATE_SUB_TABLE, NULL, NULL},
 };
 
+// Data order must be same as cmd_state_t
 static cmd_fn_t main_cmd_fn_list[] = {
     {INIT, null_fn, NULL},
     {HELP, basic_fn, help_subcmd_fn_list},
+    {EXIT, NULL, NULL},
     {CREATE, NULL, create_subcmd_fn_list},
 };
 
@@ -121,15 +123,16 @@ void parse_commands(prompt_buf_t *prompt_buf, query_state_t *query_state) {
         }
     }
 
+    // calc basic command state
+    // TODO: refactor here, can be better
     query_state->state = UNDEFINED;
-    size_t cmd_cnt = sizeof(parse_basic_cmd_list) / sizeof(cmd_parse_t);
-    cmd_parse_t cmd_tmp;
+    size_t cmd_cnt = CALC_ARRAY_SIZE(parse_basic_cmd_list, cmd_parse_t);
     for (size_t i=0; i<cmd_cnt; i++) {
-        cmd_tmp = parse_basic_cmd_list[i];
-
+        cmd_parse_t cmd_tmp = parse_basic_cmd_list[i];
         if ((cmds_len > 0) && (strncmp(cmds[0], cmd_tmp.s, cmd_tmp.s_len) == 0)) {
             query_state->state = cmd_tmp.state;
 
+            // calc sub-command state
             if (cmd_tmp.sub_parse != NULL) {
                 cmd_parse_t *sub_fns = cmd_tmp.sub_parse;
                 query_state->sub_state = sub_fns[0].state;

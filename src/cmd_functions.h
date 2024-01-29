@@ -33,7 +33,7 @@ bool basic_sub_help(char **args, size_t args_len);
 bool basic_sub_a_fn(char **args, size_t args_len);
 bool basic_sub_b_fn(char **args, size_t args_len);
 
-bool basic_command_info(void);
+void basic_command_info(void);
 void create_command_info(void);
 void delete_command_info(void);
 void use_command_info(void);
@@ -42,6 +42,8 @@ void select_command_info(void);
 void list_command_info(void);
 
 // Create database command
+bool create_database_help_fn(char **args, size_t args_len);
+bool create_database_fn(char **args, size_t args_len);
 void create_database(const char *name);
 void create_database_meta(const char *name);
 void add_database_new_table(const char *db_filename, cJSON *new_table);

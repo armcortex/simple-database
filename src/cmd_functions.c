@@ -117,7 +117,6 @@ table_row_t* table_data_create_row_node(char **data, size_t len) {
 void table_data_insert_row_data(table_data_t *t, char **data, size_t data_len) {
     if (t->rows == NULL) {
         t->rows = table_data_create_row_node(data, data_len);
-        // t->row_len = 1;
         return;
     }
 
@@ -126,14 +125,14 @@ void table_data_insert_row_data(table_data_t *t, char **data, size_t data_len) {
         last = last->next;
     }
     last->next = table_data_create_row_node(data, data_len);
-    // t->row_len++;
 }
 
 bool basic_fn(char **args, size_t args_len) {
     (void)args;
     (void)args_len;
 
-    return basic_command_info();
+    basic_command_info();
+    return true;
 }
 
 bool basic_sub_help(char **args, size_t args_len) {
@@ -160,7 +159,7 @@ bool basic_sub_b_fn(char **args, size_t args_len) {
     return true;
 }
 
-bool basic_command_info() {
+void basic_command_info() {
     fprintf(stdout, "All Support commands: \n");
     fprintf(stdout, "\t help: \n");
     fprintf(stdout, "\t exit: \n");
@@ -169,7 +168,6 @@ bool basic_command_info() {
     fprintf(stdout, "\t delete: \n");
     fprintf(stdout, "\t select: \n");
     fprintf(stdout, "\t list: \n");
-    return true;
 }
 
 void create_command_info() {
@@ -201,6 +199,21 @@ void list_command_info(void) {
     fprintf(stdout, "List sub-commands: \n");
     fprintf(stdout, "\t database <database_name> \n");
     fprintf(stdout, "\t table <table_name> \n");
+}
+
+bool create_database_help_fn(char **args, size_t args_len) {
+    (void)args;
+    (void)args_len;
+
+    create_command_info();
+    return true;
+}
+
+bool create_database_fn(char **args, size_t args_len) {
+    (void)args;
+    (void)args_len;
+
+    return true;
 }
 
 void create_database(const char *filename) {
