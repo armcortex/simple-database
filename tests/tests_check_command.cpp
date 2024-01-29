@@ -278,9 +278,6 @@ TEST_CASE("Create command", "[command]") {
     const std::string table_name = "my_table";
     const std::string table_file_path = db_folder + table_name + ".csv";
 
-    const std::string not_exist_db_name = "not_exist_db";
-
-
     // Init
     query_state_t *query_state = query_state_construct();
     query_state->init(query_state);
@@ -294,8 +291,14 @@ TEST_CASE("Create command", "[command]") {
         cmd_str = "create\n";
         query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
         read_str = redirector.read_stdout();
+        read_err_str = redirector.read_stderr();
+
         ref_str = "Create sub-commands: \n\t database <database name> \n\t table <table name> (<column name> <column type> ...) \n";
         res = compare_io_response_str(read_str, ref_str);
+        REQUIRE(res);
+
+        ref_err_str = "";
+        res = compare_io_response_str(read_err_str, ref_err_str);
         REQUIRE(res);
     }
 
@@ -307,8 +310,14 @@ TEST_CASE("Create command", "[command]") {
         cmd_str = "create help\n";
         query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
         read_str = redirector.read_stdout();
+        read_err_str = redirector.read_stderr();
+
         ref_str = "Create sub-commands: \n\t database <database name> \n\t table <table name> (<column name> <column type> ...) \n";
         res = compare_io_response_str(read_str, ref_str);
+        REQUIRE(res);
+
+        ref_err_str = "";
+        res = compare_io_response_str(read_err_str, ref_err_str);
         REQUIRE(res);
     }
 
@@ -320,8 +329,14 @@ TEST_CASE("Create command", "[command]") {
         cmd_str = "create non_exist_cmd\n";
         query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
         read_str = redirector.read_stdout();
+        read_err_str = redirector.read_stderr();
+
         ref_str = "Create sub-commands: \n\t database <database name> \n\t table <table name> (<column name> <column type> ...) \n";
         res = compare_io_response_str(read_str, ref_str);
+        REQUIRE(res);
+
+        ref_err_str = "";
+        res = compare_io_response_str(read_err_str, ref_err_str);
         REQUIRE(res);
     }
 
@@ -333,8 +348,14 @@ TEST_CASE("Create command", "[command]") {
         cmd_str = "create database " + db_name + "\n";
         query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
         read_str = redirector.read_stdout();
+        read_err_str = redirector.read_stderr();
+
         ref_str = "Create database at: ../DB_DATA/my_db/my_db.json \n";
         res = compare_io_response_str(read_str, ref_str);
+        REQUIRE(res);
+
+        ref_err_str = "";
+        res = compare_io_response_str(read_err_str, ref_err_str);
         REQUIRE(res);
 
         fileExists = std::filesystem::exists(db_file_path);
@@ -374,8 +395,14 @@ TEST_CASE("Create command", "[command]") {
         cmd_str = "create non_exist_cmd\n";
         query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
         read_str = redirector.read_stdout();
+        read_err_str = redirector.read_stderr();
+
         ref_str = "This is basic_sub_help()\n";
         res = compare_io_response_str(read_str, ref_str);
+        REQUIRE(res);
+
+        ref_err_str = "";
+        res = compare_io_response_str(read_err_str, ref_err_str);
         REQUIRE(res);
     }
 #endif
