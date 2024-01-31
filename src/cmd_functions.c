@@ -333,6 +333,35 @@ void add_database_new_table(const char *db_filename, cJSON *new_table) {
     cJSON_Delete(json);
 }
 
+bool delete_help_fn(char **args, size_t args_len) {
+    (void)args;
+    (void)args_len;
+
+    delete_command_info();
+    return true;
+}
+
+bool delete_database_fn(char **args, size_t args_len) {
+    (void)args_len;
+
+    // Delete database file
+    char db_filename_full[PATH_MAX] = {0};
+    snprintf(db_filename_full, PATH_MAX, "%s/%s/%s.json", WORKSPACE_PATH_FULL, args[1], args[1]);
+    delete_database(db_filename_full);
+
+    // Delete folder
+    char db_foldername_full[PATH_MAX] = {0};
+    snprintf(db_foldername_full, PATH_MAX, "%s/%s", WORKSPACE_PATH_FULL, args[1]);
+
+    delete_table_all(db_foldername_full);
+    remove_folder(db_foldername_full);
+
+    // clean buffer
+    clean_current_db();
+
+    return true;
+}
+
 void delete_database(const char *filename) {
     if (remove(filename) != 0) {
         fprintf(stderr, "Failed to delete database: %s \n", filename);

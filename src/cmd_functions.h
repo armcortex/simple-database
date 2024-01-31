@@ -64,6 +64,8 @@ void insert_table_data(const char *filename_path, const char *table_name, char *
 void insert_table_update_database_meta(const char *db_filename, const char *table_name, size_t data_update_cnt);
 
 // Delete command
+bool delete_help_fn(char **args, size_t args_len);
+bool delete_database_fn(char **args, size_t args_len);
 void delete_database(const char *name);
 void delete_table(const char *name);
 void delete_table_all(const char *db_base_path);

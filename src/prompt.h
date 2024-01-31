@@ -32,6 +32,8 @@ typedef enum {
     CREATE_SUB_DATABASE,
     CREATE_SUB_TABLE,
     USE_SUB_HELP,
+    DELETE_SUB_HELP,
+    DELETE_SUB_DATABASE,
     COUNT,
 } cmd_state_t;
 

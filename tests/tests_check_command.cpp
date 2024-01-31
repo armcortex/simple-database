@@ -594,6 +594,120 @@ TEST_CASE("Use command", "[command]") {
     query_state->close(query_state);
 }
 
+TEST_CASE("Delete command", "[command]") {
+    setvbuf(stdout, nullptr, _IONBF, 0);
+
+    std::string cmd_str;
+    std::string query_res;
+    std::string read_str;
+    std::string read_err_str;
+    std::string ref_str;
+    std::string ref_err_str;
+    bool fileExists;
+    bool res;
+
+    const std::string db_name = "my_db";
+    const std::string db_folder = WORKSPACE_PATH_FULL "/" + db_name + "/";
+    const std::string db_file_path = WORKSPACE_PATH_FULL "/" + db_name + "/" + db_name + ".json";
+
+    const std::string table_name = "my_table";
+    const std::string table_file_path = db_folder + table_name + ".csv";
+
+    const std::string not_exist_db_name = "not_exist_db";
+
+    // Init
+    query_state_t *query_state = query_state_construct();
+    query_state->init(query_state);
+    prompt_buf_t *prompt_buf = new_prompt_buf();
+
+    SECTION("Delete help info 1: without sub-command") {
+        // Init
+        IORedirector redirector;
+
+        // Testing
+        cmd_str = "delete\n";
+        query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
+        read_str = redirector.read_stdout();
+        read_err_str = redirector.read_stderr();
+
+        ref_str = "Delete sub-commands: \n\t database <database name> \n\t table <table name> \n";
+        res = compare_io_response_str(read_str, ref_str);
+        REQUIRE(res);
+
+        ref_err_str = "";
+        res = compare_io_response_str(read_err_str, ref_err_str);
+        REQUIRE(res);
+    }
+
+    SECTION("Delete help info 2: correct sub-command") {
+        // Init
+        IORedirector redirector;
+
+        // Testing
+        cmd_str = "delete -help\n";
+        query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
+        read_str = redirector.read_stdout();
+        read_err_str = redirector.read_stderr();
+
+        ref_str = "Delete sub-commands: \n\t database <database name> \n\t table <table name> \n";
+        res = compare_io_response_str(read_str, ref_str);
+        REQUIRE(res);
+
+        ref_err_str = "";
+        res = compare_io_response_str(read_err_str, ref_err_str);
+        REQUIRE(res);
+    }
+
+    SECTION("Delete help info 3: correct sub-command") {
+        // Init
+        IORedirector redirector;
+
+        // Testing
+        cmd_str = "delete -h\n";
+        query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
+        read_str = redirector.read_stdout();
+        read_err_str = redirector.read_stderr();
+
+        ref_str = "Delete sub-commands: \n\t database <database name> \n\t table <table name> \n";
+        res = compare_io_response_str(read_str, ref_str);
+        REQUIRE(res);
+
+        ref_err_str = "";
+        res = compare_io_response_str(read_err_str, ref_err_str);
+        REQUIRE(res);
+    }
+
+    SECTION("Delete command 1: correct delete database") {
+        // Init
+        IORedirector redirector;
+
+        cmd_str = "create -database " + db_name + "\n";
+        query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
+        redirector.flush();
+
+        // Testing
+        cmd_str = "delete -database " + db_name + "\n";
+        query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
+        read_str = redirector.read_stdout();
+        read_err_str = redirector.read_stderr();
+
+        ref_str = "Delete database: ../DB_DATA/my_db/my_db.json \n";
+        res = compare_io_response_str(read_str, ref_str);
+        REQUIRE(res);
+
+        ref_err_str = "";
+        res = compare_io_response_str(read_err_str, ref_err_str);
+        REQUIRE(res);
+
+        fileExists = std::filesystem::exists(db_file_path);
+        REQUIRE_FALSE(fileExists);
+    }
+
+    // Close
+    free_prompt_buf(prompt_buf);
+    query_state->close(query_state);
+}
+
 TEST_CASE("Commands behavior", "[command]") {
     setvbuf(stdout, nullptr, _IONBF, 0);
 
@@ -627,13 +741,13 @@ TEST_CASE("Commands behavior", "[command]") {
 
         //Testing
         // Check create database file ok
-        cmd_str = "create database " + db_name + "\n";
+        cmd_str = "create -database " + db_name + "\n";
         query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
         fileExists = std::filesystem::exists(db_file_path);
         REQUIRE(fileExists);
 
         // Check delete database file ok
-        cmd_str = "delete database " + db_name + "\n";
+        cmd_str = "delete -database " + db_name + "\n";
         query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
         fileExists = std::filesystem::exists(db_file_path);
         REQUIRE_FALSE(fileExists);
@@ -645,7 +759,7 @@ TEST_CASE("Commands behavior", "[command]") {
 
         // Create database
         redirector.flush();
-        cmd_str = "create database " + db_name + "\n";
+        cmd_str = "create -database " + db_name + "\n";
         query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
 
 
@@ -653,14 +767,14 @@ TEST_CASE("Commands behavior", "[command]") {
         // Not using `USE` command
         // Create table
         redirector.flush();
-        cmd_str = "create table " + table_name + "\n";
+        cmd_str = "create -table " + table_name + "\n";
         query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
         fileExists = std::filesystem::exists(table_file_path);
         REQUIRE_FALSE(fileExists);
 
         // Check not using 'USE` response
         read_str = redirector.read_stderr();
-        ref_str = "Don't know what database to use, please use `USE` command to select database first \n";
+        ref_str = "Error: Don't know what database to use, please use `USE` command to select database first \n";
         res = compare_io_response_str(read_str, ref_str);
         REQUIRE(res);
 
@@ -672,33 +786,33 @@ TEST_CASE("Commands behavior", "[command]") {
         // Testing
         // Create table , not enough arguments
         redirector.flush();
-        cmd_str = "create table " + table_name + "\n";
+        cmd_str = "create -table " + table_name + "\n";
         query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
         fileExists = std::filesystem::exists(table_file_path);
         REQUIRE_FALSE(fileExists);
 
         // Check `create table` command output string
         read_str = redirector.read_stderr();
-        ref_str = "argument not enough: (<column name> <column type> ...)";
+        ref_str = "Error: Argument not enough: (<column name> <column type> ...)";
         res = compare_io_response_str(read_str, ref_str);
         REQUIRE(res);
 
         // Create table , arguments is not pair
         redirector.flush();
-        cmd_str = "create table " + table_name + " name STRING age \n";
+        cmd_str = "create -table " + table_name + " name STRING age \n";
         query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
         fileExists = std::filesystem::exists(table_file_path);
         REQUIRE_FALSE(fileExists);
 
         // Check `create table` command output string
         read_str = redirector.read_stderr();
-        ref_str = "argument not enough: (<column name> <column type> ...)";
+        ref_str = "Error: Argument not enough: (<column name> <column type> ...)";
         res = compare_io_response_str(read_str, ref_str);
         REQUIRE(res);
 
         // Create table, enough arguments
         redirector.flush();
-        cmd_str = "create table " + table_name + " name STRING age INT height FLOAT \n";
+        cmd_str = "create -table " + table_name + " name STRING age INT height FLOAT \n";
         query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
         fileExists = std::filesystem::exists(table_file_path);
         REQUIRE(fileExists);
@@ -711,7 +825,7 @@ TEST_CASE("Commands behavior", "[command]") {
 
         // Delete database, all tables will be deleted as well
         redirector.flush();
-        cmd_str = "delete database " + db_name + "\n";
+        cmd_str = "delete -database " + db_name + "\n";
         query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
         fileExists = std::filesystem::exists(db_folder);
         REQUIRE_FALSE(fileExists);
@@ -725,7 +839,7 @@ TEST_CASE("Commands behavior", "[command]") {
         // Create database
         // Check `CREATE` command output string
         redirector.flush();
-        cmd_str = "create database " + db_name + "\n";
+        cmd_str = "create -database " + db_name + "\n";
         query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
         read_str = redirector.read_stdout();
         ref_str = "Create database at: ../DB_DATA/my_db/my_db.json \n";
