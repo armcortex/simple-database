@@ -175,13 +175,14 @@ TEST_CASE("Help command info", "[command]") {
         res = compare_io_response_str(read_str, ref_str);
         REQUIRE(res);
     }
+#endif
 
     SECTION("Create help command") {
         // Init
         IORedirector redirector;
 
         // Testing
-        cmd_str = "create help\n";
+        cmd_str = "create -help\n";
         query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
         read_str = redirector.read_stdout();
         ref_str = "Create sub-commands: \n\t database <database name> \n\t table <table name> (<column name> <column type> ...) \n";
@@ -194,7 +195,7 @@ TEST_CASE("Help command info", "[command]") {
         IORedirector redirector;
 
         // Testing
-        cmd_str = "delete help\n";
+        cmd_str = "delete -help\n";
         query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
         read_str = redirector.read_stdout();
         ref_str = "Delete sub-commands: \n\t database <database name> \n\t table <table name> \n";
@@ -207,7 +208,7 @@ TEST_CASE("Help command info", "[command]") {
         IORedirector redirector;
 
         // Testing
-        cmd_str = "use help\n";
+        cmd_str = "use -help\n";
         query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
         read_str = redirector.read_stdout();
         ref_str = "Use sub-commands: \n\t <database name> \n";
@@ -215,6 +216,7 @@ TEST_CASE("Help command info", "[command]") {
         REQUIRE(res);
     }
 
+#if 0
     SECTION("Insert help command") {
         // Init
         IORedirector redirector;
@@ -254,6 +256,7 @@ TEST_CASE("Help command info", "[command]") {
         REQUIRE(res);
     }
 #endif
+
     // Close
     free_prompt_buf(prompt_buf);
     query_state->close(query_state);
