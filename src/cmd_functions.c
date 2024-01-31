@@ -417,9 +417,6 @@ bool use_fn(char **args, size_t args_len) {
     (void)args;
     (void)args_len;
 
-    // fprintf(stdout, "Execute USE cmd \n");
-
-#if 1
     char db_folder_full[PATH_MAX] = {0};
     char db_filename_full[PATH_MAX] = {0};
     snprintf(db_folder_full, PATH_MAX, "%s/%s", WORKSPACE_PATH_FULL, args[0]);
@@ -433,7 +430,7 @@ bool use_fn(char **args, size_t args_len) {
         const current_db_t *db = get_current_db();
         fprintf(stdout, "Using database: %s \n", db->name);
     }
-#endif
+
     return true;
 }
 
@@ -834,7 +831,7 @@ bool null_fn(char **args, size_t args_len) {
     (void)args;
     (void)args_len;
 
-    DB_ASSERT(!"Null Function.\n");
+    DB_ASSERT(!"No Implementation.\n");
     return false;
 }
 

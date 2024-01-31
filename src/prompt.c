@@ -46,13 +46,11 @@ static cmd_parse_t parse_basic_cmd_list[] = {
 
 
 // Execute function pointer
-#if 1
 static cmd_fn_t help_subcmd_fn_list[] = {
     {HELP_SUB_HELP, basic_sub_help, NULL},
     {HELP_SUB_A, basic_sub_a_fn, NULL},
     {HELP_SUB_B, basic_sub_b_fn, NULL},
 };
-#endif
 
 static cmd_fn_t create_subcmd_fn_list[] = {
     {CREATE_SUB_HELP, create_database_help_fn, NULL},
@@ -60,11 +58,9 @@ static cmd_fn_t create_subcmd_fn_list[] = {
     {CREATE_SUB_TABLE, create_table_fn, NULL},
 };
 
-#if 1
 static cmd_fn_t use_subcmd_fn_list[] = {
     {USE_SUB_HELP, use_help_fn, NULL},
 };
-#endif
 
 // Data order must be same as cmd_state_t
 static cmd_fn_t main_cmd_fn_list[] = {
@@ -78,23 +74,6 @@ static cmd_fn_t main_cmd_fn_list[] = {
     {INSERT, null_fn, NULL},
     {LIST, null_fn, NULL},
 };
-
-
-
-#if 0
-cmd_fn_t cmd_fn_list[] = {
-        {INIT, null_fn},
-        {HELP, basic_fn},
-        {EXIT, exit_fn},
-        {CREATE, create_fn},
-        {USE, null_fn},
-        {DELETE, null_fn},
-        {SELECT, null_fn},
-        {INSERT, null_fn},
-        {LIST, null_fn},
-        {UNDEFINED, undefined_fn},
-};
-#endif
 
 void print_prompt() {
     const current_db_t *db = get_current_db();
