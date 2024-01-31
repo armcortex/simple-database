@@ -408,6 +408,46 @@ TEST_CASE("Create command", "[command]") {
         REQUIRE_FALSE(fileExists);
     }
 
+    SECTION("Create table 2: correct use database") {
+        // Init
+        IORedirector redirector;
+
+        cmd_str = "create -database " + db_name + "\n";
+        query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
+        read_str = redirector.read_stdout();
+        read_err_str = redirector.read_stderr();
+        redirector.flush();
+
+        cmd_str = "use " + db_name + "\n";
+        query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
+        read_str = redirector.read_stdout();
+        read_err_str = redirector.read_stderr();
+        redirector.flush();
+
+        // Testing
+        cmd_str = "create -table " + table_name + " name STRING age INT height FLOAT \n";
+        query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
+        read_str = redirector.read_stdout();
+        read_err_str = redirector.read_stderr();
+
+        fileExists = std::filesystem::exists(table_file_path);
+        REQUIRE(fileExists);
+
+        ref_str = "Create table at: ../DB_DATA/my_db/my_table.csv \n";
+        res = compare_io_response_str(read_str, ref_str);
+        remove(db_file_path.c_str());
+        remove(table_file_path.c_str());
+        remove_folder(db_folder.c_str());
+        REQUIRE(res);
+
+        ref_err_str = "";
+        res = compare_io_response_str(read_err_str, ref_err_str);
+        REQUIRE(res);
+
+        fileExists = std::filesystem::exists(table_file_path);
+        REQUIRE_FALSE(fileExists);
+    }
+
     // Close
     free_prompt_buf(prompt_buf);
     query_state->close(query_state);
