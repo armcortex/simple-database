@@ -24,12 +24,14 @@ typedef enum {
     INSERT,
     LIST,
     UNDEFINED,
+    RUN_MAIN_CMD,
     HELP_SUB_HELP,
     HELP_SUB_A,
     HELP_SUB_B,
     CREATE_SUB_HELP,
     CREATE_SUB_DATABASE,
     CREATE_SUB_TABLE,
+    USE_SUB_HELP,
     COUNT,
 } cmd_state_t;
 

@@ -127,7 +127,7 @@ TEST_CASE("Help command info", "[command]") {
         IORedirector redirector;
 
         // Testing
-        cmd_str = "help a_fn\n";
+        cmd_str = "help -a_fn\n";
         query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
         read_str = redirector.read_stdout();
         ref_str = "This is basic_sub_a_fn()\n";
@@ -140,7 +140,7 @@ TEST_CASE("Help command info", "[command]") {
         IORedirector redirector;
 
         // Testing
-        cmd_str = "help b_fn\n";
+        cmd_str = "help -b_fn\n";
         query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
         read_str = redirector.read_stdout();
         ref_str = "This is basic_sub_b_fn()\n";
@@ -153,7 +153,7 @@ TEST_CASE("Help command info", "[command]") {
         IORedirector redirector;
 
         // Testing
-        cmd_str = "help b_fb\n";
+        cmd_str = "help -b_fb\n";
         query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
         read_str = redirector.read_stdout();
         ref_str = "This is basic_sub_help()\n";
@@ -307,7 +307,7 @@ TEST_CASE("Create command", "[command]") {
         IORedirector redirector;
 
         // Testing
-        cmd_str = "create help\n";
+        cmd_str = "create -help\n";
         query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
         read_str = redirector.read_stdout();
         read_err_str = redirector.read_stderr();
@@ -326,7 +326,7 @@ TEST_CASE("Create command", "[command]") {
         IORedirector redirector;
 
         // Testing
-        cmd_str = "create non_exist_cmd\n";
+        cmd_str = "create -non_exist_cmd\n";
         query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
         read_str = redirector.read_stdout();
         read_err_str = redirector.read_stderr();
@@ -345,7 +345,7 @@ TEST_CASE("Create command", "[command]") {
         IORedirector redirector;
 
         // Testing
-        cmd_str = "create database " + db_name + "\n";
+        cmd_str = "create -database " + db_name + "\n";
         query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
         read_str = redirector.read_stdout();
         read_err_str = redirector.read_stderr();
@@ -369,7 +369,7 @@ TEST_CASE("Create command", "[command]") {
         IORedirector redirector;
 
         // Testing
-        cmd_str = "create database " + db_name + " wrong_arg\n";
+        cmd_str = "create -database " + db_name + " wrong_arg\n";
         query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
         read_str = redirector.read_stdout();
         read_err_str = redirector.read_stderr();
@@ -391,7 +391,7 @@ TEST_CASE("Create command", "[command]") {
         IORedirector redirector;
 
         // Testing
-        cmd_str = "create table " + table_name + " name STRING age INT height FLOAT \n";
+        cmd_str = "create -table " + table_name + " name STRING age INT height FLOAT \n";
         query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
         read_str = redirector.read_stdout();
         read_err_str = redirector.read_stderr();
@@ -406,6 +406,144 @@ TEST_CASE("Create command", "[command]") {
 
         fileExists = std::filesystem::exists(table_file_path);
         REQUIRE_FALSE(fileExists);
+    }
+
+    // Close
+    free_prompt_buf(prompt_buf);
+    query_state->close(query_state);
+}
+
+TEST_CASE("Use command", "[command]") {
+    setvbuf(stdout, nullptr, _IONBF, 0);
+
+    std::string cmd_str;
+    std::string query_res;
+    std::string read_str;
+    std::string read_err_str;
+    std::string ref_str;
+    std::string ref_err_str;
+    // bool fileExists;
+    bool res;
+
+    const std::string db_name = "my_db";
+    const std::string db_folder = WORKSPACE_PATH_FULL "/" + db_name + "/";
+    const std::string db_file_path = WORKSPACE_PATH_FULL "/" + db_name + "/" + db_name + ".json";
+
+    const std::string table_name = "my_table";
+    const std::string table_file_path = db_folder + table_name + ".csv";
+
+    const std::string not_exist_db_name = "not_exist_db";
+
+    // Init
+    query_state_t *query_state = query_state_construct();
+    query_state->init(query_state);
+    prompt_buf_t *prompt_buf = new_prompt_buf();
+
+    SECTION("Use help info 1: without sub-command") {
+        // Init
+        IORedirector redirector;
+
+        // Testing
+        cmd_str = "use\n";
+        query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
+        read_str = redirector.read_stdout();
+        read_err_str = redirector.read_stderr();
+
+        ref_str = "Use sub-commands: \n\t <database name> \n";
+        res = compare_io_response_str(read_str, ref_str);
+        REQUIRE(res);
+
+        ref_err_str = "";
+        res = compare_io_response_str(read_err_str, ref_err_str);
+        REQUIRE(res);
+    }
+
+    SECTION("Use help info 2: correct sub-command") {
+        // Init
+        IORedirector redirector;
+
+        // Testing
+        cmd_str = "use -help\n";
+        query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
+        read_str = redirector.read_stdout();
+        read_err_str = redirector.read_stderr();
+
+        ref_str = "Use sub-commands: \n\t <database name> \n";
+        res = compare_io_response_str(read_str, ref_str);
+        REQUIRE(res);
+
+        ref_err_str = "";
+        res = compare_io_response_str(read_err_str, ref_err_str);
+        REQUIRE(res);
+    }
+
+    SECTION("Use help info 3: correct sub-command") {
+        // Init
+        IORedirector redirector;
+
+        // Testing
+        cmd_str = "use -h\n";
+        query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
+        read_str = redirector.read_stdout();
+        read_err_str = redirector.read_stderr();
+
+        ref_str = "Use sub-commands: \n\t <database name> \n";
+        res = compare_io_response_str(read_str, ref_str);
+        REQUIRE(res);
+
+        ref_err_str = "";
+        res = compare_io_response_str(read_err_str, ref_err_str);
+        REQUIRE(res);
+    }
+
+    SECTION("Use command 1: correct exist database") {
+        // Init
+        IORedirector redirector;
+
+        cmd_str = "create -database " + db_name + "\n";
+        query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
+        redirector.flush();
+
+        // Testing
+        cmd_str = "use " + db_name + "\n";
+        query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
+        read_str = redirector.read_stdout();
+        read_err_str = redirector.read_stderr();
+
+        ref_str = "Using database: my_db \n";
+        res = compare_io_response_str(read_str, ref_str);
+        remove(db_file_path.c_str());
+        remove_folder(db_folder.c_str());
+        REQUIRE(res);
+
+        ref_err_str = "";
+        res = compare_io_response_str(read_err_str, ref_err_str);
+        REQUIRE(res);
+    }
+
+    SECTION("Use command 2: wrong exist database") {
+        // Init
+        IORedirector redirector;
+
+        cmd_str = "create -database " + db_name + "\n";
+        query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
+        redirector.flush();
+
+        // Testing
+        cmd_str = "use " + not_exist_db_name + "\n";
+        query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
+        read_str = redirector.read_stdout();
+        read_err_str = redirector.read_stderr();
+
+        ref_str = "";
+        res = compare_io_response_str(read_str, ref_str);
+        remove(db_file_path.c_str());
+        remove_folder(db_folder.c_str());
+        REQUIRE(res);
+
+        ref_err_str = "Database not_exist_db not exist \n";
+        res = compare_io_response_str(read_err_str, ref_err_str);
+        REQUIRE(res);
     }
 
     // Close
@@ -712,7 +850,7 @@ TEST_CASE("Insert Data Test", "[insert]") {
         // Testing
         redirector.flush();
         std::string not_exist_table_name = "none_my_table";
-        std::string cmd_str = "insert " + not_exist_table_name + " values 1,2,3\n";
+        cmd_str = "insert " + not_exist_table_name + " values 1,2,3\n";
         execute_cmd(redirector, prompt_buf, query_state, cmd_str);
         read_str = redirector.read_stderr();
         res = compare_io_response_str(read_str, "Table " + not_exist_table_name + " not found\n");

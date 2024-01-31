@@ -36,9 +36,11 @@ bool basic_sub_b_fn(char **args, size_t args_len);
 void basic_command_info(void);
 void create_command_info(void);
 void delete_command_info(void);
+
 void use_command_info(void);
-void insert_command_info(void);
-void select_command_info(void);
+// void insert_command_info(void);
+// void select_command_info(void);
+
 void list_command_info(void);
 
 // Create database command
@@ -52,6 +54,10 @@ void add_database_new_table(const char *db_filename, cJSON *new_table);
 bool create_table_fn(char **args, size_t args_len);
 void create_table(const char *filename_path, const char *filename, char **args, size_t len);
 cJSON *create_table_json(const char *name, char **args, size_t len);
+
+// Use Command
+bool use_help_fn(char **args, size_t args_len);
+bool use_fn(char **args, size_t args_len);
 
 // Insert command
 void insert_table_data(const char *filename_path, const char *table_name, char **datas, size_t len);
@@ -78,6 +84,7 @@ bool check_table_exist(const char *table_name, char *table_name_path);
 bool compare_column_name(const char *ref, const char *src);
 size_t find_column_name_idx(table_data_t *t, const char *col_name);
 
+bool wrong_fn(char **args, size_t args_len);
 bool null_fn(char **args, size_t args_len);
 bool undefined_fn(char **args, size_t args_len);
 bool exit_fn(char **args, size_t args_len);

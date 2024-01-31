@@ -164,9 +164,10 @@ void basic_command_info() {
     fprintf(stdout, "\t help: \n");
     fprintf(stdout, "\t exit: \n");
     fprintf(stdout, "\t create: \n");
-    fprintf(stdout, "\t use: \n");
-    fprintf(stdout, "\t delete: \n");
-    fprintf(stdout, "\t select: \n");
+    fprintf(stdout, "\t use: \n \t\t <database name> \n");
+    fprintf(stdout, "\t delete: \n \t\t <database name> \n");
+    fprintf(stdout, "\t select: \n \t\t <column_names> from <table_name> (where <condition> ...) \n");
+    fprintf(stdout, "\t insert: \n \t\t <table_name> values <value1,value2,value3,...> \n");
     fprintf(stdout, "\t list: \n");
 }
 
@@ -187,6 +188,7 @@ void use_command_info() {
     fprintf(stdout, "\t <database name> \n");
 }
 
+#if 0
 void insert_command_info() {
     fprintf(stdout, "insert <table_name> values <value1,value2,value3,...>\n");
 }
@@ -194,6 +196,7 @@ void insert_command_info() {
 void select_command_info() {
     fprintf(stdout, "select <column_names> from <table_name> (where <condition> ...) \n");
 }
+#endif
 
 void list_command_info(void) {
     fprintf(stdout, "List sub-commands: \n");
@@ -400,6 +403,38 @@ cJSON *create_table_json(const char *table_name, char **args, size_t len) {
     cJSON_AddItemToObject(root, "columns", columns);
 
     return root;
+}
+
+bool use_help_fn(char **args, size_t args_len) {
+    (void)args;
+    (void)args_len;
+
+    use_command_info();
+    return true;
+}
+
+bool use_fn(char **args, size_t args_len) {
+    (void)args;
+    (void)args_len;
+
+    // fprintf(stdout, "Execute USE cmd \n");
+
+#if 1
+    char db_folder_full[PATH_MAX] = {0};
+    char db_filename_full[PATH_MAX] = {0};
+    snprintf(db_folder_full, PATH_MAX, "%s/%s", WORKSPACE_PATH_FULL, args[0]);
+    snprintf(db_filename_full, PATH_MAX, "%s/%s.json", db_folder_full, args[0]);
+
+    if (!exist_file(db_filename_full)) {
+        fprintf(stderr, "Database %s not exist \n", args[0]);
+    }
+    else {
+        update_current_db(args[0], db_filename_full, db_folder_full);
+        const current_db_t *db = get_current_db();
+        fprintf(stdout, "Using database: %s \n", db->name);
+    }
+#endif
+    return true;
 }
 
 void insert_table_data(const char *filename_path, const char *table_name, char **datas, size_t len) {
@@ -785,6 +820,14 @@ size_t find_column_name_idx(table_data_t *t, const char *col_name) {
         }
     }
     return -1;
+}
+
+bool wrong_fn(char **args, size_t args_len) {
+    (void)args;
+    (void)args_len;
+
+    fprintf(stderr, "Wrong Command\n");
+    return false;
 }
 
 bool null_fn(char **args, size_t args_len) {

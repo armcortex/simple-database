@@ -14,35 +14,45 @@
 #include "parser.h"
 #include "table.h"
 
-
+// Parse function pointer
 static cmd_parse_t parse_help_cmd_list[] = {
-    {"help", 4, HELP_SUB_HELP, NULL, 0},
-    {"a_fn", 4, HELP_SUB_A, NULL, 0},
-    {"b_fn", 4, HELP_SUB_B, NULL, 0},
+    {"-help", 5, HELP_SUB_HELP, NULL, 0},
+    {"-a_fn", 5, HELP_SUB_A, NULL, 0},
+    {"-b_fn", 5, HELP_SUB_B, NULL, 0},
 };
 
 static cmd_parse_t parse_create_cmd_list[] = {
-    {"help", 4, CREATE_SUB_HELP, NULL, 0},
-    {"database", 8, CREATE_SUB_DATABASE, NULL, 0},
-    {"table", 5, CREATE_SUB_TABLE, NULL, 0},
+    {"-help", 5, CREATE_SUB_HELP, NULL, 0},
+    {"-h", 2, CREATE_SUB_HELP, NULL, 0},
+    {"-database", 9, CREATE_SUB_DATABASE, NULL, 0},
+    {"-table", 6, CREATE_SUB_TABLE, NULL, 0},
+};
+
+static cmd_parse_t parse_use_cmd_list[] = {
+    {"-help", 5, USE_SUB_HELP, NULL, 0},
+    {"-h", 2, USE_SUB_HELP, NULL, 0},
 };
 
 static cmd_parse_t parse_basic_cmd_list[] = {
     {"help", 4, HELP, parse_help_cmd_list, CALC_ARRAY_SIZE(parse_help_cmd_list, cmd_parse_t)},
     {"exit", 4, EXIT, NULL, 0},
     {"create", 6, CREATE, parse_create_cmd_list, CALC_ARRAY_SIZE(parse_create_cmd_list, cmd_parse_t)},
+    {"use", 3, USE, parse_use_cmd_list, CALC_ARRAY_SIZE(parse_use_cmd_list, cmd_parse_t)},
     {"delete", 6, DELETE, NULL, 0},
-    {"use", 3, USE, NULL, 0},
     {"select", 6, SELECT, NULL, 0},
     {"insert", 6, INSERT, NULL, 0},
     {"list", 4, LIST, NULL, 0},
 };
 
+
+// Execute function pointer
+#if 1
 static cmd_fn_t help_subcmd_fn_list[] = {
     {HELP_SUB_HELP, basic_sub_help, NULL},
     {HELP_SUB_A, basic_sub_a_fn, NULL},
     {HELP_SUB_B, basic_sub_b_fn, NULL},
 };
+#endif
 
 static cmd_fn_t create_subcmd_fn_list[] = {
     {CREATE_SUB_HELP, create_database_help_fn, NULL},
@@ -50,12 +60,23 @@ static cmd_fn_t create_subcmd_fn_list[] = {
     {CREATE_SUB_TABLE, create_table_fn, NULL},
 };
 
+#if 1
+static cmd_fn_t use_subcmd_fn_list[] = {
+    {USE_SUB_HELP, use_help_fn, NULL},
+};
+#endif
+
 // Data order must be same as cmd_state_t
 static cmd_fn_t main_cmd_fn_list[] = {
     {INIT, null_fn, NULL},
     {HELP, basic_fn, help_subcmd_fn_list},
     {EXIT, NULL, NULL},
-    {CREATE, NULL, create_subcmd_fn_list},
+    {CREATE, wrong_fn, create_subcmd_fn_list},
+    {USE, use_fn, use_subcmd_fn_list},
+    {DELETE, null_fn, NULL},
+    {SELECT, null_fn, NULL},
+    {INSERT, null_fn, NULL},
+    {LIST, null_fn, NULL},
 };
 
 
@@ -139,6 +160,11 @@ void parse_commands(prompt_buf_t *prompt_buf, query_state_t *query_state) {
                 if (cmds_len == 1) break;
                 else {
                     for (size_t j=0; j<cmd_tmp.sub_fn_cnt; j++) {
+                        // Check this is sub-command or not
+                        if (strncmp(cmds[1], "-", 1) != 0) {
+                            query_state->sub_state = RUN_MAIN_CMD;
+                            break;
+                        }
                         if (strncmp(cmds[1], sub_fns[j].s, sub_fns[j].s_len) == 0) {
                             query_state->sub_state = sub_fns[j].state;
                             break;
@@ -147,84 +173,8 @@ void parse_commands(prompt_buf_t *prompt_buf, query_state_t *query_state) {
                 }
             }
             break;
-
-#if 0
-            if ((cmds_len == 1) && (cmd_tmp.sub_parse != NULL)) {
-                cmd_parse_t *sub_cmd = cmd_tmp.sub_parse;
-                query_state->sub_state = sub_cmd[0].state;
-            }
-            else if ((cmds_len > 1) && (cmd_tmp.sub_parse != NULL)) {
-                cmd_parse_t *sub_cmd = cmd_tmp.sub_parse;
-                query_state->sub_state = sub_cmd[0].state;
-                for (size_t j=0; j<cmd_tmp.sub_fn_cnt; j++) {
-                    if (strncmp(cmds[1], sub_cmd[j].s, sub_cmd[j].s_len) == 0) {
-                        query_state->sub_state = sub_cmd[j].state;
-                        break;
-                    }
-                }
-            }
-#endif
         }
     }
-
-
-
-#if 0
-    // Help
-    if (strncmp(cmds[0], "help", 4) == 0) {
-        query_state->state = HELP;
-        if (cmds_len > 1 &&  strncmp(cmds[1], "a_fn", 4) == 0) {
-            query_state->sub_state = HELP_SUB_A;
-        }
-        else if (cmds_len > 1 && strncmp(cmds[1], "b_fn", 4) == 0) {
-            query_state->sub_state = HELP_SUB_B;
-        }
-        else {
-            query_state->sub_state = HELP_SUB_HELP;
-        }
-    }
-    // Exit
-    else if (strncmp(cmds[0], "exit", 4) == 0) {
-        query_state->state = EXIT;
-    }
-    // Create
-    else if (strncmp(cmds[0], "create", 6) == 0) {
-        query_state->state = CREATE;
-        if (cmds_len > 1 &&  strncmp(cmds[1], "database", 8) == 0) {
-            query_state->sub_state = CREATE_SUB_DATABASE;
-        }
-        else if (cmds_len > 1 && strncmp(cmds[1], "table", 5) == 0) {
-            query_state->sub_state = CREATE_SUB_TABLE;
-        }
-        else {
-            query_state->sub_state = CREATE_SUB_HELP;
-        }
-    }
-    // Delete
-    else if (strncmp(cmds[0], "delete", 6) == 0) {
-        query_state->state = DELETE;
-    }
-    // Use
-    else if (strncmp(cmds[0], "use", 3) == 0) {
-        query_state->state = USE;
-    }
-    // Select
-    else if (strncmp(cmds[0], "select", 6) == 0) {
-        query_state->state = SELECT;
-    }
-    // Insert
-    else if (strncmp(cmds[0], "insert", 6) == 0) {
-        query_state->state = INSERT;
-    }
-    // List
-    else if (strncmp(cmds[0], "list", 4) == 0) {
-        query_state->state = LIST;
-    }
-    // Undefined command
-    else {
-        query_state->state = UNDEFINED;
-    }
-#endif
 
     // Free
     splitter.free(cmds, cmds_len);
@@ -236,7 +186,7 @@ void execute_commands(query_state_t *query_state) {
     }
 
     cmd_fn_t *sub_fn = main_cmd_fn_list[query_state->state].sub_fn;
-    if (sub_fn) {
+    if ((sub_fn) && (query_state->sub_state != RUN_MAIN_CMD)) {
         size_t fn_offset = query_state->sub_state - sub_fn[0].state;
         sub_fn[fn_offset].callback_fn(query_state->args, query_state->args_len);
     }
@@ -356,7 +306,8 @@ void check_commands_del(prompt_buf_t *prompt_buf, query_state_t *query_state) {
             // Help: list all support sub commands
             if (strncmp(cmds[1], "-h", 2) == 0 ||
                 strncmp(cmds[1], "help", 4) == 0) {
-                use_command_info();
+                // use_command_info();
+                ;
             }
             else {
                 char db_folder_full[PATH_MAX] = {0};
@@ -383,7 +334,8 @@ void check_commands_del(prompt_buf_t *prompt_buf, query_state_t *query_state) {
             // Help: list all support sub commands
             if (strncmp(cmds[1], "-h", 2) == 0 ||
                 strncmp(cmds[1], "help", 4) == 0) {
-                select_command_info();
+                // select_command_info();
+                ;
             }
             // select all column
             // `select * from table_name`
@@ -439,7 +391,8 @@ void check_commands_del(prompt_buf_t *prompt_buf, query_state_t *query_state) {
             // Help: list all support sub commands
             if (strncmp(cmds[1], "-h", 2) == 0 ||
                 strncmp(cmds[1], "help", 4) == 0) {
-                insert_command_info();
+                // insert_command_info();
+                ;
             }
             else {
                 char table_name_path[PATH_MAX] = {0};
