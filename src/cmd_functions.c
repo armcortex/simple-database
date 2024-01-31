@@ -344,9 +344,6 @@ void delete_database(const char *filename) {
 }
 
 bool create_table_fn(char **args, size_t args_len) {
-    (void)args;
-    (void)args_len;
-
     const current_db_t *curr_db = get_current_db();
     if (curr_db->len == 0) {
         fprintf(stderr, "Error: Don't know what database to use, please use `USE` command to select database first \n");
@@ -414,7 +411,6 @@ bool use_help_fn(char **args, size_t args_len) {
 }
 
 bool use_fn(char **args, size_t args_len) {
-    (void)args;
     (void)args_len;
 
     char db_folder_full[PATH_MAX] = {0};
