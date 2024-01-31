@@ -16,7 +16,7 @@ All Support commands:
     use: 
         <database name> 
     delete: 
-        database <database name> 
+        <database name> 
     select: 
         select <column_names> from <table_name> (where <condition> ...)
     insert:
