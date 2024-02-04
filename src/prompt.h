@@ -34,6 +34,7 @@ typedef enum {
     USE_SUB_HELP,
     DELETE_SUB_HELP,
     DELETE_SUB_DATABASE,
+    SELECT_SUB_HELP,
     INSERT_SUB_HELP,
     COUNT,
 } cmd_state_t;

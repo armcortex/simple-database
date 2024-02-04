@@ -36,10 +36,9 @@ bool basic_sub_b_fn(char **args, size_t args_len);
 void basic_command_info(void);
 void create_command_info(void);
 void delete_command_info(void);
-
 void use_command_info(void);
 void insert_command_info(void);
-// void select_command_info(void);
+void select_command_info(void);
 
 void list_command_info(void);
 
@@ -73,6 +72,8 @@ void delete_table(const char *name);
 void delete_table_all(const char *db_base_path);
 
 // Select command
+bool select_help_fn(char **args, size_t args_len);
+bool select_fn(char **args, size_t args_len);
 void select_load_table_data(table_data_t *t, char *table_name_path, where_args_cond_t *conditions, size_t condition_len);
 table_data_t* select_load_table_metadata(const char *table_name);
 bool select_fetch_available_column(table_data_t *t, parsed_sql_cmd_t *select_cmd);

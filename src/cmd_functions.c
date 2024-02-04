@@ -192,11 +192,9 @@ void insert_command_info() {
     fprintf(stdout, "insert <table_name> values <value1,value2,value3,...>\n");
 }
 
-#if 0
 void select_command_info() {
     fprintf(stdout, "select <column_names> from <table_name> (where <condition> ...) \n");
 }
-#endif
 
 void list_command_info(void) {
     fprintf(stdout, "List sub-commands: \n");
@@ -568,6 +566,21 @@ void delete_table_all(const char *db_base_path) {
         }
         closedir(d);
     }
+}
+
+bool select_help_fn(char **args, size_t args_len) {
+    (void)args;
+    (void)args_len;
+
+    select_command_info();
+    return true;
+}
+
+bool select_fn(char **args, size_t args_len) {
+    (void)args;
+    (void)args_len;
+
+    return true;
 }
 
 void select_load_table_data(table_data_t *t, char *table_name_path, where_args_cond_t *conditions, size_t condition_len) {

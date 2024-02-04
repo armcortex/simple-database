@@ -732,6 +732,97 @@ TEST_CASE("Delete command", "[command]") {
     query_state->close(query_state);
 }
 
+
+TEST_CASE("Select command", "[command]") {
+    setvbuf(stdout, nullptr, _IONBF, 0);
+
+    std::string cmd_str;
+    std::string query_res;
+    std::string read_str;
+    std::string read_err_str;
+    std::string ref_str;
+    std::string ref_err_str;
+    // bool fileExists;
+    bool res;
+
+    const std::string db_name = "my_db";
+    const std::string db_folder = WORKSPACE_PATH_FULL "/" + db_name + "/";
+    const std::string db_file_path = WORKSPACE_PATH_FULL "/" + db_name + "/" + db_name + ".json";
+
+    const std::string table_name = "my_table";
+    const std::string table_file_path = db_folder + table_name + ".csv";
+
+    const std::string not_exist_db_name = "not_exist_db";
+    const std::string not_exist_db_file_path = WORKSPACE_PATH_FULL "/" + not_exist_db_name + "/" + not_exist_db_name + ".json";
+
+    // Init
+    query_state_t *query_state = query_state_construct();
+    query_state->init(query_state);
+    prompt_buf_t *prompt_buf = new_prompt_buf();
+
+    SECTION("Select help info 1: without sub-command") {
+        // Init
+        IORedirector redirector;
+
+        // Testing
+        cmd_str = "select\n";
+        query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
+        read_str = redirector.read_stdout();
+        read_err_str = redirector.read_stderr();
+
+        ref_str = "select <column_names> from <table_name> (where <condition> ...) \n";
+        res = compare_io_response_str(read_str, ref_str);
+        REQUIRE(res);
+
+        ref_err_str = "";
+        res = compare_io_response_str(read_err_str, ref_err_str);
+        REQUIRE(res);
+    }
+
+    SECTION("Select help info 2: correct sub-command") {
+        // Init
+        IORedirector redirector;
+
+        // Testing
+        cmd_str = "select -help\n";
+        query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
+        read_str = redirector.read_stdout();
+        read_err_str = redirector.read_stderr();
+
+        ref_str = "select <column_names> from <table_name> (where <condition> ...) \n";
+        res = compare_io_response_str(read_str, ref_str);
+        REQUIRE(res);
+
+        ref_err_str = "";
+        res = compare_io_response_str(read_err_str, ref_err_str);
+        REQUIRE(res);
+    }
+
+    SECTION("Select help info 3: correct sub-command") {
+        // Init
+        IORedirector redirector;
+
+        // Testing
+        cmd_str = "select -h\n";
+        query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
+        read_str = redirector.read_stdout();
+        read_err_str = redirector.read_stderr();
+
+        ref_str = "select <column_names> from <table_name> (where <condition> ...) \n";
+        res = compare_io_response_str(read_str, ref_str);
+        REQUIRE(res);
+
+        ref_err_str = "";
+        res = compare_io_response_str(read_err_str, ref_err_str);
+        REQUIRE(res);
+    }
+
+    // Close
+    free_prompt_buf(prompt_buf);
+    query_state->close(query_state);
+}
+
+
 TEST_CASE("Insert command", "[command]") {
     setvbuf(stdout, nullptr, _IONBF, 0);
 
