@@ -614,6 +614,8 @@ TEST_CASE("Delete command", "[command]") {
     const std::string table_file_path = db_folder + table_name + ".csv";
 
     const std::string not_exist_db_name = "not_exist_db";
+    const std::string not_exist_db_file_path = WORKSPACE_PATH_FULL "/" + not_exist_db_name + "/" + not_exist_db_name + ".json";
+
 
     // Init
     query_state_t *query_state = query_state_construct();
@@ -700,6 +702,28 @@ TEST_CASE("Delete command", "[command]") {
         REQUIRE(res);
 
         fileExists = std::filesystem::exists(db_file_path);
+        REQUIRE_FALSE(fileExists);
+    }
+
+    SECTION("Delete command 2: delete non-exist DB") {
+        // Init
+        IORedirector redirector;
+
+        // Testing
+        cmd_str = "delete -database " + not_exist_db_name + "\n";
+        query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
+        read_str = redirector.read_stdout();
+        read_err_str = redirector.read_stderr();
+
+        ref_str = "";
+        res = compare_io_response_str(read_str, ref_str);
+        REQUIRE(res);
+
+        ref_err_str = "Failed to delete database: ../DB_DATA/not_exist_db/not_exist_db.json \nFolder ../DB_DATA/not_exist_db not exist\n";
+        res = compare_io_response_str(read_err_str, ref_err_str);
+        REQUIRE(res);
+
+        fileExists = std::filesystem::exists(not_exist_db_file_path);
         REQUIRE_FALSE(fileExists);
     }
 

@@ -365,7 +365,6 @@ bool delete_database_fn(char **args, size_t args_len) {
 void delete_database(const char *filename) {
     if (remove(filename) != 0) {
         fprintf(stderr, "Failed to delete database: %s \n", filename);
-        DB_ASSERT(0);
     }
     else {
         fprintf(stdout, "Delete database: %s \n", filename);

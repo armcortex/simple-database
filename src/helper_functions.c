@@ -112,7 +112,7 @@ void remove_folder(const char *name) {
             fprintf(stderr, "Failed to remove folder: %s \n", name);
         }
     } else {
-        fprintf(stdout, "Folder %s not exist\n", name);
+        fprintf(stderr, "Folder %s not exist\n", name);
     }
 }
 
