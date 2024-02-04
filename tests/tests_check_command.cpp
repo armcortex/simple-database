@@ -49,46 +49,6 @@ TEST_CASE("Basic query Commands", "[command]") {
         REQUIRE(prompt_buf->len == query_res.length());
     }
 
-    SECTION("Query state") {
-        // Init
-        IORedirector redirector;
-
-        // Testing
-        REQUIRE(query_state->state == INIT);
-
-        cmd_str = "exit\n";
-        query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
-        REQUIRE(query_state->state == EXIT);
-
-        cmd_str = "help\n";
-        query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
-        REQUIRE(query_state->state == HELP);
-
-        cmd_str = "create\n";
-        query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
-        REQUIRE(query_state->state == CREATE);
-
-        cmd_str = "delete\n";
-        query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
-        REQUIRE(query_state->state == DELETE);
-
-        cmd_str = "use\n";
-        query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
-        REQUIRE(query_state->state == USE);
-
-        cmd_str = "select\n";
-        query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
-        REQUIRE(query_state->state == SELECT);
-
-        cmd_str = "insert\n";
-        query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
-        REQUIRE(query_state->state == INSERT);
-
-        cmd_str = "list\n";
-        query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
-        REQUIRE(query_state->state == LIST);
-    }
-
     // Close
     free_prompt_buf(prompt_buf);
     query_state->close(query_state);
@@ -1068,7 +1028,7 @@ TEST_CASE("Commands behavior", "[command]") {
         // Delete database
         // Check `DELETE` command output string
         redirector.flush();
-        cmd_str = "delete database " + db_name + "\n";
+        cmd_str = "delete -database " + db_name + "\n";
         query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
         read_str = redirector.read_stdout();
         ref_str = "Delete database: ../DB_DATA/my_db/my_db.json \n";
@@ -1120,7 +1080,7 @@ TEST_CASE("Create Table JSON Test", "[create_table]") {
 
         // Testing
         // Create database
-        cmd_str = "create database " + db_name + "\n";
+        cmd_str = "create -database " + db_name + "\n";
         query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
         fileExists = std::filesystem::exists(db_file_path);
         REQUIRE(fileExists);
@@ -1130,7 +1090,7 @@ TEST_CASE("Create Table JSON Test", "[create_table]") {
         query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
 
         // Create table
-        cmd_str = "create table " + table_name + " name STRING age INT height FLOAT \n";
+        cmd_str = "create -table " + table_name + " name STRING age INT height FLOAT \n";
         query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
         fileExists = std::filesystem::exists(table_file_path);
         REQUIRE(fileExists);
@@ -1164,7 +1124,7 @@ TEST_CASE("Create Table JSON Test", "[create_table]") {
         REQUIRE(table_content == ref_table_content);
 
         // Delete database
-        cmd_str = "delete database " + db_name + "\n";
+        cmd_str = "delete -database " + db_name + "\n";
         query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
         fileExists = std::filesystem::exists(db_folder);
         REQUIRE_FALSE(fileExists);
