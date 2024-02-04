@@ -1364,6 +1364,7 @@ TEST_CASE("Select table Test", "[select]") {
     std::string read_str;
     std::string read_err_str;
     std::string ref_str;
+    std::string ref_err_str;
     // bool fileExists;
     bool res;
 
@@ -1394,7 +1395,7 @@ TEST_CASE("Select table Test", "[select]") {
         IORedirector redirector;
 
         // Create database
-        cmd_str = "create database " + db_name + "\n";
+        cmd_str = "create -database " + db_name + "\n";
         execute_cmd(redirector, prompt_buf, query_state, cmd_str);
 
         // Use database
@@ -1406,13 +1407,20 @@ TEST_CASE("Select table Test", "[select]") {
         redirector.flush();
         cmd_str = "select * from " + not_exist_table_name + " \n";
         execute_cmd(redirector, prompt_buf, query_state, cmd_str);
-        read_str = redirector.read_stderr();
-        ref_str = "Table none_my_table not found\n";
+
+        // Check status
+        read_str = redirector.read_stdout();
+        read_err_str = redirector.read_stderr();
+        ref_str = "";
         res = compare_io_response_str(read_str, ref_str);
         REQUIRE(res);
 
+        ref_err_str = "Table none_my_table not found\n";
+        res = compare_io_response_str(read_err_str, ref_err_str);
+        REQUIRE(res);
+
         // Close
-        cmd_str = "delete database " + db_name + "\n";
+        cmd_str = "delete -database " + db_name + "\n";
         execute_cmd(redirector, prompt_buf, query_state, cmd_str);
     }
 
@@ -1421,7 +1429,7 @@ TEST_CASE("Select table Test", "[select]") {
         IORedirector redirector;
 
         // Create database
-        cmd_str = "create database " + db_name + "\n";
+        cmd_str = "create -database " + db_name + "\n";
         execute_cmd(redirector, prompt_buf, query_state, cmd_str);
 
         // Use database
@@ -1429,8 +1437,9 @@ TEST_CASE("Select table Test", "[select]") {
         execute_cmd(redirector, prompt_buf, query_state, cmd_str);
 
         // Create table
-        cmd_str = "create table " + table_name + " name STRING age INT height FLOAT \n";
+        cmd_str = "create -table " + table_name + " name STRING age INT height FLOAT \n";
         execute_cmd(redirector, prompt_buf, query_state, cmd_str);
+        redirector.flush();
 
         // Insert data
         std::string cmd_str_base = "insert " + table_name + " values ";
@@ -1440,17 +1449,22 @@ TEST_CASE("Select table Test", "[select]") {
         }
 
         // Testing
-        redirector.flush();
         cmd_str = "select name,age,height from " + table_name + " where age < 35\n";    // For now need `where` command
-
         execute_cmd(redirector, prompt_buf, query_state, cmd_str);
+
+        // Check status
         read_str = redirector.read_stdout();
+        read_err_str = redirector.read_stderr();
         ref_str = "name,age,height\nJohn,30,170\nJane,25,165\nAlice,28,180\nBob,31,173\nCharlie,29,160\n";
         res = compare_io_response_str(read_str, ref_str);
         REQUIRE(res);
 
+        ref_err_str = "";
+        res = compare_io_response_str(read_err_str, ref_err_str);
+        REQUIRE(res);
+
         // Close
-        cmd_str = "delete database " + db_name + "\n";
+        cmd_str = "delete -database " + db_name + "\n";
         execute_cmd(redirector, prompt_buf, query_state, cmd_str);
     }
 
@@ -1459,7 +1473,7 @@ TEST_CASE("Select table Test", "[select]") {
         IORedirector redirector;
 
         // Create database
-        cmd_str = "create database " + db_name + "\n";
+        cmd_str = "create -database " + db_name + "\n";
         execute_cmd(redirector, prompt_buf, query_state, cmd_str);
 
         // Use database
@@ -1467,7 +1481,7 @@ TEST_CASE("Select table Test", "[select]") {
         execute_cmd(redirector, prompt_buf, query_state, cmd_str);
 
         // Create table
-        cmd_str = "create table " + table_name + " name STRING age INT height FLOAT \n";
+        cmd_str = "create -table " + table_name + " name STRING age INT height FLOAT \n";
         execute_cmd(redirector, prompt_buf, query_state, cmd_str);
 
         // Insert data
@@ -1480,17 +1494,21 @@ TEST_CASE("Select table Test", "[select]") {
         // Testing
         redirector.flush();
         cmd_str = "select name,age from " + table_name + " where age < 29 and ( name = Jane or name = Alice )\n";
-
         execute_cmd(redirector, prompt_buf, query_state, cmd_str);
+
+        // Check status
         read_str = redirector.read_stdout();
         read_err_str = redirector.read_stderr();
-
         ref_str = "name,age\nJane,25\nAlice,28\n";
         res = compare_io_response_str(read_str, ref_str);
         REQUIRE(res);
 
+        ref_err_str = "";
+        res = compare_io_response_str(read_err_str, ref_err_str);
+        REQUIRE(res);
+
         // Close
-        cmd_str = "delete database " + db_name + "\n";
+        cmd_str = "delete -database " + db_name + "\n";
         execute_cmd(redirector, prompt_buf, query_state, cmd_str);
     }
 
@@ -1499,7 +1517,7 @@ TEST_CASE("Select table Test", "[select]") {
         IORedirector redirector;
 
         // Create database
-        cmd_str = "create database " + db_name + "\n";
+        cmd_str = "create -database " + db_name + "\n";
         execute_cmd(redirector, prompt_buf, query_state, cmd_str);
 
         // Use database
@@ -1507,7 +1525,7 @@ TEST_CASE("Select table Test", "[select]") {
         execute_cmd(redirector, prompt_buf, query_state, cmd_str);
 
         // Create table
-        cmd_str = "create table " + table_name + " name STRING age INT height FLOAT \n";
+        cmd_str = "create -table " + table_name + " name STRING age INT height FLOAT \n";
         execute_cmd(redirector, prompt_buf, query_state, cmd_str);
 
         // Insert data
@@ -1520,17 +1538,21 @@ TEST_CASE("Select table Test", "[select]") {
         // Testing
         redirector.flush();
         cmd_str = "select age,height from " + table_name + " where ( age < 29 ) and ( height < 190.2 )\n";
-
         execute_cmd(redirector, prompt_buf, query_state, cmd_str);
+
+        // Check status
         read_str = redirector.read_stdout();
         read_err_str = redirector.read_stderr();
-
         ref_str = "name,age\n25,165\n28,180\n";
         res = compare_io_response_str(read_str, ref_str);
         REQUIRE(res);
 
+        ref_err_str = "";
+        res = compare_io_response_str(read_err_str, ref_err_str);
+        REQUIRE(res);
+
         // Close
-        cmd_str = "delete database " + db_name + "\n";
+        cmd_str = "delete -database " + db_name + "\n";
         execute_cmd(redirector, prompt_buf, query_state, cmd_str);
     }
 
@@ -1539,7 +1561,7 @@ TEST_CASE("Select table Test", "[select]") {
         IORedirector redirector;
 
         // Create database
-        cmd_str = "create database " + db_name + "\n";
+        cmd_str = "create -database " + db_name + "\n";
         execute_cmd(redirector, prompt_buf, query_state, cmd_str);
 
         // Use database
@@ -1547,7 +1569,7 @@ TEST_CASE("Select table Test", "[select]") {
         execute_cmd(redirector, prompt_buf, query_state, cmd_str);
 
         // Create table
-        cmd_str = "create table " + table_name + " name STRING age INT height FLOAT \n";
+        cmd_str = "create -table " + table_name + " name STRING age INT height FLOAT \n";
         execute_cmd(redirector, prompt_buf, query_state, cmd_str);
 
         // Insert data
@@ -1560,17 +1582,21 @@ TEST_CASE("Select table Test", "[select]") {
         // Testing
         redirector.flush();
         cmd_str = "select aa,bb from " + table_name + " where age < 29\n";
-
         execute_cmd(redirector, prompt_buf, query_state, cmd_str);
+
+        // Check status
         read_str = redirector.read_stdout();
         read_err_str = redirector.read_stderr();
+        ref_str = "";
+        res = compare_io_response_str(read_str, ref_str);
+        REQUIRE(res);
 
-        ref_str = "Column name not matched: aa to (name, age, height) \nColumn name not found \n";  // not include `age<29` condition
-        res = compare_io_response_str(read_err_str, ref_str);
+        ref_err_str = "Column name not matched: aa to (name, age, height) \nColumn name not found \n";
+        res = compare_io_response_str(read_err_str, ref_err_str);
         REQUIRE(res);
 
         // Close
-        cmd_str = "delete database " + db_name + "\n";
+        cmd_str = "delete -database " + db_name + "\n";
         execute_cmd(redirector, prompt_buf, query_state, cmd_str);
     }
 

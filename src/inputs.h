@@ -15,6 +15,7 @@ extern "C" {
 #include "prompt.h"
 
 void read_input(prompt_buf_t *prompt_buf);
+prompt_buf_t* get_prompt_raw(void);
 
 #ifdef __cplusplus
 }

@@ -16,8 +16,10 @@
 
 #include "cmd_functions.h"
 #include "helper_functions.h"
+#include "parser.h"
 #include "database.h"
 #include "rpn.h"
+#include "inputs.h"
 
 
 table_data_t *table_data_init(size_t col_len, size_t row_len) {
@@ -577,10 +579,50 @@ bool select_help_fn(char **args, size_t args_len) {
 }
 
 bool select_fn(char **args, size_t args_len) {
-    (void)args;
     (void)args_len;
 
-    return true;
+    char table_name_path[PATH_MAX] = {0};
+    char *table_name = args[2];
+    delete_semicolon(table_name);
+    // Process `from` command
+    if (check_table_exist((const char*)table_name, table_name_path)) {
+        // Load Table metadata
+        table_data_t *table_data = select_load_table_metadata(table_name);
+
+        // Parse SQL command
+        size_t parsed_cmd_cnt = 0;
+        prompt_buf_t *prompt = get_prompt_raw();
+        parsed_sql_cmd_t *parsed_cmd = parse_sql_cmd((const char *)prompt->buf, &parsed_cmd_cnt);
+
+        // Process `select` command
+        bool column_found = select_fetch_available_column(table_data, &parsed_cmd[0]);
+
+        // Process `where` command
+        size_t condition_len = 0;
+        where_args_cond_t conditions[WHERE_MATCH_CNT] = {0};
+        bool row_status = select_fetch_available_row(table_data, &parsed_cmd[2], conditions, &condition_len);
+
+        // Make sure there is no non-exist table column
+        if  (column_found && row_status) {
+            const current_db_t *db = get_current_db();
+            snprintf(table_name_path, PATH_MAX, "%s/%s.csv", db->folder_path, table_name);
+            select_load_table_data(table_data, table_name_path, conditions, condition_len);
+
+            select_table_display(table_data);
+        }
+        else {
+            fprintf(stderr, "Column name not found \n");
+        }
+
+        // Free
+        select_table_close(table_data);
+        parse_select_cmd_close(parsed_cmd);
+        return true;
+    }
+    else {
+        fprintf(stderr, "Table %s not found\n", args[2]);
+        return false;
+    }
 }
 
 void select_load_table_data(table_data_t *t, char *table_name_path, where_args_cond_t *conditions, size_t condition_len) {
