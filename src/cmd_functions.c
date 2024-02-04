@@ -188,11 +188,11 @@ void use_command_info() {
     fprintf(stdout, "\t <database name> \n");
 }
 
-#if 0
 void insert_command_info() {
     fprintf(stdout, "insert <table_name> values <value1,value2,value3,...>\n");
 }
 
+#if 0
 void select_command_info() {
     fprintf(stdout, "select <column_names> from <table_name> (where <condition> ...) \n");
 }
@@ -454,6 +454,21 @@ bool use_fn(char **args, size_t args_len) {
         const current_db_t *db = get_current_db();
         fprintf(stdout, "Using database: %s \n", db->name);
     }
+
+    return true;
+}
+
+bool insert_help_fn(char **args, size_t args_len) {
+    (void)args;
+    (void)args_len;
+
+    insert_command_info();
+    return true;
+}
+
+bool insert_fn(char **args, size_t args_len) {
+    (void)args;
+    (void)args_len;
 
     return true;
 }

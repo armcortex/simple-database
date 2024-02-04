@@ -38,7 +38,7 @@ void create_command_info(void);
 void delete_command_info(void);
 
 void use_command_info(void);
-// void insert_command_info(void);
+void insert_command_info(void);
 // void select_command_info(void);
 
 void list_command_info(void);
@@ -60,6 +60,8 @@ bool use_help_fn(char **args, size_t args_len);
 bool use_fn(char **args, size_t args_len);
 
 // Insert command
+bool insert_help_fn(char **args, size_t args_len);
+bool insert_fn(char **args, size_t args_len);
 void insert_table_data(const char *filename_path, const char *table_name, char **datas, size_t len);
 void insert_table_update_database_meta(const char *db_filename, const char *table_name, size_t data_update_cnt);
 

@@ -39,6 +39,11 @@ static cmd_parse_t parse_delete_cmd_list[] = {
     {"-database", 9, DELETE_SUB_DATABASE, NULL, 0},
 };
 
+static cmd_parse_t parse_insert_cmd_list[] = {
+        {"-help", 5, INSERT_SUB_HELP, NULL, 0},
+        {"-h", 2, INSERT_SUB_HELP, NULL, 0},
+};
+
 static cmd_parse_t parse_basic_cmd_list[] = {
     {"help", 4, HELP, parse_help_cmd_list, CALC_ARRAY_SIZE(parse_help_cmd_list, cmd_parse_t)},
     {"exit", 4, EXIT, NULL, 0},
@@ -46,7 +51,7 @@ static cmd_parse_t parse_basic_cmd_list[] = {
     {"use", 3, USE, parse_use_cmd_list, CALC_ARRAY_SIZE(parse_use_cmd_list, cmd_parse_t)},
     {"delete", 6, DELETE, parse_delete_cmd_list, CALC_ARRAY_SIZE(parse_delete_cmd_list, cmd_parse_t)},
     {"select", 6, SELECT, NULL, 0},
-    {"insert", 6, INSERT, NULL, 0},
+    {"insert", 6, INSERT, parse_insert_cmd_list, CALC_ARRAY_SIZE(parse_insert_cmd_list, cmd_parse_t)},
     {"list", 4, LIST, NULL, 0},
 };
 
@@ -73,6 +78,10 @@ static cmd_fn_t delete_subcmd_fn_list[] = {
     {DELETE_SUB_DATABASE, delete_database_fn, NULL},
 };
 
+static cmd_fn_t insert_subcmd_fn_list[] = {
+        {INSERT_SUB_HELP, insert_help_fn, NULL},
+};
+
 // Data order must be same as cmd_state_t
 static cmd_fn_t main_cmd_fn_list[] = {
     {INIT, null_fn, NULL},
@@ -82,7 +91,7 @@ static cmd_fn_t main_cmd_fn_list[] = {
     {USE, use_fn, use_subcmd_fn_list},
     {DELETE, wrong_fn, delete_subcmd_fn_list},
     {SELECT, null_fn, NULL},
-    {INSERT, null_fn, NULL},
+    {INSERT, insert_fn, insert_subcmd_fn_list},
     {LIST, null_fn, NULL},
 };
 
