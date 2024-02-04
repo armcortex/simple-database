@@ -467,10 +467,15 @@ bool insert_help_fn(char **args, size_t args_len) {
 }
 
 bool insert_fn(char **args, size_t args_len) {
-    (void)args;
-    (void)args_len;
-
-    return true;
+    char table_name_path[PATH_MAX] = {0};
+    if (check_table_exist((const char*)args[0], table_name_path)) {
+        insert_table_data(table_name_path, (const char*)args[0], &args[2], args_len-2);
+        return true;
+    }
+    else {
+        fprintf(stderr, "Table %s not found\n", args[0]);
+        return false;
+    }
 }
 
 void insert_table_data(const char *filename_path, const char *table_name, char **datas, size_t len) {

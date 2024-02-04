@@ -216,13 +216,12 @@ TEST_CASE("Help command info", "[command]") {
         REQUIRE(res);
     }
 
-#if 0
     SECTION("Insert help command") {
         // Init
         IORedirector redirector;
 
         // Testing
-        cmd_str = "insert help\n";
+        cmd_str = "insert -help\n";
         query_res = execute_cmd(redirector, prompt_buf, query_state, cmd_str);
         read_str = redirector.read_stdout();
         ref_str = "insert <table_name> values <value1,value2,value3,...>\n";
@@ -230,6 +229,7 @@ TEST_CASE("Help command info", "[command]") {
         REQUIRE(res);
     }
 
+#if 0
     SECTION("Select help command") {
         // Init
         IORedirector redirector;
@@ -1089,6 +1089,9 @@ TEST_CASE("Insert Data Test", "[insert]") {
 
     std::string cmd_str;
     std::string read_str;
+    std::string read_err_str;
+    std::string ref_str;
+    std::string ref_err_str;
     // bool fileExists;
     bool res;
 
@@ -1134,14 +1137,16 @@ TEST_CASE("Insert Data Test", "[insert]") {
     SECTION("Inserting data into table") {
         // Init
         IORedirector redirector;
-        cmd_str = "create database " + db_name + "\n";
+        cmd_str = "create -database " + db_name + "\n";
         execute_cmd(redirector, prompt_buf, query_state, cmd_str);
 
         cmd_str = "use " + db_name + "\n";
         execute_cmd(redirector, prompt_buf, query_state, cmd_str);
 
-        cmd_str = "create table " + table_name + " name STRING age INT height FLOAT \n";
+        cmd_str = "create -table " + table_name + " name STRING age INT height FLOAT \n";
         execute_cmd(redirector, prompt_buf, query_state, cmd_str);
+
+        redirector.flush();
 
         // Testing
         std::vector<std::string> insert_datas = {
@@ -1158,6 +1163,17 @@ TEST_CASE("Insert Data Test", "[insert]") {
             execute_cmd(redirector, prompt_buf, query_state, cmd_str);
         }
 
+        // Check status
+        read_str = redirector.read_stdout();
+        read_err_str = redirector.read_stderr();
+        ref_str = "";
+        res = compare_io_response_str(read_str, ref_str);
+        REQUIRE(res);
+
+        ref_err_str = "";
+        res = compare_io_response_str(read_err_str, ref_err_str);
+        REQUIRE(res);
+
         // check table data
         std::ifstream file(table_file_path);
         std::string table_content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
@@ -1172,21 +1188,23 @@ TEST_CASE("Insert Data Test", "[insert]") {
         REQUIRE(db_json["tables"][0]["data_cnt"] == insert_datas.size());
 
         // Close
-        cmd_str = "delete database " + db_name + "\n";
+        cmd_str = "delete -database " + db_name + "\n";
         execute_cmd(redirector, prompt_buf, query_state, cmd_str);
     }
 
     SECTION("Inserting data into table multiple times") {
         // Init
         IORedirector redirector;
-        cmd_str = "create database " + db_name + "\n";
+        cmd_str = "create -database " + db_name + "\n";
         execute_cmd(redirector, prompt_buf, query_state, cmd_str);
 
         cmd_str = "use " + db_name + "\n";
         execute_cmd(redirector, prompt_buf, query_state, cmd_str);
 
-        cmd_str = "create table " + table_name + " name STRING age INT height FLOAT \n";
+        cmd_str = "create -table " + table_name + " name STRING age INT height FLOAT \n";
         execute_cmd(redirector, prompt_buf, query_state, cmd_str);
+
+        redirector.flush();
 
         // Testing
         const int repeat_times = 3;
@@ -1206,6 +1224,17 @@ TEST_CASE("Insert Data Test", "[insert]") {
                 execute_cmd(redirector, prompt_buf, query_state, cmd_str);
             }
         }
+
+        // Check status
+        read_str = redirector.read_stdout();
+        read_err_str = redirector.read_stderr();
+        ref_str = "";
+        res = compare_io_response_str(read_str, ref_str);
+        REQUIRE(res);
+
+        ref_err_str = "";
+        res = compare_io_response_str(read_err_str, ref_err_str);
+        REQUIRE(res);
 
         // check table data
         std::ifstream file(table_file_path);
@@ -1227,7 +1256,7 @@ TEST_CASE("Insert Data Test", "[insert]") {
         REQUIRE(db_json["tables"][0]["data_cnt"] == (insert_datas.size() * repeat_times));
 
         // Close
-        cmd_str = "delete database " + db_name + "\n";
+        cmd_str = "delete -database " + db_name + "\n";
         execute_cmd(redirector, prompt_buf, query_state, cmd_str);
     }
 
